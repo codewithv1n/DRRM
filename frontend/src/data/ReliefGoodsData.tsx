@@ -10,7 +10,7 @@ export const currentResident = {
 
 export const statusConfig = {
   received: {
-    label: 'Natanggap na',
+    label: 'Already Claimed',
     icon: (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -23,7 +23,7 @@ export const statusConfig = {
     gradient: 'from-green-50 to-emerald-50',
   },
   not_received: {
-    label: 'Hindi pa',
+    label: 'Not Claimed',
     icon: (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -37,7 +37,7 @@ export const statusConfig = {
     gradient: 'from-red-50 to-rose-50',
   },
   scheduled: {
-    label: 'Naka-schedule',
+    label: 'Scheduled',
     icon: (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -62,4 +62,4 @@ export const timeline = [
   { date: 'Hulyo 5, 2026', aid: 'Pagkain, Tubig, Gamot', location: 'Barangay Hall', done: true },
   { date: 'Hunyo 20, 2026', aid: 'Pagkain, Tubig', location: 'Covered Court', done: true },
   { date: 'Hunyo 5, 2026', aid: 'Pagkain, Damit', location: 'Barangay Hall', done: true },
-];
+];
