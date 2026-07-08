@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import UserLayout from './components/UserLayout'
+import AdminLayout from './components/AdminLayout'
 import HazardMapPage from './pages/users/HazardMapPage'
 import ReliefGoodsTrackerPage from './pages/users/ReliefGoodsTrackerPage'
 import IncidentReportPage from './pages/users/IncidentReportPage'
@@ -16,6 +17,13 @@ function App() {
         <Route path="/incident-report" element={<IncidentReportPage />} />
         <Route path="/early-warning" element={<DisasterEarlyWarningPage />} />
         <Route path="/coordination" element={<DrrmCoordinationPage />} />
+      </Route>
+
+      <Route element={<AdminLayout />}>
+        <Route path='/' element={<Navigate to="/admin" replace />} />
+          
+
+
       </Route>
     </Routes>
   )
