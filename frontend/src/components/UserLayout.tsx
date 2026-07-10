@@ -135,7 +135,7 @@ export default function UserLayout() {
           </nav>
         </aside>
 
-        {/* Main Content — ml-[220px] para mag-offset sa fixed sidebar */}
+        {/* Main Content */}
         <main className="flex-1 ml-[220px] py-7 px-8 overflow-y-auto min-h-[calc(100vh-56px)] bg-slate-50 max-md:py-5 max-md:px-4 max-md:ml-0">
           <Outlet />
         </main>
