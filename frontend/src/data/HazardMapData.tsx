@@ -48,4 +48,3 @@ export const statusConfig = {
   FULL: { color: '#eab308', bg: 'rgba(234,179,8,0.1)', label: 'FULL' },
   CLOSED: { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'CLOSED' },
 };
-
