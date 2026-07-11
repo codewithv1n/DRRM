@@ -1,4 +1,3 @@
-// src/index.ts
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import testRoutes from './routes/dbtestRoutes';
