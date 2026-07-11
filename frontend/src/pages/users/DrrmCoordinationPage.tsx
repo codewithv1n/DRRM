@@ -4,7 +4,6 @@ import {
   drillSchedule,
   resources,
   statusConfig,
-  evacuationCenters,
   emergencyHotlines
 }from '../../data/DrrmCoordinationData'
 
@@ -194,51 +193,7 @@ export default function DrrmCoordinationPage() {
         </div>
       </div>
 
-      {/* ── Designated Evacuation Centers ── */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="py-3.5 px-5 border-b border-slate-100 flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-rose-500/8 flex items-center justify-center text-rose-500 shrink-0">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 1.5C5.51 1.5 3.5 3.51 3.5 6C3.5 9.5 8 14.5 8 14.5C8 14.5 12.5 9.5 12.5 6C12.5 3.51 10.49 1.5 8 1.5Z" stroke="currentColor" strokeWidth="1.3" />
-              <circle cx="8" cy="6" r="1.8" stroke="currentColor" strokeWidth="1.2" fill="none" />
-            </svg>
-          </div>
-          <h2 className="text-[13px] font-bold text-slate-500 uppercase tracking-wider m-0">
-            Mga Designated Evacuation Center at Assembly Area
-          </h2>
-        </div>
-        <div className="divide-y divide-slate-100">
-          {evacuationCenters.map((center, idx) => (
-            <div key={idx} className="flex items-start gap-3.5 py-4 px-5 hover:bg-slate-50/50 transition-colors">
-              <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center mt-0.5 ${
-                center.type === 'Primary' ? 'bg-rose-50 text-rose-500' :
-                center.type === 'Secondary' ? 'bg-amber-50 text-amber-500' :
-                'bg-slate-100 text-slate-400'
-              }`}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M3 17V9L10 3L17 9V17H12V12H8V17H3Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-sm font-semibold text-slate-800 m-0">{center.name}</h3>
-                  <span className={`text-[10px] font-bold py-0.5 px-2 rounded-full uppercase tracking-wide ${
-                    center.type === 'Primary' ? 'text-rose-600 bg-rose-500/8' :
-                    center.type === 'Secondary' ? 'text-amber-600 bg-amber-500/8' :
-                    'text-slate-500 bg-slate-100'
-                  }`}>
-                    {center.type}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 mt-0.5 m-0">
-                  📍 {center.address} &nbsp;•&nbsp; 👥 Kapasidad: {center.capacity}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
+    
       {/* ── Emergency Hotlines ── */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         <div className="py-3.5 px-5 border-b border-slate-100 flex items-center gap-2">

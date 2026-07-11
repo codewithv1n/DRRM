@@ -28,11 +28,6 @@ export const statusConfig = {
   maintenance: { label: 'Maintenance', color: '#d97706', bg: 'rgba(217,119,6,0.08)', dot: '#f59e0b' },
 };
 
-export const evacuationCenters = [
-  { name: 'Barangay Covered Court', capacity: '500 tao', address: 'Brgy. San Jose, Main Road', type: 'Primary' },
-  { name: 'San Jose Elementary School', capacity: '300 tao', address: 'Rizal St., Brgy. San Jose', type: 'Secondary' },
-  { name: 'Parish Church Hall', capacity: '150 tao', address: 'National Highway, Brgy. San Jose', type: 'Assembly Area' },
-];
 
 export const emergencyHotlines = [
   { name: 'Barangay Hall', number: '(02) 8123-4567', icon: '🏛️' },
