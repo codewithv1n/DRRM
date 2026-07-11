@@ -14,27 +14,35 @@ export default function HazardMap() {
       style: {
         version: 8,
         sources: {
-          osm: {
+          'google-hybrid': {
             type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tiles: ['https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&scale=2'],
             tileSize: 256,
-            attribution: '© OpenStreetMap contributors',
-          },
+            maxzoom: 20,
+            attribution: 'Tiles &copy; Google'
+          }
         },
         layers: [
           {
-            id: 'osm-tiles',
+            id: 'satellite-background',
             type: 'raster',
-            source: 'osm',
-            minzoom: 0,
-            maxzoom: 22,
-          },
-        ],
+            source: 'google-hybrid',
+            paint: {
+              'raster-opacity': 1.0,
+              'raster-resampling': 'nearest'
+            }
+          }
+        ]
       },
-      center: [121.0493, 14.6515],
-      zoom: 13,
-      minZoom: 12,
-      maxZoom: 18,
+      center: [121.0493, 14.6515], 
+      zoom: 14.2,
+      minZoom: 11,
+      maxZoom: 20, 
+      pitch: 0, 
+      bearing: 0, 
+      attributionControl: {
+        compact: true,
+      },
     });
 
     map.current = m;
@@ -43,18 +51,21 @@ export default function HazardMap() {
       console.error('[MapLibre] Error:', e);
     });
 
+  
+    const geolocate = new maplibregl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: true,
+      showUserLocation: true,
+    });
+    m.addControl(geolocate, 'top-right');
+    m.addControl(new maplibregl.NavigationControl(), 'top-right');
+
     m.on('load', () => {
       m.resize();
+      
+      
+      geolocate.trigger();
     });
-
-    m.addControl(new maplibregl.NavigationControl(), 'top-right');
-    m.addControl(
-      new maplibregl.GeolocateControl({
-        positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: true,
-      }),
-      'top-right'
-    );
 
     return () => {
       m.remove();
@@ -82,12 +93,14 @@ export default function HazardMap() {
           left: -3px !important;
           top: -3px !important;
         }
+        .maplibregl-user-location-accuracy-circle, .mapboxgl-user-location-accuracy-circle {
+          display: none !important;
+        }
       `}</style>
       <div
         ref={mapContainer}
-        style={{ width: '100%', height: '300px', position: 'relative', zIndex: 0 }}
+        style={{ width: '100%', height: '350px', position: 'relative', zIndex: 0 }}
       />
     </>
   );
 }
-
