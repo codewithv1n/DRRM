@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import HazardMap from '../../components/HazardMap';
 import {
-   evacuationCenters,
-   faqItems,
-   statusConfig
-}from '../../data/HazardMapData'
+  evacuationCenters,
+  faqItems,
+  statusConfig
+} from '../../data/HazardMapData'
 
 
 export default function HazardMapPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleFaq = (id: number) => {
     setOpenFaq(openFaq === id ? null : id);
@@ -25,29 +24,15 @@ export default function HazardMapPage() {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex items-center gap-3 bg-white p-3 px-4 rounded-xl border border-slate-200 shadow-sm max-md:flex-col max-md:items-stretch max-md:gap-2.5">
-        <div className="flex-1 flex items-center gap-2.5">
-          <svg className="text-slate-400 shrink-0" width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M12.5 12.5L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          <input
-            type="text"
-            className="flex-1 border-none outline-none text-sm text-slate-800 bg-transparent placeholder:text-slate-400"
-            placeholder="Find evacuation area here..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <select className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
-          <option value="">All Hazards</option>
-          <option value="flood">Flood</option>
-          <option value="landslide">Landslide</option>
-          <option value="fire">Fire</option>
-          <option value="earthquake">Earthquake</option>
-        </select>
-      </div>
+      {/* Selections */}
+      <select className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+        <option value="">All Hazards</option>
+        <option value="flood">Flood</option>
+        <option value="landslide">Landslide</option>
+        <option value="fire">Fire</option>
+        <option value="earthquake">Earthquake</option>
+      </select>
+
 
       {/* Map */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
