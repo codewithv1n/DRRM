@@ -6,9 +6,10 @@ import {
 
 
 export default function DisasterEarlyWarningPage() {
-  const [activeTab, setActiveTab] = useState<'alerts' | 'tips' | 'hotlines'>('alerts');
+  const [activeTab, setActiveTab] = useState <'alerts' | 'tips' | 'hotlines'> ('alerts');
 
   return (
+
     <div className="w-full px-6 p-4 flex flex-col gap-6">
       {/* ── Header ── */}
       <div>
