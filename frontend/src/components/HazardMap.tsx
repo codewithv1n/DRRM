@@ -53,17 +53,20 @@ export default function HazardMap() {
 
   
     const geolocate = new maplibregl.GeolocateControl({
-      positionOptions: { enableHighAccuracy: true },
+      positionOptions: {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
       trackUserLocation: true,
       showUserLocation: true,
+      showAccuracyCircle: true,
     });
     m.addControl(geolocate, 'top-right');
     m.addControl(new maplibregl.NavigationControl(), 'top-right');
 
     m.on('load', () => {
       m.resize();
-      
-      
       geolocate.trigger();
     });
 
