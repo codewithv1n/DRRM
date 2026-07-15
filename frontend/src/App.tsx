@@ -6,6 +6,10 @@ import ReliefGoodsTrackerPage from './pages/users/ReliefGoodsTrackerPage'
 import IncidentReportPage from './pages/users/IncidentReportPage'
 import DisasterEarlyWarningPage from './pages/users/DisasterEarlyWarningPage'
 import DrrmCoordinationPage from './pages/users/DrrmCoordinationPage'
+import LoginPage from './auth/users/LoginPage'
+import SignupPage from './auth/users/SignupPage'
+import AdminLoginPage from './auth/admin/adminLoginPage'
+import AdminSignupPage from './auth/admin/adminSignupPage'
 
 function App() {
   return (
@@ -25,6 +29,12 @@ function App() {
 
 
       </Route>
+
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage/>} />
+
+      <Route path="/adminLogin" element={<AdminLoginPage />}/>
+       <Route path="/adminSignup" element={<AdminSignupPage />}/>
     </Routes>
   )
 }
