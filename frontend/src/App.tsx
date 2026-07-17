@@ -11,6 +11,14 @@ import SignupPage from './auth/users/SignupPage'
 import AdminLoginPage from './auth/admin/adminLoginPage'
 import AdminSignupPage from './auth/admin/adminSignupPage'
 
+// Admin Pages
+import DashboardPage from './pages/admin/DashboardPage'
+import IncidentManagementPage from './pages/admin/IncidentManagementPage'
+import ReliefInventoryPage from './pages/admin/ReliefInventoryPage'
+import MapControlPage from './pages/admin/MapControlPage'
+import AlertsContentPage from './pages/admin/AlertsContentPage'
+import RecordsPage from './pages/admin/RecordsPage'
+
 function App() {
   return (
     <Routes>
@@ -24,10 +32,12 @@ function App() {
       </Route>
 
       <Route element={<AdminLayout />}>
-        <Route path='/' element={<Navigate to="/admin" replace />} />
-          
-
-
+        <Route path="/admin" element={<DashboardPage />} />
+        <Route path="/admin/incidents" element={<IncidentManagementPage />} />
+        <Route path="/admin/relief" element={<ReliefInventoryPage />} />
+        <Route path="/admin/map" element={<MapControlPage />} />
+        <Route path="/admin/alerts" element={<AlertsContentPage />} />
+        <Route path="/admin/records" element={<RecordsPage />} />
       </Route>
 
       <Route path="/login" element={<LoginPage />} />
