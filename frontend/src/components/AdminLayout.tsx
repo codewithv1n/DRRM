@@ -3,18 +3,32 @@ import { NavLink, Outlet } from 'react-router-dom';
 
 const navItems = [
   {
-    to: '/hazard-evac',
-    label: 'Hazard & Evacuation Map',
+    to: '/admin',
+    label: 'Command Center',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 17L7 3L11 13L14 7L17 17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+        <rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+        <rect x="11" y="2" width="7" height="4" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+        <rect x="2" y="11" width="7" height="4" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+        <rect x="11" y="8" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+        <rect x="2" y="17" width="16" height="1" rx="0.5" fill="currentColor" opacity="0.3" />
       </svg>
     ),
   },
   {
-    to: '/relief-goods',
-    label: 'Relief Goods Distribution Tracker',
+    to: '/admin/incidents',
+    label: 'Incident & Dispatch',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 2L2 18H18L10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M10 8V12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <circle cx="10" cy="15" r="0.8" fill="currentColor" />
+      </svg>
+    ),
+  },
+  {
+    to: '/admin/relief',
+    label: 'Relief Goods & Inventory',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M4 7L10 3L16 7V13L10 17L4 13V7Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
@@ -23,28 +37,29 @@ const navItems = [
     ),
   },
   {
-    to: '/incident-report',
-    label: 'Incident Reporting & Response Log',
+    to: '/admin/map',
+    label: 'Map & Evacuation Control',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="4" y="2" width="12" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M7 6H13M7 9H13M7 12H10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        <path d="M3 17L7 3L11 13L14 7L17 17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="10" cy="8" r="2" stroke="currentColor" strokeWidth="1.3" />
+        <path d="M10 10V12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
       </svg>
     ),
   },
   {
-    to: '/early-warning',
-    label: 'Disaster Early Warning System',
+    to: '/admin/alerts',
+    label: 'Alerts & Content',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 3V4M10 3C10 3 7 6 7 10C7 12 8 14 10 15C12 14 13 12 13 10C13 6 10 3 10 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10 2C10 2 7 5 7 9C7 11 8 13 10 14C12 13 13 11 13 9C13 5 10 2 10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         <path d="M5 5.5C3.5 7 3 9 3 10.5C3 14 6 17 10 17C14 17 17 14 17 10.5C17 9 16.5 7 15 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
   },
   {
-    to: '/coordination',
-    label: 'Barangay DRRM Coordination Tools',
+    to: '/admin/records',
+    label: 'Records & Personnel',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="7" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.5" />
@@ -55,7 +70,7 @@ const navItems = [
   },
 ];
 
-export default function UserLayout() {
+export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -79,12 +94,24 @@ export default function UserLayout() {
                 <path d="M12 7V13L15 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <span className="text-lg font-bold text-slate-800 tracking-tight">DRRM</span>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-slate-800 tracking-tight">DRRM</span>
+              <span className="text-[10px] font-bold text-white bg-blue-600 px-1.5 py-0.5 rounded tracking-wider uppercase">Admin</span>
+            </div>
           </div>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center gap-3">
+          {/* Notification Bell */}
+          <button className="relative p-2 rounded-lg text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-700">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 2C7.24 2 5 4.24 5 7V11L3 13V14H17V13L15 11V7C15 4.24 12.76 2 10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M8.5 17C8.5 17.83 9.17 18.5 10 18.5C10.83 18.5 11.5 17.83 11.5 17" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 animate-[pulse-dot_2s_ease-in-out_infinite]" />
+          </button>
+
           <div className="flex items-center gap-2 py-1.5 px-3 rounded-full border border-slate-200 cursor-pointer transition-all duration-200 bg-white hover:border-blue-600 hover:shadow-sm">
-            <div className="w-7 h-7 rounded-full bg-linear-to-br from-violet-400 to-violet-600 text-white flex items-center justify-center text-xs font-bold">R</div>
+            <div className="w-7 h-7 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-xs font-bold">A</div>
             <span className="text-[13px] font-medium text-slate-800">Admin</span>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M4 6L7 9L10 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -114,12 +141,12 @@ export default function UserLayout() {
             }
           `}
         >
-          <nav className="flex flex-col gap-12 mt-2">
+          <nav className="flex flex-col gap-1 mt-2">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={item.to === '/'}
+                end={item.to === '/admin'}
                 className={({ isActive }) =>
                   `flex items-start gap-2.5 py-2.5 px-3 rounded-lg text-[13px] font-medium leading-[1.4] transition-all duration-200 no-underline ${isActive
                     ? 'bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600'
