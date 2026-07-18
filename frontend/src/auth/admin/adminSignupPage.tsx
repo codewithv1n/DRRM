@@ -112,7 +112,7 @@ export default function AdminSignupPage() {
         {/*Log-in  link */}
         <p className="text-center text-[13px] text-slate-400 mt-6">
           You have an account?{' '}
-          <Link to="/login" className="font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200">
+          <Link to="/adminLogin" className="font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200">
             Login
           </Link>
         </p>
