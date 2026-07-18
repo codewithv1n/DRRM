@@ -3,9 +3,16 @@ import { Link } from 'react-router-dom';
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [fileName, setFileName] = useState('');
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFileName(e.target.files[0].name);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-8">
       <div className="w-full max-w-[400px]">
         {/* Logo & Heading */}
         <div className="flex flex-col items-center mb-8">
@@ -15,13 +22,35 @@ export default function SignupPage() {
               <path d="M12 7V13L15 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-slate-800 tracking-tight">Welcome back</h1>
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight">Create Account</h1>
           <p className="text-[13px] text-slate-400 mt-1">Sign up to your DRRM account</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 p-7 shadow-sm">
           <form className="flex flex-col gap-5">
 
+            {/* Name */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="name" className="text-[13px] font-medium text-slate-600">
+                Full Name
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.4" />
+                    <path d="M2.5 14C2.5 11.5 5 10 8 10C11 10 13.5 11.5 13.5 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                  </svg>
+                </span>
+                <input
+                  id="name"
+                  type="text"
+                  placeholder="Juan Dela Cruz"
+                  className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Email */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="email" className="text-[13px] font-medium text-slate-600">
                 Email address
@@ -85,11 +114,42 @@ export default function SignupPage() {
               </div>
             </div>
 
+            {/* Valid ID Picture */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="valid_id_picture" className="text-[13px] font-medium text-slate-600">
+                Valid ID Picture
+              </label>
+              <div className="relative">
+                <input
+                  id="valid_id_picture"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="valid_id_picture"
+                  className="flex items-center gap-3 w-full h-10 px-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 text-[13px] cursor-pointer transition-all duration-200 hover:border-blue-400 hover:bg-blue-50/30"
+                >
+                  <span className="text-slate-400">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <rect x="1.5" y="3" width="13" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
+                      <circle cx="5.5" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="1.2" />
+                      <path d="M1.5 11L5 8L7.5 10.5L10.5 7.5L14.5 11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                  <span className={fileName ? 'text-slate-800 truncate' : 'text-slate-400'}>
+                    {fileName || 'Upload a photo of your valid ID'}
+                  </span>
+                </label>
+              </div>
+              <p className="text-[11px] text-slate-400">Accepted formats: JPG, PNG, WEBP (Max 5MB)</p>
+            </div>
 
             {/* Submit */}
             <button
               type="submit"
-              className="w-full h-10 rounded-lg bg-blue-600 text-white text-[13px] font-semibold transition-all duration-200 hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 active:scale-[0.98]"
+              className="w-full h-10 rounded-lg bg-blue-600 text-white text-[13px] font-semibold transition-all duration-200 hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 active:scale-[0.98] mt-1"
             >
               Create Account
             </button>
