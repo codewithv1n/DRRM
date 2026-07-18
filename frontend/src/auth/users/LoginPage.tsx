@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
@@ -19,7 +20,32 @@ export default function LoginPage() {
                     <p className="text-[13px] text-slate-400 mt-1">Sign in to your DRRM account</p>
                 </div>
 
-           
+                {/* Role Toggle */}
+                <div className="flex items-center bg-white rounded-xl border border-slate-200 p-1 mb-4 shadow-sm">
+                    <button
+                        type="button"
+                        className="flex-1 flex items-center justify-center gap-2 h-9 rounded-lg bg-blue-600 text-white text-[13px] font-semibold transition-all duration-200 shadow-sm"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.4" />
+                            <path d="M2.5 14C2.5 11.5 5 10 8 10C11 10 13.5 11.5 13.5 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                        </svg>
+                        Resident
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/adminLogin')}
+                        className="flex-1 flex items-center justify-center gap-2 h-9 rounded-lg bg-transparent text-slate-500 text-[13px] font-medium transition-all duration-200 hover:bg-slate-100 hover:text-slate-700"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                            <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.4" />
+                            <path d="M5 8H11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                            <path d="M8 5V11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                        </svg>
+                        Staff
+                    </button>
+                </div>
+
                 <div className="bg-white rounded-2xl border border-slate-200 p-7 shadow-sm">
                     <form className="flex flex-col gap-5">
                       
