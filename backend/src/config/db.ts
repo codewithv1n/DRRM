@@ -5,18 +5,11 @@ dotenv.config();
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-    console.error("WARNING: DATABASE_URL is not defined in the environment variables (.env file).");
+    console.error("WARNING: DATABASE_URL is not defined in the environment variables.");
 }
 
 const pool = new Pool({
     connectionString,
-    // Note: If your self-hosted Eprovider platform is deployed securely in a production environment
-    // and requires SSL/TLS, you can uncomment the ssl configuration below:
-    /*
-    ssl: {
-        rejectUnauthorized: false
-    }
-    */
 });
 
 pool.on('error', (err) => {
