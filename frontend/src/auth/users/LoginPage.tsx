@@ -3,7 +3,49 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+
+        if (!email || !password) {
+            setError('Please fill in all fields.');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const response = await fetch('http://localhost:3000/api/residents/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.details || data.error || 'Login failed.');
+                return;
+            }
+
+            // Save resident data to localStorage
+            localStorage.setItem('resident', JSON.stringify(data.resident));
+
+            // Redirect to main page
+            navigate('/hazard-evac');
+
+        } catch (err: any) {
+            setError('Cannot connect to server. Please make sure the backend is running.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
@@ -47,7 +89,19 @@ export default function LoginPage() {
                 </div>
 
                 <div className="bg-white rounded-2xl border border-slate-200 p-7 shadow-sm">
-                    <form className="flex flex-col gap-5">
+                    {/* Error Message */}
+                    {error && (
+                        <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-[13px] text-red-600 flex items-center gap-2">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
+                                <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.4" />
+                                <path d="M8 5V9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                                <circle cx="8" cy="11.5" r="0.75" fill="currentColor" />
+                            </svg>
+                            {error}
+                        </div>
+                    )}
+
+                    <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
                       
                         <div className="flex flex-col gap-1.5">
                             <label htmlFor="email" className="text-[13px] font-medium text-slate-600">
@@ -64,6 +118,8 @@ export default function LoginPage() {
                                     id="email"
                                     type="email"
                                     placeholder="you@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white"
                                 />
                             </div>
@@ -88,6 +144,8 @@ export default function LoginPage() {
                                     id="password"
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     className="w-full h-10 pl-9 pr-10 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white"
                                 />
                                 <button
@@ -115,9 +173,20 @@ export default function LoginPage() {
                         {/* Submit */}
                         <button
                             type="submit"
-                            className="w-full h-10 rounded-lg bg-blue-600 text-white text-[13px] font-semibold transition-all duration-200 hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 active:scale-[0.98]"
+                            disabled={loading}
+                            className="w-full h-10 rounded-lg bg-blue-600 text-white text-[13px] font-semibold transition-all duration-200 hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 disabled:active:scale-100"
                         >
-                            Sign in
+                            {loading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                                        <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-75" />
+                                    </svg>
+                                    Signing in...
+                                </span>
+                            ) : (
+                                'Sign in'
+                            )}
                         </button>
                     </form>
                 </div>
