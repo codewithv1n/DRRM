@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { NavLink, Outlet, useNavigate, Navigate } from 'react-router-dom';
 
 const navItems = [
   {
@@ -57,11 +57,40 @@ const navItems = [
 
 export default function UserLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Retrieve resident info from localStorage
+  const residentData = localStorage.getItem('resident');
+  if (!residentData) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const resident = JSON.parse(residentData);
+  const displayName = resident?.full_name || 'Resident';
+  const displayInitial = displayName.charAt(0).toUpperCase();
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('resident');
+    navigate('/login');
+  };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       {/* Header */}
-      <header className="flex items-center justify-between h-17 px-5 bg-white border-b border-slate-200 sticky top-0 z-100">
+      <header className="flex items-center justify-between h-17 px-5 bg-white border-b border-slate-200 sticky top-0 z-100 shadow-xs">
         <div className="flex items-center gap-3">
           <button
             className="hidden max-md:flex p-1.5 rounded-md text-slate-800 transition-colors duration-200 hover:bg-slate-100"
@@ -82,14 +111,44 @@ export default function UserLayout() {
             <span className="text-lg font-bold text-slate-800 tracking-tight">DRRM</span>
           </div>
         </div>
-        <div className="flex items-center">
-          <div className="flex items-center gap-2 py-1.5 px-3 rounded-full border border-slate-200 cursor-pointer transition-all duration-200 bg-white hover:border-blue-600 hover:shadow-sm">
-            <div className="w-7 h-7 rounded-full bg-linear-to-br from-violet-400 to-violet-600 text-white flex items-center justify-center text-xs font-bold">R</div>
-            <span className="text-[13px] font-medium text-slate-800">Resident</span>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        
+        {/* Profile Dropdown */}
+        <div className="flex items-center relative" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="flex items-center gap-2 py-1.5 px-3 rounded-full border border-slate-200 cursor-pointer transition-all duration-200 bg-white hover:border-blue-600 hover:shadow-xs outline-none"
+          >
+            <div className="w-7 h-7 rounded-full bg-linear-to-br from-violet-400 to-violet-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+              {displayInitial}
+            </div>
+            <span className="text-[13px] font-medium text-slate-800">{displayName}</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}>
               <path d="M4 6L7 9L10 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </div>
+          </button>
+
+          {/* Dropdown Menu */}
+          {dropdownOpen && (
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-200 animate-[fadeIn_0.15s_ease]">
+              <div className="px-4 py-2 border-b border-slate-100">
+                <p className="text-[11px] text-slate-400 font-medium truncate">Logged in as</p>
+                <p className="text-[13px] font-semibold text-slate-700 truncate">{resident?.email || 'Resident'}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2.5 text-[13px] text-red-600 font-medium hover:bg-red-50 flex items-center gap-2 transition-colors duration-150"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Log Out
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
