@@ -35,31 +35,6 @@ export const hazardTypes: { value: HazardType; label: string; icon: React.ReactN
         ),
     },
     {
-        value: 'landslide',
-        label: 'Pagguho ng Lupa',
-        color: '#92400e',
-        bg: 'rgba(146,64,14,0.08)',
-        icon: (
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <path d="M4 24L12 10L18 18L24 8" stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="8" cy="18" r="2" fill="#92400e" opacity="0.3" />
-                <circle cx="20" cy="14" r="1.5" fill="#92400e" opacity="0.3" />
-                <path d="M4 24H24" stroke="#92400e" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-        ),
-    },
-    {
-        value: 'earthquake',
-        label: 'Lindol',
-        color: '#f59e0b',
-        bg: 'rgba(245,158,11,0.08)',
-        icon: (
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <path d="M2 14H6L9 8L12 20L15 6L18 22L21 12L24 14H26" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-        ),
-    },
-    {
         value: 'other',
         label: 'Iba Pa',
         color: '#64748b',
@@ -90,24 +65,6 @@ export const recentReports = [
         severity: 'high' as Severity,
         time: '15 min ago',
         status: 'UNDER REVIEW',
-    },
-    {
-        id: 2,
-        type: 'fire' as HazardType,
-        title: 'Sunog malapit sa palengke',
-        description: 'May nakitang usok mula sa isang gusali sa tabi ng palengke.',
-        severity: 'critical' as Severity,
-        time: '42 min ago',
-        status: 'RESPONDED',
-    },
-    {
-        id: 3,
-        type: 'landslide' as HazardType,
-        title: 'Pagguho ng lupa sa Sitio Bukal',
-        description: 'Bahagyang gumuho ang gilid ng burol pagkatapos ng malakas na ulan.',
-        severity: 'moderate' as Severity,
-        time: '1 hr ago',
-        status: 'RESOLVED',
     },
 ];
 
