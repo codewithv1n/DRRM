@@ -20,8 +20,8 @@ export const signupResident = async (req: Request, res: Response): Promise<void>
         // Check if passwords match
         if (password !== confirm_password) {
             res.status(400).json({
-                error: 'Password mismatch',
-                details: 'Passwords do not match.'
+                error: 'Credential mismatch',
+                details: 'Credentials do not match.'
             });
             return;
         }
