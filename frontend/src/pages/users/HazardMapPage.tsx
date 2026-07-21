@@ -28,9 +28,8 @@ export default function HazardMapPage() {
       <select className="px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
         <option value="">All Hazards</option>
         <option value="flood">Flood</option>
-        <option value="landslide">Landslide</option>
         <option value="fire">Fire</option>
-        <option value="earthquake">Earthquake</option>
+        <option value="others">Others</option>
       </select>
 
 
@@ -45,16 +44,8 @@ export default function HazardMapPage() {
             Fire
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-amber-500" />
-            Earthquake
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
             <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-blue-500" />
             Flood
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-amber-800" />
-            Landslide
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
             <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-gray-500" />
