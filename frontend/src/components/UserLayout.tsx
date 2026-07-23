@@ -4,7 +4,11 @@ import { NavLink, Outlet, useNavigate, Navigate } from 'react-router-dom';
 const navItems = [
   {
     to: '/hazard-evac',
-    label: 'Hazard & Evacuation Map',
+    label: (
+      <>
+        Hazard & Evacuation<br />Map
+      </>
+    ),
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M3 17L7 3L11 13L14 7L17 17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -68,8 +72,13 @@ export default function UserLayout() {
   }
 
   const resident = JSON.parse(residentData);
-  const displayName = resident?.full_name || 'Resident';
+  const displayName = resident?.name || 'Resident';
   const displayInitial = displayName.charAt(0).toUpperCase();
+  const profilePicUrl = resident?.profile_picture
+    ? resident.profile_picture.startsWith('http')
+      ? resident.profile_picture
+      : `http://localhost:3000${resident.profile_picture}`
+    : null;
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -119,9 +128,17 @@ export default function UserLayout() {
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center gap-2 py-1.5 px-3 rounded-full border border-slate-200 cursor-pointer transition-all duration-200 bg-white hover:border-blue-600 hover:shadow-xs outline-none"
           >
-            <div className="w-7 h-7 rounded-full bg-linear-to-br from-violet-400 to-violet-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-              {displayInitial}
-            </div>
+            {profilePicUrl ? (
+              <img
+                src={profilePicUrl}
+                alt={displayName}
+                className="w-7 h-7 rounded-full object-cover shadow-xs"
+              />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-linear-to-br from-violet-400 to-violet-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                {displayInitial}
+              </div>
+            )}
             <span className="text-[13px] font-medium text-slate-800">{displayName}</span>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={`transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}>
               <path d="M4 6L7 9L10 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
