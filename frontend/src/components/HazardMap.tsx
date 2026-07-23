@@ -79,7 +79,7 @@ export default function HazardMap() {
               if (isMajorHighway) {
                 (layer.paint as any)['line-color'] = '#B7B89F';
               } else {
-                (layer.paint as any)['line-color'] = '#777C6D';
+                (layer.paint as any)['line-color'] = '#3C3D37';
               }
            }
       }
@@ -121,7 +121,7 @@ export default function HazardMap() {
               paint: {
                 'line-color': '#273338',
                 'line-width': 1.2,
-                'line-opacity': 0.8
+                'line-opacity': 1.2
               }
             }, firstSymbolId || undefined);
 
