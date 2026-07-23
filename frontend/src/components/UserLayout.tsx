@@ -163,7 +163,7 @@ export default function UserLayout() {
         {/* Sidebar */}
         <aside
           className={`
-            w-220px min-w-220px bg-white border-r border-slate-200
+            w-65 min-w-65 bg-white border-r border-slate-200
             py-4 px-2.5 overflow-y-auto h-[calc(105vh-56px)] fixed top-14 left-0 z-40
             max-md:z-90
             max-md:transition-transform max-md:duration-300 
@@ -195,7 +195,7 @@ export default function UserLayout() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 ml-220px py-7 px-8 overflow-y-auto min-h-[calc(100vh-56px)] bg-slate-50 max-md:py-5 max-md:px-4 max-md:ml-0">
+        <main className="flex-1 ml-65 py-7 px-8 overflow-y-auto min-h-[calc(100vh-56px)] bg-slate-50 max-md:py-5 max-md:px-4 max-md:ml-0">
           <Outlet />
         </main>
       </div>
