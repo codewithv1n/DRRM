@@ -77,9 +77,9 @@ export default function HazardMap() {
               
               layer.paint = layer.paint || {};
               if (isMajorHighway) {
-                (layer.paint as any)['line-color'] = '#cbd5e1';
+                (layer.paint as any)['line-color'] = '#B7B89F';
               } else {
-                (layer.paint as any)['line-color'] = '#475569';
+                (layer.paint as any)['line-color'] = '#777C6D';
               }
            }
       }
@@ -119,7 +119,7 @@ export default function HazardMap() {
               'source-layer': buildingSourceLayer,
               type: 'line',
               paint: {
-                'line-color': '#64748b',
+                'line-color': '#273338',
                 'line-width': 1.2,
                 'line-opacity': 0.8
               }
