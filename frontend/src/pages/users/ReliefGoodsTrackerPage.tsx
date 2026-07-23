@@ -223,7 +223,7 @@ export default function ReliefGoodsTrackerPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-800 m-0">{entry.date}</p>
-                  <p className="text-xs text-slate-400 mt-[2px] m-0">{entry.aid} — {entry.location}</p>
+                  <p className="text-xs text-slate-400 mt-2px m-0">{entry.aid} — {entry.location}</p>
                 </div>
                 <span className="text-[11px] font-bold py-1 px-3 rounded-full text-green-600 bg-green-500/8">
                    Natanggap
@@ -236,7 +236,7 @@ export default function ReliefGoodsTrackerPage() {
 
       {/* ── Warning Card ── */}
       <div className="flex items-start gap-3.5 py-4 px-5 bg-linear-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl shadow-sm">
-        <div className="w-[38px] h-[38px] rounded-full bg-amber-500/12 flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
+        <div className="w-38px h-38px rounded-full bg-amber-500/12 flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M10 2L1.5 17H18.5L10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
             <path d="M10 8V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

@@ -233,7 +233,7 @@ export default function DrrmCoordinationPage() {
 
       {/* ── Disclaimer ── */}
       <div className="flex items-start gap-3.5 py-4 px-5 bg-linear-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl shadow-sm">
-        <div className="w-[38px] h-[38px] rounded-full bg-amber-500/12 flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
+        <div className="w-38px h-38px rounded-full bg-amber-500/12 flex items-center justify-center text-amber-600 shrink-0 mt-0.5">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M10 2L1.5 17H18.5L10 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
             <path d="M10 8V12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

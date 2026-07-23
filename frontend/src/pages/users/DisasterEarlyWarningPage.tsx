@@ -66,7 +66,7 @@ export default function DisasterEarlyWarningPage() {
       </div>
 
       {/* ── Tab Content ── */}
-      <div className="min-h-[300px]">
+      <div className="min-h-300px">
         {activeTab === 'alerts' && (
           <div className="flex flex-col gap-4 animate-[fadeIn_0.3s_ease]">
             {activeAlerts.map((alert) => (

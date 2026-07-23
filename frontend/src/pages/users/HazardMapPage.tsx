@@ -70,7 +70,7 @@ export default function HazardMapPage() {
                 key={center.id}
                 className="flex items-center gap-3.5 py-4 px-5 bg-white border border-slate-200 rounded-xl transition-all duration-200 shadow-sm hover:border-slate-300 hover:shadow hover:-translate-y-px max-md:flex-col max-md:items-start max-md:gap-3"
               >
-                <div className="shrink-0 w-[42px] h-[42px] rounded-full bg-green-500/8 flex items-center justify-center">
+                <div className="shrink-0 w-10.5 h-10.5 rounded-full bg-green-500/8 flex items-center justify-center">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path
                       d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z"
@@ -83,7 +83,7 @@ export default function HazardMapPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-slate-800 m-0">{center.name}</h3>
-                  <p className="text-xs text-slate-400 mt-[3px]">
+                  <p className="text-xs text-slate-400 mt-0.75">
                     {center.distance} —— {center.walkTime}
                   </p>
                 </div>
@@ -98,7 +98,7 @@ export default function HazardMapPage() {
                     {config.label}
                   </span>
                   <button
-                    className={`py-2 px-[18px] rounded-lg text-xs font-semibold border-none cursor-pointer transition-all duration-200 whitespace-nowrap ${isAvailable
+                    className={`py-2 px-4.5 rounded-lg text-xs font-semibold border-none cursor-pointer transition-all duration-200 whitespace-nowrap ${isAvailable
                       ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-[0_2px_8px_rgba(37,99,235,0.3)]'
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none hover:bg-slate-200 hover:shadow-none'
                       }`}
@@ -124,7 +124,7 @@ export default function HazardMapPage() {
                 className="border-b border-slate-100 last:border-b-0"
               >
                 <button
-                  className="flex items-center justify-between w-full py-3.5 px-[18px] text-sm font-medium text-slate-800 bg-transparent border-none cursor-pointer transition-colors duration-200 text-left hover:bg-slate-100"
+                  className="flex items-center justify-between w-full py-3.5 px-4.5 text-sm font-medium text-slate-800 bg-transparent border-none cursor-pointer transition-colors duration-200 text-left hover:bg-slate-100"
                   onClick={() => toggleFaq(item.id)}
                   aria-expanded={openFaq === item.id}
                 >

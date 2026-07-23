@@ -257,7 +257,7 @@ export default function IncidentReportPage() {
 
                     <div className="ml-8">
                         <textarea
-                            className="w-full min-h-[120px] py-3 px-4 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl resize-y transition-all duration-200 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:bg-white placeholder:text-slate-400"
+                            className="w-full min-h-120px py-3 px-4 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl resize-y transition-all duration-200 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:bg-white placeholder:text-slate-400"
                             placeholder="Halimbawa: Malakas ang baha sa kalsada, tumaas na ng halos tuhod ang tubig. May ilang sasakyan na nastranded..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
@@ -342,7 +342,7 @@ export default function IncidentReportPage() {
                                     {selectedSeverity.label}
                                 </div>
                                 {location?.address && (
-                                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 py-1 px-2.5 rounded-lg bg-slate-100 max-w-[200px]">
+                                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 py-1 px-2.5 rounded-lg bg-slate-100 max-w-200px">
                                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
                                             <path d="M6 1C4.07 1 2.5 2.57 2.5 4.5C2.5 7.28 6 10.5 6 10.5C6 10.5 9.5 7.28 9.5 4.5C9.5 2.57 7.93 1 6 1Z" stroke="#64748b" strokeWidth="1.2" />
                                             <circle cx="6" cy="4.5" r="1.2" stroke="#64748b" strokeWidth="1" />
@@ -386,7 +386,7 @@ export default function IncidentReportPage() {
                                 className="flex items-start gap-3.5 py-4 px-5 bg-white border border-slate-200 rounded-xl transition-all duration-200 shadow-sm hover:border-slate-300 hover:shadow hover:-translate-y-px"
                             >
                                 <div
-                                    className="shrink-0 w-[42px] h-[42px] rounded-xl flex items-center justify-center mt-0.5"
+                                    className="shrink-0 w-42px h-42px rounded-xl flex items-center justify-center mt-0.5"
                                     style={{ background: typeInfo?.bg || 'rgba(100,116,139,0.06)' }}
                                 >
                                     {typeInfo?.icon}

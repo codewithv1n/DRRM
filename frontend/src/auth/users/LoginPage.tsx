@@ -19,7 +19,6 @@ export default function LoginPage() {
         }
 
         setLoading(true);
-
         try {
             const response = await fetch('http://localhost:3000/api/residents/login', {
                 method: 'POST',
@@ -49,7 +48,7 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-            <div className="w-full max-w-[400px]">
+            <div className="w-full max-w-100">
                 {/* Logo & Heading */}
                 <div className="flex flex-col items-center mb-8">
                     <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center mb-4 shadow-md shadow-blue-600/20">
