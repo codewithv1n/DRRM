@@ -23,7 +23,7 @@ function App() {
   return (
     <Routes>
       <Route element={<UserLayout />}>
-        <Route path="/" element={<Navigate to="/hazard-evac" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/hazard-evac" element={<HazardMapPage />} />
         <Route path="/relief-goods" element={<ReliefGoodsTrackerPage />} />
         <Route path="/incident-report" element={<IncidentReportPage />} />
