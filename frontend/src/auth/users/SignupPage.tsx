@@ -5,7 +5,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [fileName, setFileName] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -28,7 +28,7 @@ export default function SignupPage() {
     setSuccess('');
 
     // Basic validation
-    if (!fullName || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
       setError('Please fill in all required fields.');
       return;
     }
@@ -42,12 +42,12 @@ export default function SignupPage() {
 
     try {
       const formData = new FormData();
-      formData.append('full_name', fullName);
+      formData.append('name', name);
       formData.append('email', email);
       formData.append('password', password);
       formData.append('confirm_password', confirmPassword);
       if (file) {
-        formData.append('valid_id_picture', file);
+        formData.append('profile_picture', file);
       }
 
       const response = await fetch('http://localhost:3000/api/residents/signup', {
@@ -64,7 +64,7 @@ export default function SignupPage() {
 
       setSuccess('Account created successfully! Redirecting to login...');
       // Clear form
-      setFullName('');
+      setName('');
       setEmail('');
       setPassword('');
       setConfirmPassword('');
@@ -85,7 +85,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-8">
-      <div className="w-full max-w-[400px]">
+      <div className="w-full max-w-120">
         {/* Logo & Heading */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center mb-4 shadow-md shadow-blue-600/20">
@@ -98,11 +98,37 @@ export default function SignupPage() {
           <p className="text-[13px] text-slate-400 mt-1">Sign up to your DRRM account</p>
         </div>
 
+        {/* Role Toggle */}
+        <div className="flex items-center bg-white rounded-xl border border-slate-200 p-1 mb-4 shadow-sm">
+          <button
+            type="button"
+            className="flex-1 flex items-center justify-center gap-2 h-9 rounded-lg bg-blue-600 text-white text-[13px] font-semibold transition-all duration-200 shadow-sm"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M2.5 14C2.5 11.5 5 10 8 10C11 10 13.5 11.5 13.5 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            Resident
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/adminSignup')}
+            className="flex-1 flex items-center justify-center gap-2 h-9 rounded-lg bg-transparent text-slate-500 text-[13px] font-medium transition-all duration-200 hover:bg-slate-100 hover:text-slate-700"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M5 8H11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              <path d="M8 5V11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            Staff
+          </button>
+        </div>
+
         <div className="bg-white rounded-2xl border border-slate-200 p-7 shadow-sm">
           {/* Error Message */}
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-[13px] text-red-600 flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
                 <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.4" />
                 <path d="M8 5V9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                 <circle cx="8" cy="11.5" r="0.75" fill="currentColor" />
@@ -114,7 +140,7 @@ export default function SignupPage() {
           {/* Success Message */}
           {success && (
             <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-[13px] text-green-600 flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
                 <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.4" />
                 <path d="M5 8L7 10L11 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -140,8 +166,8 @@ export default function SignupPage() {
                   id="name"
                   type="text"
                   placeholder="Juan Dela Cruz"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white"
                 />
               </div>
@@ -262,19 +288,19 @@ export default function SignupPage() {
 
             {/* Valid ID Picture */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="valid_id_picture" className="text-[13px] font-medium text-slate-600">
-                Valid ID Picture
+              <label htmlFor="profile_picture" className="text-[13px] font-medium text-slate-600">
+                Picture
               </label>
               <div className="relative">
                 <input
-                  id="valid_id_picture"
+                  id="profile_picture"
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
                   className="hidden"
                 />
                 <label
-                  htmlFor="valid_id_picture"
+                  htmlFor="profile_picture"
                   className="flex items-center gap-3 w-full h-10 px-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 text-[13px] cursor-pointer transition-all duration-200 hover:border-blue-400 hover:bg-blue-50/30"
                 >
                   <span className="text-slate-400">
