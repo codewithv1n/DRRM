@@ -15,7 +15,7 @@ export const createIncidentReport = async (req: Request, res: Response): Promise
         }
 
         // Validate hazard_type
-        const validHazardTypes = ['flood', 'fire', 'landslide', 'earthquake', 'other'];
+        const validHazardTypes = ['flood', 'fire', 'other'];
         if (!validHazardTypes.includes(hazard_type)) {
             res.status(400).json({
                 error: 'Invalid hazard type',
