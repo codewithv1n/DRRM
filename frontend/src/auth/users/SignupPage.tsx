@@ -88,7 +88,7 @@ export default function SignupPage() {
       <div className="w-full max-w-120">
         {/* Logo & Heading */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center mb-4 shadow-md shadow-blue-600/20">
+          <div className="w-11 h-11 rounded-xl bg-orange-400 flex items-center justify-center mb-4 shadow-md shadow-orange-400/20">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" />
               <path d="M12 7V13L15 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -102,7 +102,7 @@ export default function SignupPage() {
         <div className="flex items-center bg-white rounded-xl border border-slate-200 p-1 mb-4 shadow-sm">
           <button
             type="button"
-            className="flex-1 flex items-center justify-center gap-2 h-9 rounded-lg bg-blue-600 text-white text-[13px] font-semibold transition-all duration-200 shadow-sm"
+            className="flex-1 flex items-center justify-center gap-2 h-9 rounded-lg bg-orange-400 text-white text-[13px] font-semibold transition-all duration-200 shadow-sm"
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.4" />
@@ -168,7 +168,7 @@ export default function SignupPage() {
                   placeholder="Juan Dela Cruz"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white"
+                  className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/10 focus:bg-white"
                 />
               </div>
             </div>
@@ -191,7 +191,7 @@ export default function SignupPage() {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white"
+                  className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/10 focus:bg-white"
                 />
               </div>
             </div>
@@ -217,7 +217,7 @@ export default function SignupPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-10 pl-9 pr-10 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white"
+                  className="w-full h-10 pl-9 pr-10 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/10 focus:bg-white"
                 />
                 <button
                   type="button"
@@ -262,7 +262,7 @@ export default function SignupPage() {
                   placeholder="Please confirm your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full h-10 pl-9 pr-10 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:bg-white"
+                  className="w-full h-10 pl-9 pr-10 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/10 focus:bg-white"
                 />
                 <button
                   type="button"
@@ -301,7 +301,7 @@ export default function SignupPage() {
                 />
                 <label
                   htmlFor="profile_picture"
-                  className="flex items-center gap-3 w-full h-10 px-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 text-[13px] cursor-pointer transition-all duration-200 hover:border-blue-400 hover:bg-blue-50/30"
+                  className="flex items-center gap-3 w-full h-10 px-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 text-[13px] cursor-pointer transition-all duration-200 hover:border-orange-400 hover:bg-orange-50/30"
                 >
                   <span className="text-slate-400">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -322,7 +322,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-10 rounded-lg bg-blue-600 text-white text-[13px] font-semibold transition-all duration-200 hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 active:scale-[0.98] mt-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 disabled:active:scale-100"
+              className="w-full h-10 rounded-lg bg-orange-400 text-white text-[13px] font-semibold transition-all duration-200 hover:bg-orange-500 hover:shadow-md hover:shadow-orange-400/20 active:scale-[0.98] mt-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-400 disabled:active:scale-100 cursor-pointer"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -343,7 +343,7 @@ export default function SignupPage() {
         {/*Log-in  link */}
         <p className="text-center text-[13px] text-slate-400 mt-6">
           You have an account?{' '}
-          <Link to="/login" className="font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200">
+          <Link to="/login" className="font-medium text-orange-400 hover:text-orange-500 transition-colors duration-200">
             Login
           </Link>
         </p>
