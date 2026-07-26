@@ -111,7 +111,7 @@ export default function UserLayout() {
             </svg>
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-orange-400 flex items-center justify-center">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" />
                 <path d="M12 7V13L15 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -126,7 +126,7 @@ export default function UserLayout() {
           <button
             type="button"
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2 py-1.5 px-3 rounded-full border border-slate-200 cursor-pointer transition-all duration-200 bg-white hover:border-blue-600 hover:shadow-xs outline-none"
+            className="flex items-center gap-2 py-1.5 px-3 rounded-full border border-slate-200 cursor-pointer transition-all duration-200 bg-white hover:border-orange-400 hover:shadow-xs outline-none"
           >
             {profilePicUrl ? (
               <img
@@ -198,7 +198,7 @@ export default function UserLayout() {
                 end={item.to === '/'}
                 className={({ isActive }) =>
                   `flex items-start gap-2.5 py-2.5 px-3 rounded-lg text-[13px] font-medium leading-[1.4] transition-all duration-200 no-underline ${isActive
-                    ? 'bg-blue-50 text-blue-600 hover:bg-blue-50 hover:text-blue-600'
+                    ? 'bg-orange-50 text-orange-400 hover:bg-orange-50 hover:text-orange-400'
                     : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                   }`
                 }
