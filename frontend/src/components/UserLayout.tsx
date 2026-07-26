@@ -65,8 +65,8 @@ export default function UserLayout() {
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Retrieve resident info from localStorage
-  const residentData = localStorage.getItem('resident');
+  // Retrieve resident info from sessionStorage
+  const residentData = sessionStorage.getItem('resident');
   if (!residentData) {
     return <Navigate to="/login" replace />;
   }
@@ -91,8 +91,9 @@ export default function UserLayout() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+
   const handleLogout = () => {
-    localStorage.removeItem('resident');
+    sessionStorage.removeItem('resident');
     navigate('/login');
   };
 
@@ -198,8 +199,8 @@ export default function UserLayout() {
                 end={item.to === '/'}
                 className={({ isActive }) =>
                   `flex items-start gap-2.5 py-2.5 px-3 rounded-lg text-[13px] font-medium leading-[1.4] transition-all duration-200 no-underline ${isActive
-                    ? 'bg-orange-50 text-orange-400 hover:bg-orange-50 hover:text-orange-400'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                    ? 'bg-orange-50 text-orange-400 hover:bg-orange-100 hover:text-orange-400'
+                    : 'text-slate-500 hover:bg-gray-50 hover:text-slate-800'
                   }`
                 }
                 onClick={() => setSidebarOpen(false)}
