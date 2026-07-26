@@ -2,6 +2,12 @@ import { Request, Response } from 'express';
 import pool from '../config/db';
 
 
+const getStartOfYesterday = (): Date => {
+    const now = new Date();
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0);
+    return yesterday;
+};
+
 const formatEventTime = (timestampMs: number): string => {
     const now = Date.now();
     const eventDate = new Date(timestampMs);
@@ -12,22 +18,18 @@ const formatEventTime = (timestampMs: number): string => {
     if (diffHours < 1) {
         const mins = Math.max(1, Math.floor((now - timestampMs) / (1000 * 60)));
         return `${mins} min${mins > 1 ? 's' : ''} ago`;
-    } else if (diffHours < 24 && eventDate.getDate() === new Date().getDate()) {
+    } else if (eventDate.getDate() === new Date().getDate()) {
         return `Today at ${timeStr}`;
-    } else if (diffHours < 48) {
-        return `Yesterday at ${timeStr}`;
     } else {
-        return eventDate.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ` at ${timeStr}`;
+        return `Yesterday at ${timeStr}`;
     }
 };
 
 
 export const syncExternalAlerts = async (): Promise<any[]> => {
-    const liveAlerts: any[] = [];
-    const now = Date.now();
-    const twoDaysAgo = now - (48 * 60 * 60 * 1000); 
+    const yesterdayCutoff = getStartOfYesterday().getTime(); // Only keep today + yesterday
 
-   
+    
     try {
         const pagasaRes = await fetch(
             'https://api.open-meteo.com/v1/forecast?latitude=14.5995&longitude=120.9842&current=temperature_2m,relative_humidity_2m,precipitation,rain,weather_code,wind_speed_10m,wind_gusts_10m&timezone=Asia%2FManila'
@@ -41,20 +43,36 @@ export const syncExternalAlerts = async (): Promise<any[]> => {
             const windGusts = current.wind_gusts_10m;
             const rain = current.rain || 0;
 
-           
-            const obsTimeMs = current.time ? new Date(current.time).getTime() : now;
-            const timeStr = formatEventTime(obsTimeMs);
+            const pagasaTitle = `PAGASA Live Observation: ${temp}°C, Wind ${windSpeed} km/h`;
+            const pagasaDesc = `Real-time Atmospheric Data: Temperature is ${temp}°C, Wind Speed: ${windSpeed} km/h (Gusts up to ${windGusts} km/h), Rain Precipitation: ${rain} mm/h. Source: PAGASA Live Station.`;
+            const pagasaSeverity = windGusts > 40 || rain > 5 ? 'critical' : windSpeed > 20 || rain > 0.5 ? 'warning' : 'info';
             const pagasaUrl = 'https://www.pagasa.dost.gov.ph/weather';
 
-            liveAlerts.push({
-                title: `PAGASA Live Observation: ${temp}°C, Wind ${windSpeed} km/h`,
-                description: `Real-time Atmospheric Data: Temperature is ${temp}°C, Wind Speed: ${windSpeed} km/h (Gusts up to ${windGusts} km/h), Rain Precipitation: ${rain} mm/h. Source: PAGASA Live Station.`,
-                severity: windGusts > 40 || rain > 5 ? 'critical' : windSpeed > 20 || rain > 0.5 ? 'warning' : 'info',
-                type: 'Typhoon',
-                source: 'PAGASA Weather Portal',
-                source_url: pagasaUrl,
-                issued_at: timeStr
-            });
+            const existingPagasa = await pool.query(
+                `SELECT warning_id FROM early_warning WHERE source = 'PAGASA Weather Portal' ORDER BY warning_id DESC`
+            );
+
+            if (existingPagasa.rows.length === 0) {
+                await pool.query(
+                    `INSERT INTO early_warning (title, description, severity, type, source, source_url)
+                     VALUES ($1, $2, $3, $4, $5, $6)`,
+                    [pagasaTitle, pagasaDesc, pagasaSeverity, 'Typhoon', 'PAGASA Weather Portal', pagasaUrl]
+                );
+            } else {
+                const keepId = existingPagasa.rows[0].warning_id;
+                
+                await pool.query(
+                    `UPDATE early_warning 
+                     SET title = $1, description = $2, severity = $3, source_url = $4, created_at = CURRENT_TIMESTAMP 
+                     WHERE warning_id = $5`,
+                    [pagasaTitle, pagasaDesc, pagasaSeverity, pagasaUrl, keepId]
+                );
+                
+                await pool.query(
+                    `DELETE FROM early_warning WHERE source = 'PAGASA Weather Portal' AND warning_id != $1`,
+                    [keepId]
+                );
+            }
         }
     } catch (err) {
         console.error('PAGASA live fetch error:', err);
@@ -75,25 +93,34 @@ export const syncExternalAlerts = async (): Promise<any[]> => {
                 const eventTimeMs = props.time || 0;
 
                 
-                if (eventTimeMs < twoDaysAgo) {
+                if (eventTimeMs < yesterdayCutoff) {
                     continue;
                 }
 
                 const mag = props.mag || 0;
                 const place = props.place || 'Philippines region';
-                
-                const eventTimeStr = formatEventTime(eventTimeMs);
+                const eventTitle = props.title || `Magnitude ${mag.toFixed(1)} - ${place}`;
+                const eventDesc = `Real-time Seismic Event: Earthquake of Magnitude ${mag.toFixed(1)} recorded near ${place}. Depth: ${item.geometry.coordinates[2]} km. Coordinates: [${item.geometry.coordinates[1].toFixed(2)}, ${item.geometry.coordinates[0].toFixed(2)}].`;
+                const severity = mag >= 5.5 ? 'critical' : mag >= 4.0 ? 'warning' : 'info';
                 const eventUrl = props.url || 'https://earthquake.usgs.gov/earthquakes/map/';
 
-                liveAlerts.push({
-                    title: props.title || `Magnitude ${mag.toFixed(1)} - ${place}`,
-                    description: `Real-time Seismic Event: Earthquake of Magnitude ${mag.toFixed(1)} recorded near ${place}. Depth: ${item.geometry.coordinates[2]} km. Coordinates: [${item.geometry.coordinates[1].toFixed(2)}, ${item.geometry.coordinates[0].toFixed(2)}].`,
-                    severity: mag >= 5.5 ? 'critical' : mag >= 4.0 ? 'warning' : 'info',
-                    type: 'Earthquake',
-                    source: 'PHIVOLCS / USGS Seismic Network',
-                    source_url: eventUrl,
-                    issued_at: eventTimeStr
-                });
+                const existingEq = await pool.query(
+                    `SELECT warning_id FROM early_warning WHERE title = $1 AND source = $2`,
+                    [eventTitle, 'PHIVOLCS / USGS Seismic Network']
+                );
+
+                if (existingEq.rows.length === 0) {
+                    await pool.query(
+                        `INSERT INTO early_warning (title, description, severity, type, source, source_url)
+                         VALUES ($1, $2, $3, $4, $5, $6)`,
+                        [eventTitle, eventDesc, severity, 'Earthquake', 'PHIVOLCS / USGS Seismic Network', eventUrl]
+                    );
+                } else {
+                    await pool.query(
+                        `UPDATE early_warning SET source_url = $1 WHERE warning_id = $2`,
+                        [eventUrl, existingEq.rows[0].warning_id]
+                    );
+                }
             }
         }
     } catch (err) {
@@ -102,34 +129,12 @@ export const syncExternalAlerts = async (): Promise<any[]> => {
 
     
     try {
-        await pool.query(`DELETE FROM early_warning WHERE created_at < NOW() - INTERVAL '2 days';`);
+        await pool.query(`DELETE FROM early_warning WHERE created_at < (CURRENT_DATE - INTERVAL '1 day');`);
     } catch (err) {
         console.error('Error purging old alerts:', err);
     }
 
-    
-    for (const alert of liveAlerts) {
-        const existing = await pool.query(
-            `SELECT warning_id FROM early_warning WHERE title = $1 AND source = $2`,
-            [alert.title, alert.source]
-        );
-
-        if (existing.rows.length === 0) {
-            await pool.query(
-                `INSERT INTO early_warning (title, description, severity, type, source, source_url, issued_at)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                [alert.title, alert.description, alert.severity, alert.type, alert.source, alert.source_url, alert.issued_at]
-            );
-        } else {
-           
-            await pool.query(
-                `UPDATE early_warning SET source_url = $1 WHERE title = $2 AND source = $3`,
-                [alert.source_url, alert.title, alert.source]
-            );
-        }
-    }
-
-    return liveAlerts;
+    return [];
 };
 
 
@@ -152,23 +157,21 @@ export const getEarlyWarnings = async (req: Request, res: Response): Promise<voi
                         ELSE 'https://www.pagasa.dost.gov.ph/weather'
                     END
                 ) as source_url, 
-                issued_at as time, 
                 created_at
             FROM early_warning
-            WHERE created_at >= NOW() - INTERVAL '2 days'
-            ORDER BY 
-                CASE 
-                    WHEN issued_at ILIKE 'Today%' OR issued_at ILIKE '%ago' THEN 1 
-                    WHEN issued_at ILIKE 'Yesterday%' THEN 2 
-                    ELSE 3 
-                END ASC,
-                created_at DESC,
-                warning_id DESC
+            WHERE created_at >= (CURRENT_DATE - INTERVAL '1 day')
+            ORDER BY created_at DESC, warning_id DESC
             LIMIT 25
         `);
 
+        
+        const alerts = result.rows.map(row => ({
+            ...row,
+            time: formatEventTime(new Date(row.created_at).getTime())
+        }));
+
         res.status(200).json({
-            alerts: result.rows
+            alerts
         });
     } catch (error: any) {
         console.error('Get early warnings error:', error);
@@ -199,24 +202,21 @@ export const syncEarlyWarnings = async (req: Request, res: Response): Promise<vo
                         ELSE 'https://www.pagasa.dost.gov.ph/weather'
                     END
                 ) as source_url, 
-                issued_at as time, 
                 created_at
             FROM early_warning
-            WHERE created_at >= NOW() - INTERVAL '2 days'
-            ORDER BY 
-                CASE 
-                    WHEN issued_at ILIKE 'Today%' OR issued_at ILIKE '%ago' THEN 1 
-                    WHEN issued_at ILIKE 'Yesterday%' THEN 2 
-                    ELSE 3 
-                END ASC,
-                created_at DESC,
-                warning_id DESC
+            WHERE created_at >= (CURRENT_DATE - INTERVAL '1 day')
+            ORDER BY created_at DESC, warning_id DESC
             LIMIT 25
         `);
 
+        const alerts = result.rows.map(row => ({
+            ...row,
+            time: formatEventTime(new Date(row.created_at).getTime())
+        }));
+
         res.status(200).json({
             message: 'Recent live PAGASA & PHIVOLCS data synced successfully to database',
-            alerts: result.rows
+            alerts
         });
     } catch (error: any) {
         console.error('Sync early warnings error:', error);
@@ -237,29 +237,31 @@ export const createEarlyWarning = async (req: Request, res: Response): Promise<v
             return;
         }
 
-        const timeStr = `Today at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         const defaultUrl = (source && source.toLowerCase().includes('phivolcs')) || type === 'Earthquake' || type === 'Volcano'
             ? 'https://earthquake.usgs.gov/earthquakes/map/'
             : 'https://www.pagasa.dost.gov.ph/weather';
 
         const result = await pool.query(
-            `INSERT INTO early_warning (title, description, severity, type, source, source_url, issued_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
-             RETURNING warning_id as id, title, description, severity, type, source, source_url, issued_at as time, created_at`,
+            `INSERT INTO early_warning (title, description, severity, type, source, source_url)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING warning_id as id, title, description, severity, type, source, source_url, created_at`,
             [
                 title,
                 description,
                 severity || 'warning',
                 type || 'General',
                 source || 'Barangay DRRM Office',
-                source_url || defaultUrl,
-                timeStr
+                source_url || defaultUrl
             ]
         );
 
+        const row = result.rows[0];
         res.status(201).json({
             message: 'Alert published successfully',
-            alert: result.rows[0]
+            alert: {
+                ...row,
+                time: formatEventTime(new Date(row.created_at).getTime())
+            }
         });
     } catch (error: any) {
         console.error('Create early warning error:', error);
