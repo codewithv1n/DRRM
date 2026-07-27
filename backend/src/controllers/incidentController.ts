@@ -69,15 +69,25 @@ export const createIncidentReport = async (req: Request, res: Response): Promise
 
 export const getIncidentReports = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { type } = req.query;
+        const { type, resident_id } = req.query;
 
         let query = `SELECT report_id, resident_id, sender_name, hazard_type, severity, description, address, latitude, longitude, status, created_at
                       FROM incident_reports`;
-        const params: string[] = [];
+        const params: any[] = [];
+        const conditions: string[] = [];
 
         if (type && type !== 'all') {
-            query += ` WHERE hazard_type = $1`;
             params.push(type as string);
+            conditions.push(`hazard_type = $${params.length}`);
+        }
+
+        if (resident_id) {
+            params.push(resident_id);
+            conditions.push(`resident_id = $${params.length}`);
+        }
+
+        if (conditions.length > 0) {
+            query += ` WHERE ${conditions.join(' AND ')}`;
         }
 
         query += ` ORDER BY created_at DESC`;
