@@ -6,18 +6,18 @@ const SALT_ROUNDS = 10;
 
 export const signupResident = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { full_name, email, password, confirm_password } = req.body;
+        const { name, email, password, confirm_password } = req.body;
 
-        // Validate required fields
-        if (!full_name || !email || !password || !confirm_password) {
+        
+        if (!name || !email || !password || !confirm_password) {
             res.status(400).json({
                 error: 'Missing required fields',
-                details: 'Full name, email, password, and confirm password are required.'
+                details: 'name, email, password, and confirm password are required.'
             });
             return;
         }
 
-        // Check if passwords match
+       
         if (password !== confirm_password) {
             res.status(400).json({
                 error: 'Credential mismatch',
@@ -26,10 +26,12 @@ export const signupResident = async (req: Request, res: Response): Promise<void>
             return;
         }
 
-        // Check if email already exists
+        const cleanEmail = email.trim().toLowerCase();
+
+        
         const existingUser = await pool.query(
-            'SELECT id FROM residents WHERE email = $1',
-            [email]
+            'SELECT resident_id FROM residents WHERE LOWER(TRIM(email)) = $1',
+            [cleanEmail]
         );
 
         if (existingUser.rows.length > 0) {
@@ -40,18 +42,18 @@ export const signupResident = async (req: Request, res: Response): Promise<void>
             return;
         }
 
-        // Hash the password
+        
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-        // Get the uploaded file path (if any)
-        const validIdPicture = req.file ? `/uploads/${req.file.filename}` : null;
+       
+        const profile_picture = req.file ? `/uploads/${req.file.filename}` : null;
 
-        // Insert into database
+        
         const result = await pool.query(
-            `INSERT INTO residents (full_name, email, password, valid_id_picture)
+            `INSERT INTO residents (name, email, password, profile_picture)
              VALUES ($1, $2, $3, $4)
-             RETURNING id, full_name, email, valid_id_picture, created_at`,
-            [full_name, email, hashedPassword, validIdPicture]
+             RETURNING resident_id, name, email, profile_picture, created_at`,
+            [name.trim(), cleanEmail, hashedPassword, profile_picture]
         );
 
         const newResident = result.rows[0];
@@ -59,10 +61,10 @@ export const signupResident = async (req: Request, res: Response): Promise<void>
         res.status(201).json({
             message: 'Account created successfully!',
             resident: {
-                id: newResident?.id,
-                full_name: newResident?.full_name,
+                resident_id: newResident?.resident_id,
+                name: newResident?.name,
                 email: newResident?.email,
-                valid_id_picture: newResident?.valid_id_picture,
+                profile_picture: newResident?.profile_picture,
                 created_at: newResident?.created_at
             }
         });
@@ -80,7 +82,7 @@ export const loginResident = async (req: Request, res: Response): Promise<void> 
     try {
         const { email, password } = req.body;
 
-        // Validate required fields
+        
         if (!email || !password) {
             res.status(400).json({
                 error: 'Missing required fields',
@@ -89,10 +91,12 @@ export const loginResident = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
-        // Find user by email
+        const cleanEmail = email.trim().toLowerCase();
+
+        
         const result = await pool.query(
-            'SELECT id, full_name, email, password, valid_id_picture, created_at FROM residents WHERE email = $1',
-            [email]
+            'SELECT resident_id, name, email, password, profile_picture, created_at FROM residents WHERE LOWER(TRIM(email)) = $1',
+            [cleanEmail]
         );
 
         if (result.rows.length === 0) {
@@ -101,11 +105,11 @@ export const loginResident = async (req: Request, res: Response): Promise<void> 
                 details: 'Email or password is incorrect.'
             });
             return;
-        }
+        } 
 
         const resident = result.rows[0];
 
-        // Compare password with stored hash
+        
         const isPasswordValid = await bcrypt.compare(password, resident?.password ?? '');
 
         if (!isPasswordValid) {
@@ -116,14 +120,14 @@ export const loginResident = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
-        // Login successful
+        
         res.status(200).json({
             message: 'Login successful!',
             resident: {
-                id: resident?.id,
-                full_name: resident?.full_name,
+                resident_id: resident?.resident_id,
+                name: resident?.name,
                 email: resident?.email,
-                valid_id_picture: resident?.valid_id_picture,
+                profile_picture: resident?.profile_picture,
                 created_at: resident?.created_at
             }
         });
@@ -136,3 +140,6 @@ export const loginResident = async (req: Request, res: Response): Promise<void> 
         });
     }
 };
+
+
+
