@@ -5,7 +5,6 @@ import { signupResident, loginResident } from '../controllers/authController';
 
 const router = express.Router();
 
-
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => {
         cb(null, path.join(__dirname, '../../uploads'));
@@ -35,7 +34,7 @@ const upload = multer({
 });
 
 
-router.post('/signup', upload.single('valid_id_picture'), signupResident);
+router.post('/signup', upload.single('profile_picture'), signupResident);
 router.post('/login', loginResident);
 
 export default router;
