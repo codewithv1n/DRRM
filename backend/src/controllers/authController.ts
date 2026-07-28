@@ -4,71 +4,56 @@ import pool from '../config/db';
 
 const SALT_ROUNDS = 10;
 
-export const signupResident = async (req: Request, res: Response): Promise<void> => {
+export const signup = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { name, email, password, confirm_password } = req.body;
+        const { name, username, email, password, confirm_password, role = 'resident' } = req.body;
 
-        
-        if (!name || !email || !password || !confirm_password) {
+        if (!name || !username || !password || !confirm_password) {
             res.status(400).json({
                 error: 'Missing required fields',
-                details: 'name, email, password, and confirm password are required.'
+                details: 'name, username, password, and confirm password are required.'
             });
             return;
         }
 
-       
         if (password !== confirm_password) {
             res.status(400).json({
                 error: 'Credential mismatch',
-                details: 'Credentials do not match.'
+                details: 'Passwords do not match.'
             });
             return;
         }
 
-        const cleanEmail = email.trim().toLowerCase();
-
+        const cleanUsername = username.trim().toLowerCase();
         
-        const existingUser = await pool.query(
-            'SELECT resident_id FROM residents WHERE LOWER(TRIM(email)) = $1',
-            [cleanEmail]
-        );
+        // Check if username already exists in the auth table
+        const existingUser = await pool.query('SELECT auth_id FROM auth WHERE LOWER(TRIM(username)) = $1', [cleanUsername]);
 
         if (existingUser.rows.length > 0) {
             res.status(409).json({
-                error: 'Email already registered',
-                details: 'An account with this email address already exists.'
+                error: 'Username already registered',
+                details: 'An account with this username already exists.'
             });
             return;
         }
 
-        
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-
-       
         const profile_picture = req.file ? `/uploads/${req.file.filename}` : null;
 
-        
         const result = await pool.query(
-            `INSERT INTO residents (name, email, password, profile_picture)
-             VALUES ($1, $2, $3, $4)
-             RETURNING resident_id, name, email, profile_picture, created_at`,
-            [name.trim(), cleanEmail, hashedPassword, profile_picture]
+            `INSERT INTO auth (name, username, email, password, role, profile_picture)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING auth_id AS id, name, username, email, role, profile_picture, created_at`,
+            [name.trim(), cleanUsername, email ? email.trim() : null, hashedPassword, role, profile_picture]
         );
-
-        const newResident = result.rows[0];
-
+        
+        const newUser = result.rows[0];
+        
         res.status(201).json({
             message: 'Account created successfully!',
-            resident: {
-                resident_id: newResident?.resident_id,
-                name: newResident?.name,
-                email: newResident?.email,
-                profile_picture: newResident?.profile_picture,
-                created_at: newResident?.created_at
-            }
+            user: newUser,
+            role: newUser.role
         });
-
     } catch (error: any) {
         console.error('Signup error:', error);
         res.status(500).json({
@@ -78,58 +63,52 @@ export const signupResident = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const loginResident = async (req: Request, res: Response): Promise<void> => {
+export const login = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { email, password } = req.body;
+        const { username, password } = req.body;
 
-        
-        if (!email || !password) {
+        if (!username || !password) {
             res.status(400).json({
                 error: 'Missing required fields',
-                details: 'Email and password are required.'
+                details: 'Username and password are required.'
             });
             return;
         }
 
-        const cleanEmail = email.trim().toLowerCase();
+        const cleanUsername = username.trim().toLowerCase();
 
-        
+        // Check the unified auth table
         const result = await pool.query(
-            'SELECT resident_id, name, email, password, profile_picture, created_at FROM residents WHERE LOWER(TRIM(email)) = $1',
-            [cleanEmail]
+            'SELECT auth_id AS id, name, username, email, password, role, profile_picture, created_at FROM auth WHERE LOWER(TRIM(username)) = $1',
+            [cleanUsername]
         );
 
         if (result.rows.length === 0) {
             res.status(401).json({
                 error: 'Invalid credentials',
-                details: 'Email or password is incorrect.'
-            });
-            return;
-        } 
-
-        const resident = result.rows[0];
-
-        
-        const isPasswordValid = await bcrypt.compare(password, resident?.password ?? '');
-
-        if (!isPasswordValid) {
-            res.status(401).json({
-                error: 'Invalid credentials',
-                details: 'Email or password is incorrect.'
+                details: 'Username or password is incorrect.'
             });
             return;
         }
 
+        const user = result.rows[0];
+        const isPasswordValid = await bcrypt.compare(password, user.password ?? '');
+        
+        if (!isPasswordValid) {
+            res.status(401).json({
+                error: 'Invalid credentials',
+                details: 'Username or password is incorrect.'
+            });
+            return;
+        }
+
+        // Remove password from response
+        delete user.password;
         
         res.status(200).json({
             message: 'Login successful!',
-            resident: {
-                resident_id: resident?.resident_id,
-                name: resident?.name,
-                email: resident?.email,
-                profile_picture: resident?.profile_picture,
-                created_at: resident?.created_at
-            }
+            user,
+            role: user.role
         });
 
     } catch (error: any) {
