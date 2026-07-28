@@ -3,7 +3,7 @@ import pool from '../config/db';
 
 export const createIncidentReport = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { hazard_type, severity, description, address, latitude, longitude, resident_id } = req.body;
+        const { hazard_type, severity, description, address, latitude, longitude, auth_id } = req.body;
 
         // Validate required fields
         if (!hazard_type || !severity || !address) {
@@ -37,18 +37,23 @@ export const createIncidentReport = async (req: Request, res: Response): Promise
 
 
         let senderName = null;
-        if (resident_id) {
-            const residentResult = await pool.query('SELECT name FROM residents WHERE resident_id = $1', [resident_id]);
-            if (residentResult.rows.length > 0) {
-                senderName = residentResult.rows[0].name;
+        if (auth_id) {
+            // Also enforce that the user is a resident
+            const authResult = await pool.query('SELECT name, role FROM auth WHERE auth_id = $1', [auth_id]);
+            if (authResult.rows.length > 0) {
+                if (authResult.rows[0].role !== 'resident') {
+                    res.status(403).json({ error: 'Access Denied: Only residents can submit incident reports.' });
+                    return;
+                }
+                senderName = authResult.rows[0].name;
             }
         }
 
         const result = await pool.query(
-            `INSERT INTO incident_reports (resident_id, sender_name, hazard_type, severity, description, address, latitude, longitude)
+            `INSERT INTO incident_reports (auth_id, sender_name, hazard_type, severity, description, address, latitude, longitude)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             RETURNING report_id, resident_id, sender_name, hazard_type, severity, description, address, latitude, longitude, status, created_at`,
-            [resident_id || null, senderName, hazard_type, severity, (description || '').trim(), address.trim(), latitude || null, longitude || null]
+             RETURNING report_id, auth_id, sender_name, hazard_type, severity, description, address, latitude, longitude, status, created_at`,
+            [auth_id || null, senderName, hazard_type, severity, (description || '').trim(), address.trim(), latitude || null, longitude || null]
         );
 
         const newReport = result.rows[0];
@@ -69,9 +74,9 @@ export const createIncidentReport = async (req: Request, res: Response): Promise
 
 export const getIncidentReports = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { type, resident_id } = req.query;
+        const { type, auth_id } = req.query;
 
-        let query = `SELECT report_id, resident_id, sender_name, hazard_type, severity, description, address, latitude, longitude, status, created_at
+        let query = `SELECT report_id, auth_id, sender_name, hazard_type, severity, description, address, latitude, longitude, status, created_at
                       FROM incident_reports`;
         const params: any[] = [];
         const conditions: string[] = [];
@@ -81,9 +86,9 @@ export const getIncidentReports = async (req: Request, res: Response): Promise<v
             conditions.push(`hazard_type = $${params.length}`);
         }
 
-        if (resident_id) {
-            params.push(resident_id);
-            conditions.push(`resident_id = $${params.length}`);
+        if (auth_id) {
+            params.push(auth_id);
+            conditions.push(`auth_id = $${params.length}`);
         }
 
         if (conditions.length > 0) {
