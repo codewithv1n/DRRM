@@ -3,6 +3,11 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import authRoutes from './routes/authRoutes';
+import incidentRoutes from './routes/incidentRoutes';
+import earlyWarningRoutes from './routes/earlyWarningRoutes';
+import reliefGoodsRoutes from './routes/reliefGoodsRoutes';
+import evacuationRoutes from './routes/evacuationRoutes';
+import drrmRoutes from './routes/drrmRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,9 +20,12 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 app.use('/uploads', express.static(uploadsDir));
-app.use('/api/residents', authRoutes);
-
-
+app.use('/api/auth', authRoutes);
+app.use('/api/incidents', incidentRoutes);
+app.use('/api/earlywarning', earlyWarningRoutes);
+app.use('/api/relief-goods', reliefGoodsRoutes);
+app.use('/api/evacuations', evacuationRoutes);
+app.use('/api/drrm', drrmRoutes);
 
 app.get('/', (req: Request, res: Response) => {
     res.json({ message: "Server is Running" });
