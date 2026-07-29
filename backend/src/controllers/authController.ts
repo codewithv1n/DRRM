@@ -38,13 +38,12 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
         }
 
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-        const profile_picture = req.file ? `/uploads/${req.file.filename}` : null;
-
+        const responderStatus = role === 'responder' ? 'available' : null;
         const result = await pool.query(
-            `INSERT INTO auth (name, username, email, password, role, profile_picture)
+            `INSERT INTO auth (name, username, email, password, role, responder_status)
              VALUES ($1, $2, $3, $4, $5, $6)
-             RETURNING auth_id AS id, name, username, email, role, profile_picture, created_at`,
-            [name.trim(), cleanUsername, email ? email.trim() : null, hashedPassword, role, profile_picture]
+             RETURNING auth_id AS id, name, username, email, role, created_at`,
+            [name.trim(), cleanUsername, email ? email.trim() : null, hashedPassword, role, responderStatus]
         );
         
         const newUser = result.rows[0];
@@ -79,7 +78,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
         // Check the unified auth table
         const result = await pool.query(
-            'SELECT auth_id AS id, name, username, email, password, role, profile_picture, created_at FROM auth WHERE LOWER(TRIM(username)) = $1',
+            'SELECT auth_id AS id, name, username, email, password, role, created_at FROM auth WHERE LOWER(TRIM(username)) = $1',
             [cleanUsername]
         );
 
@@ -120,5 +119,21 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+export const getResponders = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { status } = req.query;
+        let query = 'SELECT auth_id as id, name, role, responder_status as status, current_mission FROM auth WHERE role = $1';
+        const params: any[] = ['responder'];
 
+        if (status) {
+            query += ' AND responder_status = $2';
+            params.push(status);
+        }
 
+        const result = await pool.query(query, params);
+        res.json({ success: true, responders: result.rows });
+    } catch (error) {
+        console.error('Fetch responders error:', error);
+        res.status(500).json({ error: 'Failed to fetch responders' });
+    }
+};
