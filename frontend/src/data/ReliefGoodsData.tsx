@@ -2,10 +2,10 @@ export const currentResident = {
   name: 'Juan Dela Cruz',
   email: 'juandelacruz@gmail.com',
   status: 'received' as const,
-  aidTypes: ['Pagkain', 'Tubig', 'Gamot'],
-  distributionDate: 'Hulyo 5, 2026',
+  aidTypes: ['Food', 'Water', 'Medicine'],
+  distributionDate: 'July 5, 2026',
   pickupLocation: 'Barangay Hall',
-  nextSchedule: 'Hulyo 14, 2026 — 8:00 AM',
+  nextSchedule: 'July 14, 2026 — 8:00 AM',
 };
 
 export const statusConfig = {
@@ -52,6 +52,10 @@ export const statusConfig = {
 };
 
 export const aidTagColors: Record<string, { color: string; bg: string }> = {
+  Food: { color: '#ea580c', bg: 'rgba(234,88,12,0.08)' },
+  Water: { color: '#2563eb', bg: 'rgba(37,99,235,0.08)' },
+  Clothes: { color: '#7c3aed', bg: 'rgba(124,58,237,0.08)' },
+  Medicine: { color: '#059669', bg: 'rgba(5,150,105,0.08)' },
   Pagkain: { color: '#ea580c', bg: 'rgba(234,88,12,0.08)' },
   Tubig: { color: '#2563eb', bg: 'rgba(37,99,235,0.08)' },
   Damit: { color: '#7c3aed', bg: 'rgba(124,58,237,0.08)' },
@@ -59,7 +63,7 @@ export const aidTagColors: Record<string, { color: string; bg: string }> = {
 };
 
 export const timeline = [
-  { date: 'Hulyo 5, 2026', aid: 'Pagkain, Tubig, Gamot', location: 'Barangay Hall', done: true },
-  { date: 'Hunyo 20, 2026', aid: 'Pagkain, Tubig', location: 'Covered Court', done: true },
-  { date: 'Hunyo 5, 2026', aid: 'Pagkain, Damit', location: 'Barangay Hall', done: true },
+  { date: 'July 5, 2026', aid: 'Food, Water, Medicine', location: 'Barangay Hall', done: true },
+  { date: 'June 20, 2026', aid: 'Food, Water', location: 'Covered Court', done: true },
+  { date: 'June 5, 2026', aid: 'Food, Clothes', location: 'Barangay Hall', done: true },
 ];

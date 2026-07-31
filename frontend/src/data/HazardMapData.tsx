@@ -25,21 +25,21 @@ export const evacuationCenters = [
 export const faqItems = [
   {
     id: 1,
-    title: 'Bago ang sakuna',
+    title: 'Before a Disaster',
     content:
-      'Maghanda ng emergency kit na may pagkain, tubig, gamot, at flashlight. Alamin ang pinakamalapit na evacuation center. Makinig sa mga advisory mula sa barangay at DRRM office. Siguraduhing alam ng buong pamilya ang evacuation plan.',
+      'Prepare an emergency Go-Bag containing non-perishable food, drinking water, first aid supplies, and a flashlight. Identify your nearest evacuation center. Monitor official advisories from your barangay and DRRM office.',
   },
   {
     id: 2,
-    title: 'Habang may sakuna',
+    title: 'During a Disaster',
     content:
-      'Manatiling kalmado at sundin ang mga utos ng mga awtoridad. Pumunta agad sa pinakamalapit na evacuation center kung kinakailangan. Iwasan ang mga lugar na mababa at malapit sa ilog. Huwag tumawid sa baha. I-off ang kuryente at gas sa bahay bago umalis.',
+      'Stay calm and follow directives from local emergency personnel. Evacuate to the nearest designated safe area immediately if advised. Avoid low-lying areas, floodwaters, and riverbanks. Turn off main power switches and gas valves before leaving.',
   },
   {
     id: 3,
-    title: 'Pagkatapos ng sakuna',
+    title: 'After a Disaster',
     content:
-      'Huwag bumalik sa bahay hangga\'t hindi pa pinapayagan ng mga awtoridad. I-report ang anumang pinsala sa barangay. Mag-ingat sa mga nasirang linya ng kuryente at mga posibleng mapanganib na lugar. Tumulong sa mga kapitbahay na nangangailangan.',
+      'Do not return home until emergency officials declare it safe. Report any structural hazards or damaged utility lines to your barangay office. Exercise caution around damaged buildings and assist neighbors in need.',
   },
 ];
 

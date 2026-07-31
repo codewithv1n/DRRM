@@ -10,7 +10,7 @@ export interface LocationInfo {
 export const hazardTypes: { value: HazardType; label: string; icon: React.ReactNode; color: string; bg: string }[] = [
     {
         value: 'flood',
-        label: 'Baha',
+        label: 'Flood',
         color: '#3b82f6',
         bg: 'rgba(59,130,246,0.08)',
         icon: (
@@ -24,7 +24,7 @@ export const hazardTypes: { value: HazardType; label: string; icon: React.ReactN
     },
     {
         value: 'fire',
-        label: 'Sunog',
+        label: 'Fire',
         color: '#ef4444',
         bg: 'rgba(239,68,68,0.08)',
         icon: (
@@ -36,7 +36,7 @@ export const hazardTypes: { value: HazardType; label: string; icon: React.ReactN
     },
     {
         value: 'other',
-        label: 'Iba Pa',
+        label: 'Other',
         color: '#64748b',
         bg: 'rgba(100,116,139,0.08)',
         icon: (
@@ -50,26 +50,9 @@ export const hazardTypes: { value: HazardType; label: string; icon: React.ReactN
 ];
 
 export const severityLevels: { value: Severity; label: string; color: string; bg: string; description: string }[] = [
-    { value: 'low', label: 'Mababa', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', description: 'Maliit na panganib, walang agarang banta' },
-    { value: 'moderate', label: 'Katamtaman', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', description: 'May posibleng panganib sa ilang tao' },
-    { value: 'high', label: 'Mataas', color: '#f97316', bg: 'rgba(249,115,22,0.1)', description: 'Malaking panganib, kailangan ng aksyon' },
-    { value: 'critical', label: 'Kritikal', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', description: 'Napakadelikadong sitwasyon' },
+    { value: 'low', label: 'Low', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', description: 'Minor risk, no immediate threat' },
+    { value: 'moderate', label: 'Moderate', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', description: 'Possible risk to some individuals' },
+    { value: 'high', label: 'High', color: '#f97316', bg: 'rgba(249,115,22,0.1)', description: 'High risk, immediate action required' },
+    { value: 'critical', label: 'Critical', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', description: 'Extremely hazardous situation' },
 ];
 
-export const recentReports = [
-    {
-        id: 1,
-        type: 'flood' as HazardType,
-        title: 'Baha sa Brgy. San Jose',
-        description: 'Tumaas ang tubig sa kalsada, halos tuhod na ang baha.',
-        severity: 'high' as Severity,
-        time: '15 min ago',
-        status: 'UNDER REVIEW',
-    },
-];
-
-export const statusStyles: Record<string, { color: string; bg: string }> = {
-    'UNDER REVIEW': { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-    RESPONDED: { color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
-    RESOLVED: { color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
-};

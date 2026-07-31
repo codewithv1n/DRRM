@@ -1,0 +1,190 @@
+import { useState } from 'react';
+import { useMockData } from '../../data/MockDataContext';
+import {
+  Activity, CheckCircle, MapPin, Phone, User, Siren, LogOut, LayoutDashboard,
+  ChevronRight, Menu, Bell
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+export default function ResponseUnitDashboard() {
+  const { incidents, updateIncidentStatus } = useMockData();
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [remarks, setRemarks] = useState<Record<string, string>>({});
+  const [showRemarks, setShowRemarks] = useState<string | null>(null);
+
+  const activeIncidents = incidents.filter(i => i.status !== 'Resolved');
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] flex font-sans text-slate-900">
+      {/* Sidebar - Minimal for field personnel */}
+      <aside className={`fixed lg:sticky top-0 h-screen z-50 bg-linear-to-b from-slate-800 to-slate-900 text-slate-300 flex flex-col w-64 shrink-0 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="p-5 flex items-center gap-3">
+          <div className="bg-red-500 p-2 rounded-xl h-11 w-11 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/20">
+            <Activity className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex flex-col overflow-hidden">
+            <h1 className="font-bold text-[18px] text-white leading-tight font-display truncate">QC Response</h1>
+            <p className="text-[12px] text-slate-400 font-medium truncate">Field Unit</p>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-3 py-5 space-y-1">
+          <div className="px-3 pt-2 pb-2 text-[11px] uppercase font-semibold tracking-widest text-slate-500">Main</div>
+          <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-primary/15 text-primary shadow-sm">
+            <div className="flex items-center gap-3">
+              <LayoutDashboard className="w-4.5 h-4.5" />
+              <span className="text-sm font-medium">Active Missions</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {activeIncidents.length > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{activeIncidents.length}</span>
+              )}
+              <ChevronRight className="w-4 h-4 opacity-50" />
+            </div>
+          </button>
+        </div>
+
+        <div className="p-4 border-t border-slate-700/50">
+          <div className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer group">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-red-500 to-red-600 flex items-center justify-center text-white shrink-0 shadow-md">
+                <User className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-white">Rescue Team A</span>
+                <span className="text-xs text-slate-400 truncate w-24">QC Task Force</span>
+              </div>
+            </div>
+            <button onClick={() => navigate('/login')} className="p-2 text-slate-400 group-hover:text-white transition-colors cursor-pointer">
+              <LogOut className="w-4.5 h-4.5" />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+        {/* Header */}
+        <header className="sticky top-0 z-40 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 shrink-0">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg cursor-pointer"><Menu className="w-5 h-5" /></button>
+            <h2 className="text-lg font-bold text-slate-900 font-display">Field Operations</h2>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="relative text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+              <Bell className="w-5 h-5" />
+              {activeIncidents.length > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold">{activeIncidents.length}</span>}
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-red-500 to-red-600 flex items-center justify-center text-white shadow-sm"><User className="w-5 h-5" /></div>
+              <div className="hidden sm:flex flex-col">
+                <span className="text-sm font-semibold text-slate-700">Rescue Team A</span>
+                <span className="text-xs text-slate-400 font-medium">Responder</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="p-4 lg:p-8 flex-1 max-w-5xl mx-auto w-full">
+          <div className="mb-8">
+            <p className="text-slate-500 mt-1">View your assigned emergencies and update status in the field.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {activeIncidents.map(incident => (
+              <div key={incident.id} className="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden flex flex-col">
+                {/* Color header */}
+                <div className={`p-4 flex justify-between items-center ${
+                  incident.type === 'Fire' ? 'bg-linear-to-r from-red-500 to-red-600' :
+                  incident.type === 'Flood' ? 'bg-linear-to-r from-blue-500 to-blue-600' :
+                  incident.type === 'Medical' ? 'bg-linear-to-r from-emerald-500 to-emerald-600' :
+                  'bg-linear-to-r from-amber-500 to-amber-600'
+                } text-white`}>
+                  <div className="flex items-center gap-2 font-bold">
+                    <Siren className="w-5 h-5" />
+                    {incident.type} Emergency
+                  </div>
+                  <span className="text-xs bg-black/20 px-2.5 py-1 rounded-full font-mono">{incident.id}</span>
+                </div>
+
+                <div className="p-5 flex-1 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs text-slate-500 font-semibold uppercase">Location</p>
+                      <p className="text-slate-900 font-medium">{incident.location}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <User className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs text-slate-500 font-semibold uppercase">Reporter</p>
+                      <p className="text-slate-900 font-medium">{incident.reporterName}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Phone className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs text-slate-500 font-semibold uppercase">Contact</p>
+                      <p className="text-slate-900 font-medium">{incident.contactNumber}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-5 border-t border-slate-100 bg-slate-50/50 mt-auto space-y-3">
+                  {/* Show remarks field before resolving */}
+                  {showRemarks === incident.id && (
+                    <div className="space-y-2 animate-fade-in">
+                      <label className="block text-xs font-semibold text-slate-600 uppercase">Post-Operation Remarks</label>
+                      <textarea
+                        rows={2}
+                        value={remarks[incident.id] || ''}
+                        onChange={e => setRemarks(prev => ({ ...prev, [incident.id]: e.target.value }))}
+                        className="w-full bg-white border border-slate-200 rounded-xl p-3 text-slate-900 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none resize-none transition-all"
+                        placeholder="Enter remarks before closing..."
+                      />
+                      <button
+                        onClick={() => { updateIncidentStatus(incident.id, 'Resolved'); setShowRemarks(null); }}
+                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        <CheckCircle className="w-5 h-5" /> Confirm & Close Ticket
+                      </button>
+                    </div>
+                  )}
+
+                  {showRemarks !== incident.id && (
+                    <>
+                      {incident.status === 'Pending' ? (
+                        <button
+                          onClick={() => updateIncidentStatus(incident.id, 'Responding')}
+                          className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 px-4 rounded-xl transition-all hover:shadow-md active:scale-[0.98] cursor-pointer"
+                        >
+                          Respond Now — On Site
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setShowRemarks(incident.id)}
+                          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+                        >
+                          <CheckCircle className="w-5 h-5" /> Mark as Resolved
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {activeIncidents.length === 0 && (
+              <div className="col-span-full bg-white p-12 text-center rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
+                <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-slate-900">All Clear</h3>
+                <p className="text-slate-500 mt-2">No active emergencies at the moment. Stand by.</p>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}

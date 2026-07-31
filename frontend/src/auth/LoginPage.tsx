@@ -1,184 +1,125 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Lock, User, ArrowRight, Sun, AlertTriangle, Users, Package, Radio, Building, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
-    const [showPassword, setShowPassword] = useState(false);
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate('/department-admin'); 
+  };
 
-        if (!username || !password) {
-            setError('Please fill in all fields.');
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const response = await fetch('http://localhost:3000/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                setError(data.details || data.error || 'Login failed.');
-                return;
-            }
-
-            sessionStorage.setItem('user', JSON.stringify(data.user || data.staff || data));
-            
-            // Navigate based on role
-            const role = data.role || data.user?.role || data.staff?.role;
-            if (role === 'admin') {
-                navigate('/admin');
-            } else if (role === 'staff' || role === 'responder') {
-                navigate('/staff');
-            } else {
-                navigate('/');
-            }
-
-        } catch (err: any) {
-            setError('Cannot connect to server. Please make sure the backend is running.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-            <div className="w-full max-w-100">
-                {/* Logo & Heading */}
-                <div className="flex flex-col items-center mb-8">
-                    <div className="w-11 h-11 rounded-xl bg-orange-400 flex items-center justify-center mb-4 shadow-md shadow-orange-400/20">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" />
-                            <path d="M12 7V13L15 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </div>
-                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">Welcome back</h1>
-                    <p className="text-[13px] text-slate-400 mt-1">Sign in to your DRRM account</p>
-                </div>
-
-                {/* Card */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-7 shadow-sm">
-                    {/* Error Message */}
-                    {error && (
-                        <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-[13px] text-red-600 flex items-center gap-2">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0">
-                                <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.4" />
-                                <path d="M8 5V9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                                <circle cx="8" cy="11.5" r="0.75" fill="currentColor" />
-                            </svg>
-                            {error}
-                        </div>
-                    )}
-
-                    <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-                        {/* Username */}
-                        <div className="flex flex-col gap-1.5">
-                            <label htmlFor="username" className="text-[13px] font-medium text-slate-600">
-                                Username
-                            </label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                        <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.4" />
-                                        <path d="M2.5 14C2.5 11.5 5 10 8 10C11 10 13.5 11.5 13.5 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                                    </svg>
-                                </span>
-                                <input
-                                    id="username"
-                                    type="text"
-                                    placeholder="Enter your username"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/10 focus:bg-white"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Password */}
-                        <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center justify-between">
-                                <label htmlFor="password" className="text-[13px] font-medium text-slate-600">
-                                    Password
-                                </label>
-                            </div>
-                            <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                        <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
-                                        <path d="M5.5 7V5C5.5 3.6 6.6 2.5 8 2.5C9.4 2.5 10.5 3.6 10.5 5V7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                                        <circle cx="8" cy="10.5" r="1" fill="currentColor" />
-                                    </svg>
-                                </span>
-                                <input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full h-10 pl-9 pr-10 rounded-lg border border-slate-200 bg-slate-50 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none transition-all duration-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/10 focus:bg-white"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors duration-200"
-                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                >
-                                    {showPassword ? (
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                            <path d="M2 2L14 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                                            <path d="M3.5 5.5C2.3 6.6 1.5 8 1.5 8C1.5 8 4 12.5 8 12.5C9 12.5 9.9 12.2 10.7 11.7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                                            <path d="M6.5 3.7C7 3.6 7.5 3.5 8 3.5C12 3.5 14.5 8 14.5 8C14.5 8 13.9 9.1 12.8 10.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                                        </svg>
-                                    ) : (
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                            <path d="M1.5 8C1.5 8 4 3.5 8 3.5C12 3.5 14.5 8 14.5 8C14.5 8 12 12.5 8 12.5C4 12.5 1.5 8 1.5 8Z" stroke="currentColor" strokeWidth="1.4" />
-                                            <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.4" />
-                                        </svg>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Submit */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full h-10 rounded-lg bg-orange-400 text-white text-[13px] font-semibold transition-all duration-200 hover:bg-orange-500 hover:shadow-md hover:shadow-orange-400/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                        >
-                            {loading ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
-                                        <path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-75" />
-                                    </svg>
-                                    Signing in...
-                                </span>
-                            ) : (
-                                'Sign in'
-                            )}
-                        </button>
-                    </form>
-                </div>
-
-                {/* Sign up link */}
-                <p className="text-center text-[13px] text-slate-400 mt-6">
-                    Don&apos;t have an account?{' '}
-                    <Link to="/signup" className="font-medium text-orange-400 hover:text-orange-500 transition-colors duration-200">
-                        Sign up
-                    </Link>
-                </p>
-            </div>
+  return (
+    <div className="min-h-screen flex font-sans">
+      {/* Left Side - Brand & Info */}
+      <div className="hidden lg:flex flex-col w-1/2 bg-linear-to-br from-[#FF8C00] via-[#E85D04] to-[#003ac0] text-white p-12 relative overflow-hidden">
+        
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
+          <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-white blur-3xl"></div>
+          <div className="absolute bottom-20 right-20 w-80 h-80 rounded-full bg-orange-400 blur-3xl"></div>
         </div>
-    );
+
+        <div className="relative z-10 flex items-center gap-3 mb-24">
+          <div className="bg-white/20 p-2.5 rounded-xl backdrop-blur-sm border border-white/20">
+            <Building className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="font-bold text-xl tracking-wider text-white leading-none">QC DRRM</h1>
+            <p className="text-xs text-orange-200 mt-1">Disaster Management System</p>
+          </div>
+        </div>
+
+        <div className="relative z-10 max-w-xl mt-auto mb-20">
+          <h2 className="text-5xl text-white mb-6 leading-tight">
+            Streamline Your<br />Disaster Response
+          </h2>
+          <p className="text-white text-lg mb-10 leading-relaxed max-w-lg">
+            A comprehensive platform for incident reporting, evacuation center management, relief operations, and city-wide early warning systems.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4 max-w-lg">
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full py-2.5 px-5 shadow-sm">
+              <AlertTriangle className="w-5 h-5 text-orange-200" />
+              <span className="text-sm font-medium">Incident Reporting</span>
+            </div>
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full py-2.5 px-5 shadow-sm">
+              <Users className="w-5 h-5 text-orange-200" />
+              <span className="text-sm font-medium">Evacuation</span>
+            </div>
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full py-2.5 px-5 shadow-sm">
+              <Package className="w-5 h-5 text-orange-200" />
+              <span className="text-sm font-medium">Relief Goods</span>
+            </div>
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full py-2.5 px-5 shadow-sm">
+              <Radio className="w-5 h-5 text-orange-200" />
+              <span className="text-sm font-medium">Early Warning</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 mt-auto flex items-center gap-2 text-sm text-orange-200/80 font-medium">
+          <ShieldCheck className="w-4 h-4" />
+          Secure Government Platform
+        </div>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div className="w-full lg:w-1/2 bg-[#F8FAFC] relative flex flex-col justify-center items-center p-8">
+        <button className="absolute top-8 right-8 p-2 rounded-full hover:bg-slate-200 text-slate-400 transition-colors cursor-pointer">
+          <Sun className="w-5 h-5" />
+        </button>
+
+        <div className="w-full max-w-md bg-white rounded-3xl p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">Welcome back</h2>
+          <p className="text-slate-500 mb-8 text-sm">Sign in to access the disaster management system</p>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email / Username</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  className="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#E85D04]/20 focus:border-[#E85D04] transition-all text-sm"
+                  placeholder="you@example.com"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="password"
+                  className="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#E85D04]/20 focus:border-[#E85D04] transition-all text-sm"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+           
+            
+
+            <button
+              type="submit"
+              className="w-full mt-4 bg-[#E85D04] hover:bg-[#D04D03] text-white font-semibold py-3 px-4 rounded-xl shadow-md hover:shadow-lg hover:shadow-[#E85D04]/20 transition-all cursor-pointer flex justify-center items-center gap-2 group"
+            >
+              Sign In 
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </form>
+        </div>
+
+        <p className="mt-10 text-xs text-slate-400 text-center font-medium">
+          Contact your administrator for account access.
+        </p>
+      </div>
+    </div>
+  );
 }
