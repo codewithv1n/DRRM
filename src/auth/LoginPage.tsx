@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, Shield, Building2, Map, Home, ClipboardList, Sun, ArrowRight } from 'lucide-react';
+import { Lock, Mail, Shield,  Map, Home, ClipboardList, Sun, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ export default function LoginPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-16">
             <div className="bg-white/10 p-2 rounded-full border border-white/20">
-              <Building2 className="w-5 h-5 text-white" />
+              <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
               <h1 className="font-bold text-xl tracking-wide leading-none text-slate-100">GOVSERVE</h1>

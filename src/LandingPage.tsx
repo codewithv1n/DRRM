@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert,  ArrowRight, AlertTriangle, Users, Package, Radio, Activity, User, Building, Map, CheckSquare, BarChart } from 'lucide-react';
+import { Shield, ShieldAlert, ArrowRight, AlertTriangle, Users, Package, Radio, Activity, User, Building, Map, CheckSquare, BarChart } from 'lucide-react';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -54,8 +54,8 @@ export default function LandingPage() {
       {/* Header */}
       <header className="w-full px-8 py-6 flex justify-between items-center z-10 max-w-7xl mx-auto">
         <div className="flex items-center gap-2 cursor-pointer">
-          <div className="bg-primary/10 p-2 rounded-xl">
-            <ShieldAlert className="w-6 h-6 text-primary" />
+          <div className="bg-white/10 p-2 rounded-full ">
+              <Shield className="w-5 h-5 text-orange-400" />
           </div>
           <span className="font-bold text-lg tracking-wider text-foreground">GOVSERVE</span>
         </div>
