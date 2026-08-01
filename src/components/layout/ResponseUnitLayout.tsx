@@ -17,45 +17,45 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount }: R
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex font-sans text-slate-900">
       {/* Sidebar - Minimal for field personnel */}
-      <aside className={`fixed lg:sticky top-0 h-screen z-50 bg-linear-to-b from-slate-800 to-slate-900 text-slate-300 flex flex-col w-64 shrink-0 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="p-5 flex items-center gap-3">
-          <div className="bg-primary p-2 rounded-xl h-11 w-11 flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
-            <Activity className="w-6 h-6 text-slate-100" />
+      <aside className={`fixed lg:sticky top-0 h-screen z-50 bg-orange-500 text-orange-50 flex flex-col w-64 shrink-0 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="p-5 flex items-center gap-3 border-b border-orange-400/60">
+          <div className="bg-orange-400 p-2 rounded-xl h-11 w-11 flex items-center justify-center shrink-0 shadow-inner border border-orange-300/30">
+            <Activity className="w-6 h-6 text-white" />
           </div>
           <div className="flex flex-col overflow-hidden">
-            <h1 className="font-bold text-[18px] text-slate-100 leading-tight font-display truncate">QC Response</h1>
-            <p className="text-[12px] text-slate-400 font-medium truncate">Field Unit</p>
+            <h1 className="font-bold text-[18px] text-white leading-tight font-display truncate">GOVSERVE</h1>
+            <p className="text-[12px] text-orange-100 font-medium truncate">Field Unit</p>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-5 space-y-1">
-          <div className="px-3 pt-2 pb-2 text-[11px] uppercase font-semibold tracking-widest text-slate-500">Main</div>
-          <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-primary/15 text-primary shadow-sm">
+          <div className="px-3 pt-2 pb-2 text-[11px] uppercase font-semibold tracking-widest text-orange-200">Main</div>
+          <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/20 text-white shadow-sm font-semibold">
             <div className="flex items-center gap-3">
               <LayoutDashboard className="w-4.5 h-4.5" />
-              <span className="text-sm font-medium">Active Missions</span>
+              <span className="text-sm">Active Missions</span>
             </div>
             <div className="flex items-center gap-2">
               {activeIncidentsCount > 0 && (
-                <span className="bg-red-500 text-slate-100 text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{activeIncidentsCount}</span>
+                <span className="bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{activeIncidentsCount}</span>
               )}
-              <ChevronRight className="w-4 h-4 opacity-50" />
+              <ChevronRight className="w-4 h-4 opacity-70" />
             </div>
           </button>
         </div>
 
-        <div className="p-4 border-t border-slate-700/50">
-          <div className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer group">
+        <div className="p-4 border-t border-orange-400/60">
+          <div className="flex items-center justify-between p-2 rounded-xl hover:bg-orange-400 transition-colors cursor-pointer group">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-primary to-orange-600 flex items-center justify-center text-slate-100 shrink-0 shadow-md">
+              <div className="w-9 h-9 rounded-xl bg-orange-400 flex items-center justify-center text-white shrink-0 border border-orange-300/30">
                 <User className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-slate-100">Rescue Team A</span>
-                <span className="text-xs text-slate-400 truncate w-24">QC Task Force</span>
+                <span className="text-sm font-semibold text-white">Rescue Team A</span>
+                <span className="text-xs text-orange-100 truncate w-24">QC Task Force</span>
               </div>
             </div>
-            <button onClick={() => navigate('/login')} className="p-2 text-slate-400 group-hover:text-white transition-colors cursor-pointer">
+            <button onClick={() => navigate('/login')} className="p-2 text-orange-100 group-hover:text-white transition-colors cursor-pointer">
               <LogOut className="w-4.5 h-4.5" />
             </button>
           </div>

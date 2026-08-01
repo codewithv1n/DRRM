@@ -4,7 +4,6 @@ import { Lock, Mail, Shield, Building2, Map, Home, ClipboardList, Sun, ArrowRigh
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  // Using username state but labeling as Email to match the design EXACTLY, while keeping our mock login working.
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,17 +12,17 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    // Mock Authentication Logic based on email/username input
+    
     const user = username.toLowerCase();
     
     if (user === 'admin' || user === 'department' || user.includes('admin')) {
         navigate('/departments');
     } else if (user === 'brgy' || user === 'barangay' || user.includes('brgy')) {
-        navigate('/barangay');
+        navigate('/barangays');
     } else if (user === 'rescue' || user === 'responder' || user.includes('rescue')) {
-        navigate('/responder');
+        navigate('/responders');
     } else if (user === 'juan' || user === 'resident' || user.includes('juan')) {
-        navigate('/residents/dashboard');
+        navigate('/residents');
     } else {
         setError('Invalid credentials. Use: admin, brgy, rescue, or juan');
     }
@@ -33,9 +32,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex w-full font-sans">
       
       {/* Left Panel - Branding & Information */}
-      <div className="hidden lg:flex w-1/2 flex-col justify-between p-12 bg-linear-to-br bg-primary text-white relative overflow-hidden">
-        {/* Subtle radial gradient overlay */}
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,var(--tw-gradient-stops))] from-white/10 via-transparent to-black/20"></div>
+      <div className="hidden lg:flex w-1/2 flex-col justify-between p-12 bg-linear-to-br from-orange-400 via-orange-400 to-slate-700 text-white relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,var(--tw-gradient-stops))] from-orange-300/40 via-transparent to-black/20"></div>
         
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-16">
@@ -84,16 +82,15 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center bg-[#F8FAFC] relative">
-        {/* Top Right Icon */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center bg-linear-to-br from-slate-50 to-[#EBF0F7] relative">
         <div className="absolute top-8 right-8 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
            <Sun className="w-5 h-5" />
         </div>
 
-        <div className="w-full max-w-105 px-8">
+        <div className="w-full max-w-125 px-8">
           
-          <div className="bg-white p-10 rounded-4xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100">
-            <h2 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Welcome back</h2>
+          <div className="bg-white p-10 rounded-4xl shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-white">
+            <h2 className="text-3xl font-extrabold text-[#0F172A] mb-1.5 tracking-tight">Welcome back</h2>
             <p className="text-slate-500 text-sm mb-8">Sign in to access the disaster management system</p>
 
             <form onSubmit={handleLogin} className="space-y-6">
@@ -104,34 +101,34 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Email</label>
+                <label className="text-xs font-bold text-slate-700">Email</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-slate-400" />
+                    <Mail className="h-4.5 w-4.5 text-slate-400" />
                   </div>
                   <input
                     type="text"
                     required
                     value={username}
                     onChange={e => setUsername(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-white"
+                    className="block w-full pl-11 pr-4 py-3 border border-slate-100/80 rounded-2xl text-slate-900 placeholder-slate-400  transition-all bg-[#F8FAFC]"
                     placeholder="you@example.com"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Password</label>
+                <label className="text-xs font-bold text-slate-700">Password</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-slate-400" />
+                    <Lock className="h-4.5 w-4.5 text-slate-400" />
                   </div>
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all bg-white"
+                    className="block w-full pl-11 pr-4 py-3 border border-slate-100/80 rounded-2xl text-slate-900 placeholder-slate-400/50 transition-all bg-[#F8FAFC]"
                     placeholder="••••••••••••••••••••••••"
                   />
                 </div>
@@ -139,10 +136,10 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-medium py-3 px-4 rounded-xl shadow-md shadow-orange-500/20 transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 mt-4"
+                className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-medium py-3.5 px-4 rounded-full  transition-all duration-200 cursor-pointer flex justify-center items-center gap-2 mt-6"
               >
                 Sign In 
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4.5 h-4.5" />
               </button>
             </form>
           </div>

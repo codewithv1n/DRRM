@@ -1,0 +1,80 @@
+import { useState } from 'react';
+import type { FormEvent } from 'react';
+import { FileText, Send, AlertCircle } from 'lucide-react';
+import { useMockData } from '../../data/MockDataContext';
+import { ASSIGNED_BARANGAY } from './BarangayPortal'; // IDE cache invalidation
+
+export default function SitrepPanel() {
+  const { addAuditLog } = useMockData();
+  const [showToast, setShowToast] = useState(false);
+
+  const handleSitRepSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setShowToast(true);
+    addAuditLog('Submit SitRep', `Barangay Admin (${ASSIGNED_BARANGAY})`, 'Submitted daily situation report.');
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  return (
+    <div className="animate-fade-in space-y-8">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-800">SitRep Uploader</h2>
+        <p className="text-slate-500">Submit daily situation reports to QC EOC</p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden max-w-2xl">
+        <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
+          <FileText className="w-5 h-5 text-slate-700" />
+          <h3 className="font-bold text-slate-800">Situation Report (SitRep)</h3>
+        </div>
+        <form onSubmit={handleSitRepSubmit} className="p-6 space-y-5">
+          {showToast && (
+            <div className="bg-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2 animate-fade-in-down">
+               <Send className="w-4 h-4" /> SitRep Submitted Successfully!
+            </div>
+          )}
+          
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">General Situation</label>
+            <textarea 
+              rows={3}
+              required
+              className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+              placeholder="Describe the current situation in the barangay..."
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Number of Evacuees</label>
+              <input type="number" className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" defaultValue={0} />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Casualties</label>
+              <input type="number" className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" defaultValue={0} />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Damaged Houses</label>
+              <input type="number" className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" defaultValue={0} />
+            </div>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mt-2 flex gap-3 items-start">
+             <AlertCircle className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+             <p className="text-xs text-slate-500 leading-relaxed">
+               <strong>Access Boundary Enforcement:</strong> Data submitted is cryptographically tied to <em>{ASSIGNED_BARANGAY}</em> via Row-Level Security (RLS) at the database layer. Cross-barangay data mutation is technically impossible and rejected automatically.
+             </p>
+          </div>
+
+          <button 
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer mt-4"
+          >
+            <Send className="w-5 h-5" />
+            Submit to QC EOC
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, Settings, ArrowRight, AlertTriangle, Users, Package, Radio, Activity, User, Building, Map, CheckSquare, BarChart } from 'lucide-react';
+import { ShieldAlert,  ArrowRight, AlertTriangle, Users, Package, Radio, Activity, User, Building, Map, CheckSquare, BarChart } from 'lucide-react';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -57,15 +57,12 @@ export default function LandingPage() {
           <div className="bg-primary/10 p-2 rounded-xl">
             <ShieldAlert className="w-6 h-6 text-primary" />
           </div>
-          <span className="font-bold text-lg tracking-wider text-foreground">QC DRRM</span>
+          <span className="font-bold text-lg tracking-wider text-foreground">GOVSERVE</span>
         </div>
         
         <div className="flex gap-4 items-center">
           <button onClick={() => navigate('/login')} className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-            Staff Login
-          </button>
-          <button className="p-2 bg-secondary rounded-full hover:bg-secondary/80 transition-colors text-muted-foreground cursor-pointer">
-            <Settings className="w-5 h-5" />
+            Sign In
           </button>
         </div>
       </header>
@@ -76,7 +73,7 @@ export default function LandingPage() {
         {/* Badge */}
         <div className="bg-card border border-border shadow-sm rounded-full px-4 py-1.5 flex items-center gap-2 mb-8 cursor-pointer hover:shadow-md transition-shadow">
           <ShieldAlert className="w-4 h-4 text-primary" />
-          <span className="text-xs font-semibold text-muted-foreground tracking-wide">Disaster Management Platform</span>
+          <span className="text-xs font-semibold text-muted-foreground tracking-wide">Disaster Management System</span>
         </div>
 
         {/* Hero Title */}
@@ -119,7 +116,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="text-center py-6 text-xs text-muted-foreground border-t border-border mt-auto bg-card/50 backdrop-blur-sm z-10 relative">
-        © 2026 QC DRRM. Secure Government Platform.
+        © 2026 GOVSERVE. Secure Government Platform.
         <div className="absolute bottom-0 left-0 w-full h-1 bg-linear-to-r from-primary/50 to-primary"></div>
       </footer>
     </div>

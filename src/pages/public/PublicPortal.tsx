@@ -1,10 +1,22 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, User, PhoneCall, Megaphone, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, BookOpen, PhoneCall, Megaphone, ArrowLeft, ShieldAlert } from 'lucide-react';
 
 export default function PublicPortal() {
   const navigate = useNavigate();
 
-  const portalOptions = [
+  type PortalOption = {
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+    bgColor: string;
+    borderColor: string;
+    hoverColor: string;
+    route?: string;
+    action?: () => void;
+  };
+
+  const portalOptions: PortalOption[] = [
     {
       title: 'Report Incident',
       description: 'Quickly report emergencies, accidents, or hazards in your area.',
@@ -12,16 +24,16 @@ export default function PublicPortal() {
       bgColor: 'bg-orange-50',
       borderColor: 'border-orange-100',
       hoverColor: 'hover:border-orange-300 hover:shadow-orange-500/20',
-      route: '/report-incident'
+      route: '/report_incident'
     },
     {
-      title: 'Resident Portal',
-      description: 'Access your citizen ID, evacuation status, and relief stubs.',
-      icon: <User className="w-8 h-8 text-blue-500" />,
+      title: 'Survival Guides',
+      description: 'Learn what to do before, during, and after various emergencies and disasters.',
+      icon: <BookOpen className="w-8 h-8 text-blue-500" />,
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-100',
       hoverColor: 'hover:border-blue-300 hover:shadow-blue-500/20',
-      route: '/resident'
+      route: '/survival_guides'
     },
     {
       title: 'Emergency Hotlines',
@@ -30,7 +42,7 @@ export default function PublicPortal() {
       bgColor: 'bg-red-50',
       borderColor: 'border-red-100',
       hoverColor: 'hover:border-red-300 hover:shadow-red-500/20',
-      action: () => alert('Emergency Hotlines Modal Coming Soon!')
+      route: '/emergency_hotlines'
     },
     {
       title: 'Public Advisories',
@@ -39,7 +51,7 @@ export default function PublicPortal() {
       bgColor: 'bg-emerald-50',
       borderColor: 'border-emerald-100',
       hoverColor: 'hover:border-emerald-300 hover:shadow-emerald-500/20',
-      action: () => alert('Public Advisories Coming Soon!')
+      route: '/public_advisory'
     }
   ];
 
@@ -61,16 +73,16 @@ export default function PublicPortal() {
           <div className="bg-orange-100 p-2 rounded-lg">
             <ShieldAlert className="w-6 h-6 text-orange-500" />
           </div>
-          <span className="font-bold text-lg tracking-wider text-slate-900">QC DRRM</span>
+          <span className="font-bold text-lg tracking-wider text-slate-900">GOVSERVE</span>
         </div>
       </div>
 
       <div className="text-center max-w-2xl mb-12">
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
-          Public <span className="text-blue-600">Services Portal</span>
+          Public <span className="text-orange-400">Services Portal</span>
         </h1>
         <p className="text-slate-500 text-lg">
-          Select a service below to report an emergency, access your citizen dashboard, or view critical information.
+          Select a service below to report an emergency, view survival guides, or access critical information.
         </p>
       </div>
 
@@ -94,7 +106,7 @@ export default function PublicPortal() {
       </div>
       
       <footer className="mt-20 text-center text-xs text-slate-400">
-        © 2026 QC DRRM. Secure Government Platform.
+        © 2026 GOVSERVE. Secure Government Platform.
       </footer>
     </div>
   );
