@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMockData } from '../../data/MockDataContext';
 import type { EmergencyType } from '../../data/mockData';
-import { AlertCircle, Camera, CheckCircle2, MapPin, Phone, User, ShieldAlert, Loader2, Search, Flame, Droplets, Activity, AlertTriangle, Navigation, ArrowLeft, Upload } from 'lucide-react';
+import { AlertCircle, Camera, CheckCircle2, MapPin, Phone, User, Loader2, Search, Flame, Droplets, Activity, AlertTriangle, Navigation, ArrowLeft, Upload } from 'lucide-react';
 
 export default function IncidentReportForm() {
   const navigate = useNavigate();
   const { addIncident } = useMockData();
   const [showSuccess, setShowSuccess] = useState(false);
-  const [step, setStep] = useState<'FORM' | 'PHOTO_VALIDATION' | 'OTP' | 'SUCCESS'>('FORM');
+  const [step, setStep] = useState<'FORM' | 'PHOTO_VALIDATION' | 'SUCCESS'>('FORM');
   
   const [formData, setFormData] = useState({
     reporterName: '',
@@ -18,7 +18,6 @@ export default function IncidentReportForm() {
   });
 
   const [hasPhoto, setHasPhoto] = useState(false);
-  const [otp, setOtp] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -41,41 +40,34 @@ export default function IncidentReportForm() {
   const handleInitialSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const submitIncident = () => {
+      addIncident({
+          ...formData,
+          isVerified: hasPhoto, // Verified if photo metadata matched
+          gpsLocation: hasPhoto ? '14.6760 N, 121.0437 E' : undefined,
+          deviceIp: '192.168.1.5',
+          spamScore: hasPhoto ? 0.05 : 0.4
+      });
+
+      setStep('SUCCESS');
+      setShowSuccess(true);
+      setFormData({ reporterName: '', contactNumber: '', location: '', type: 'Fire' });
+      setHasPhoto(false);
+      
+      setTimeout(() => {
+        setShowSuccess(false);
+        setStep('FORM');
+      }, 4000);
+    };
+
     if (hasPhoto) {
         setStep('PHOTO_VALIDATION');
         setTimeout(() => {
-            setStep('OTP');
-        }, 2000); // Simulate metadata validation
+            submitIncident();
+        }, 2000); 
     } else {
-        setStep('OTP');
+        submitIncident();
     }
-  };
-
-  const handleFinalSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp !== '1234') {
-        alert("Invalid OTP. For demo purposes, use 1234.");
-        return;
-    }
-
-    addIncident({
-        ...formData,
-        isVerified: hasPhoto, // Verified if photo metadata matched
-        gpsLocation: hasPhoto ? '14.6760 N, 121.0437 E' : undefined,
-        deviceIp: '192.168.1.5',
-        spamScore: hasPhoto ? 0.05 : 0.4
-    });
-
-    setStep('SUCCESS');
-    setShowSuccess(true);
-    setFormData({ reporterName: '', contactNumber: '', location: '', type: 'Fire' });
-    setHasPhoto(false);
-    setOtp('');
-    
-    setTimeout(() => {
-      setShowSuccess(false);
-      setStep('FORM');
-    }, 4000);
   };
 
   return (
@@ -256,7 +248,7 @@ export default function IncidentReportForm() {
                         type="submit"
                         className="w-full bg-primary hover:bg-orange-600 text-white font-semibold py-3.5 px-6 rounded-lg shadow-md transition-colors duration-200 cursor-pointer"
                     >
-                        Continue
+                        Submit
                     </button>
                 </div>
             </form>
@@ -271,30 +263,6 @@ export default function IncidentReportForm() {
                     <Search className="w-3 h-3" /> Anti-Abuse System Active
                 </div>
             </div>
-        )}
-
-        {step === 'OTP' && (
-            <form onSubmit={handleFinalSubmit} className="p-8 text-center flex flex-col items-center">
-                <ShieldAlert className="w-12 h-12 text-emerald-500 mb-4" />
-                <h3 className="font-bold text-lg text-slate-800">Phone Verification</h3>
-                <p className="text-sm text-slate-500 mt-2">We sent a verification code to <b>{formData.contactNumber}</b>. Enter it below to submit your report.</p>
-                
-                <input 
-                    type="text" 
-                    value={otp}
-                    onChange={e => setOtp(e.target.value)}
-                    placeholder="Enter OTP (Use 1234)"
-                    className="mt-6 text-center text-2xl tracking-widest font-bold w-48 py-3 border-2 border-slate-300 rounded-lg focus:border-primary focus:outline-none"
-                    maxLength={4}
-                />
-
-                <button
-                    type="submit"
-                    className="mt-6 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors"
-                >
-                    Verify & Submit Report
-                </button>
-            </form>
         )}
 
         {step === 'SUCCESS' && (
