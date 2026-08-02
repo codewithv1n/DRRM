@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Clock, Minus, Plus, Activity, CloudLightning, Waves, Wind } from 'lucide-react';
+import { Clock, Activity, CloudLightning, Waves, Wind } from 'lucide-react';
 import { useMockData } from '../../data/MockDataContext';
 import DepartmentLayout from '../../components/layout/DepartmentLayout';
 import maplibregl from 'maplibre-gl';
@@ -14,7 +14,7 @@ function timeAgo(ts: string) {
 }
 
 export default function HazardMapPanel() {
-  const { evacuationCenters, updateEvacuationOccupancy, incidents } = useMockData();
+  const { evacuationCenters, incidents } = useMockData();
   const pendingCount = incidents ? incidents.filter(i => i.status === 'Pending').length : 0;
   
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -260,27 +260,6 @@ export default function HazardMapPanel() {
                     </div>
                   </div>
 
-                  {/* Atomic +/- Controls */}
-                  <div className="px-5 py-4 mt-2 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Adjust Occupancy</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => updateEvacuationOccupancy(ec.id, -10)}
-                        disabled={ec.currentOccupancy <= 0}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-30 transition-all shadow-sm"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="text-xs font-bold text-slate-500 w-6 text-center">±10</span>
-                      <button
-                        onClick={() => updateEvacuationOccupancy(ec.id, 10)}
-                        disabled={ec.currentOccupancy >= ec.capacity}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-600 disabled:opacity-30 transition-all shadow-sm"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
                 </div>
               );
             })}

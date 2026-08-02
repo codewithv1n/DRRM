@@ -46,7 +46,6 @@ export interface SitRep {
   lastUpdatedBy: string;
 }
 
-
 export interface QueuedAction {
   id: string;
   type: 'RELIEF_CLAIM' | 'INCIDENT_UPDATE' | 'HAZARD_UPDATE';

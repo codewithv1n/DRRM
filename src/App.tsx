@@ -35,11 +35,12 @@ import AuditLogPanel from './pages/departments/AuditLogPanel';
 import ResponderDashboard from './pages/response_units/ResponderDashboard';
 
 // Citizen Section
-import CitizenIDPage from './pages/Citizen/CitizenIDPage';
-import CitizenClaimHistory from './pages/Citizen/CitizenClaimHistory';
-import CitizenAlerts from './pages/Citizen/CitizenAlerts';
-import CitizenDashboard from './pages/Citizen/CitizenDashboard';
-import CitizenAbout from './pages/Citizen/CitizenAbout';
+import CitizenIDPage from './pages/citizen/CitizenIDPage';
+import CitizenClaimHistory from './pages/citizen/CitizenClaimHistory';
+import CitizenAlerts from './pages/citizen/CitizenAlerts';
+import CitizenDashboard from './pages/citizen/CitizenDashboard';
+import CitizenAbout from './pages/citizen/CitizenAbout';
+import CitizenResources from './pages/citizen/CitizenResources';
 
 function App() {
   return (
@@ -77,6 +78,7 @@ function App() {
         <Route path="/citizen/claim_history" element={<CitizenClaimHistory />} />
         <Route path="/citizen/alerts" element={<CitizenAlerts />} />
         <Route path="/citizen/about" element={<CitizenAbout />} />
+        <Route path="/citizen/resources" element={<CitizenResources />} />
         
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />

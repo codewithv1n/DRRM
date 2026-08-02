@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, LogOut, History, LayoutDashboard, QrCode, ChevronRight, ShieldAlert, Menu, Bell, BellRing, Info } from 'lucide-react';
+import { User, LogOut, History, LayoutDashboard, QrCode, ChevronRight, ShieldAlert, Menu, Bell, BellRing, Info, Truck } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface CitizenLayoutProps {
@@ -76,6 +76,7 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
           <NavItem icon={QrCode} label="My Citizen ID" path="/citizen/id" />
           <NavItem icon={History} label="Claim History" path="/citizen/claim_history" />
           <GroupLabel label="Information" />
+          <NavItem icon={Truck} label="City Resources" path="/citizen/resources" />
           <NavItem icon={Info} label="About DRRM" path="/citizen/about" />
         </div>
 
