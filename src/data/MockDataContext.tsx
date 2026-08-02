@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { initialIncidents, initialResources } from './mockData';
 import type { Incident, Resource } from './mockData';
 
-// Types for additional models
+
 export interface Alert {
   id: string;
   level: string;
@@ -46,7 +46,7 @@ export interface SitRep {
   lastUpdatedBy: string;
 }
 
-// Queue types for offline actions
+
 export interface QueuedAction {
   id: string;
   type: 'RELIEF_CLAIM' | 'INCIDENT_UPDATE' | 'HAZARD_UPDATE';
@@ -235,16 +235,9 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
       message,
       timestamp: new Date().toISOString(),
       channel: useBackup ? 'SMS Backup' : 'WebSocket',
-      deliveryStatus: useBackup ? 'Sent' : 'Pending'
+      deliveryStatus: 'Sent'
     };
     setActiveAlerts(prev => [newAlert, ...prev]);
-    
-    if (!useBackup) {
-      // Simulate failure of primary channel requiring failover
-      setTimeout(() => {
-        setActiveAlerts(prev => prev.map(a => a.id === newAlert.id ? { ...a, deliveryStatus: 'Failed' } : a));
-      }, 3000);
-    }
   };
 
   return (

@@ -5,13 +5,15 @@ import {
   Thermometer, 
   Info,
   Waves,
-  MapPin,
   Clock,
   ShieldAlert
 } from 'lucide-react';
 import ResidentLayout from '../../components/layout/CitizenLayout';
+import { useMockData } from '../../data/MockDataContext';
 
 export default function CitizenAlerts() {
+  const { activeAlerts } = useMockData();
+
   return (
     <ResidentLayout>
       <div className="animate-fade-in space-y-6">
@@ -55,39 +57,33 @@ export default function CitizenAlerts() {
             </h3>
             
             <div className="space-y-4">
-              {/* Advisory Card 1 */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 hover:shadow-md transition-shadow">
-                <div className="bg-rose-50 p-3 rounded-xl h-fit border border-rose-100 shrink-0">
-                  <Waves className="w-6 h-6 text-rose-600" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-lg">Tullahan River Flood Watch</h4>
-                  <p className="text-slate-500 text-sm mt-1 leading-relaxed">
-                    Water level at Tullahan River is currently at <strong>Alert Level 2 (Preparation)</strong>. Residents of Brgy. Bagbag, Brgy. San Bartolome, and Brgy. Fairview are advised to prepare for possible evacuation if rainfall continues.
-                  </p>
-                  <div className="flex items-center gap-4 mt-3">
-                    <span className="flex items-center gap-1 text-xs font-semibold text-rose-600"><MapPin className="w-3.5 h-3.5" /> District 2 & 5</span>
-                    <span className="text-xs text-slate-400">Updated 30 mins ago</span>
+              {activeAlerts.length > 0 ? activeAlerts.map(alert => (
+                <div key={alert.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 hover:shadow-md transition-shadow">
+                  <div className={`p-3 rounded-xl h-fit border shrink-0 ${
+                    alert.level.includes('Red') || alert.level.includes('Critical') ? 'bg-rose-50 border-rose-100 text-rose-600' :
+                    alert.level.includes('Warning') || alert.level.includes('Orange') ? 'bg-amber-50 border-amber-100 text-amber-600' :
+                    'bg-blue-50 border-blue-100 text-blue-600'
+                  }`}>
+                    {alert.level.includes('Red') || alert.level.includes('Critical') ? <AlertTriangle className="w-6 h-6" /> :
+                     alert.level.includes('Warning') || alert.level.includes('Orange') ? <AlertTriangle className="w-6 h-6" /> :
+                     <Info className="w-6 h-6" />}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-lg">{alert.level}</h4>
+                    <p className="text-slate-500 text-sm mt-1 leading-relaxed">
+                      {alert.message}
+                    </p>
+                    <div className="flex items-center gap-4 mt-3">
+                      <span className="flex items-center gap-1 text-xs font-semibold text-slate-600"><ShieldAlert className="w-3.5 h-3.5" /> {alert.channel}</span>
+                      <span className="text-xs text-slate-400">Issued {new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Advisory Card 2 */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 hover:shadow-md transition-shadow">
-                <div className="bg-amber-50 p-3 rounded-xl h-fit border border-amber-100 shrink-0">
-                  <Info className="w-6 h-6 text-amber-600" />
+              )) : (
+                <div className="text-center p-8 text-slate-500 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                   No active city advisories at the moment.
                 </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-lg">Suspension of Classes</h4>
-                  <p className="text-slate-500 text-sm mt-1 leading-relaxed">
-                    Classes in <strong>ALL LEVELS</strong> (Public and Private) within Quezon City are suspended tomorrow, Aug 2, due to expected continuous heavy rains brought by the Southwest Monsoon (Habagat).
-                  </p>
-                  <div className="flex items-center gap-4 mt-3">
-                    <span className="flex items-center gap-1 text-xs font-semibold text-amber-600"><ShieldAlert className="w-3.5 h-3.5" /> City Mayor's Office</span>
-                    <span className="text-xs text-slate-400">Updated 1 hour ago</span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 

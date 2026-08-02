@@ -1,9 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { 
-  AlertTriangle, 
   QrCode, 
   Package, 
-  Smartphone, 
   ArrowRight, 
   CloudSun,
   MapPin,
@@ -20,8 +18,7 @@ import ResidentLayout from '../../components/layout/CitizenLayout';
 
 export default function CitizenDashboard() {
   const navigate = useNavigate();
-  const { activeAlerts, reliefClaims } = useMockData();
-  const currentAlerts = activeAlerts.filter(a => a.deliveryStatus !== 'Failed');
+  const { reliefClaims } = useMockData();
 
 
 
@@ -43,34 +40,13 @@ export default function CitizenDashboard() {
               <CloudSun className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Brgy. Balingasa Weather</span>
+              <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Quezon City</span>
               <span className="text-xs font-bold text-slate-700">Light Showers • 28°C</span>
             </div>
           </div>
         </div>
 
-        {/* Severe Alerts Section */}
-        {currentAlerts.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-3xl p-6 flex items-start gap-4 shadow-sm relative overflow-hidden animate-pulse">
-            <div className="absolute top-0 right-0 p-4">
-              {currentAlerts[0].channel === 'SMS Backup' && (
-                <span className="flex items-center gap-1 text-[10px] bg-red-600 text-white font-bold px-2.5 py-1 rounded-full shadow">
-                  <Smartphone className="w-3 h-3" /> SMS BACKUP
-                </span>
-              )}
-            </div>
-            <div className="bg-red-100 p-3 rounded-2xl text-red-600 shrink-0">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-red-900 mb-1">Active Barangay Emergency Announcement</h3>
-              <p className="text-sm text-red-700 font-medium">{currentAlerts[0].message}</p>
-              <p className="text-[11px] text-red-500 mt-2.5 font-bold uppercase tracking-wider">
-                {currentAlerts[0].level} • Issued {new Date(currentAlerts[0].timestamp).toLocaleTimeString()}
-              </p>
-            </div>
-          </div>
-        )}
+
 
 
 

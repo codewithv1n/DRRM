@@ -58,7 +58,7 @@ export default function DepartmentLayout({ children, pendingCount = 0 }: Departm
           <NavItem icon={LayoutDashboard} label="Dashboard" path="/departments" />
           <GroupLabel label="Operations" />
           <NavItem icon={Siren} label="Incident Dispatcher" path="/departments/incidents" />
-          <NavItem icon={Radio} label="Early Warning System" path="/departments/early_warning" />
+          <NavItem icon={Radio} label="City-Wide Alerts" path="/departments/early_warning" />
           <GroupLabel label="Monitoring" />
           <NavItem icon={Map} label="Hazard & Evacuation Map" path="/departments/hazard_map" />
           <NavItem icon={BarChart3} label="Barangay Coordination" path="/departments/barangay_coordination" />

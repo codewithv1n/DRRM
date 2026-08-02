@@ -26,7 +26,7 @@ import SitRepUploaderPage from './pages/barangays/SitrepUploaderPage';
 // Department Section
 import DepartmentDashboard from './pages/departments/DepartmentDashboard';
 import IncidentDispatcherPanel from './pages/departments/IncidentDispatcherPanel';
-import EarlyWarningPanel from './pages/departments/EarlyWarningPanel';
+import EarlyWarningPanel from './pages/departments/CityWideAnnouncementPage';
 import HazardMapPanel from './pages/departments/HazardMapPanel';
 import BarangayCoordinationPanel from './pages/departments/BarangayCoordinationPanel';
 import ResourceManagementPanel from './pages/departments/ResourceManagementPanel';
