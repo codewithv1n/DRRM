@@ -57,7 +57,7 @@ export default function LandingPage() {
           <div className="bg-white/10 p-2 rounded-full ">
               <Shield className="w-5 h-5 text-orange-400" />
           </div>
-          <span className="font-bold text-lg tracking-wider text-foreground">GOVSERVE</span>
+          <span className="font-bold text-lg tracking-wider text-foreground">Quezon City</span>
         </div>
         
         <div className="flex gap-4 items-center">

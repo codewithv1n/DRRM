@@ -41,7 +41,7 @@ export default function LoginPage() {
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-xl tracking-wide leading-none text-slate-100">GOVSERVE</h1>
+              <h1 className="font-bold text-xl tracking-wide leading-none text-slate-100">Quezon City</h1>
               <p className="text-[11px] text-white/80 mt-1">Disaster Management System</p>
             </div>
           </div>

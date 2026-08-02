@@ -6,7 +6,7 @@ import LandingPage from './LandingPage';
 import IncidentReportForm from './pages/public/IncidentReportForm';
 import PublicPortal from './pages/public/PublicPortal';
 import EmergencyHotlines from './pages/public/EmergencyHotlines';
-import PublicAdvisory from './pages/public/PublicAdvisory';
+import AboutQC from './pages/public/AboutQC';
 import SurvivalGuide from './pages/public/SurvivalGuide';
  
 
@@ -14,12 +14,32 @@ import SurvivalGuide from './pages/public/SurvivalGuide';
 import LoginPage from './auth/LoginPage';
 
 // Dashboards
+
+
+// Barangay Section
+import BarangayDashboard from './pages/barangays/BarangayDashboard'; 
+import BarangayCitizenRegistry from './pages/barangays/CitizenRegistrationPage'; 
+import BarangayEvacuationUpdater from './pages/barangays/EvacuationUpdatePage'; 
+import BarangayReliefGoodsClaim from './pages/barangays/ReliefClaimScannerPage';
+import SitRepUploaderPage from './pages/barangays/SitrepUploaderPage';  
+
+// Department Section
 import DepartmentDashboard from './pages/departments/DepartmentDashboard';
-import BarangayPortal from './pages/barangays/BarangayPortal'; 
+import IncidentDispatcherPanel from './pages/departments/IncidentDispatcherPanel';
+import EarlyWarningPanel from './pages/departments/EarlyWarningPanel';
+import HazardMapPanel from './pages/departments/HazardMapPanel';
+import BarangayCoordinationPanel from './pages/departments/BarangayCoordinationPanel';
+import ResourceManagementPanel from './pages/departments/ResourceManagementPanel';
+import AuditLogPanel from './pages/departments/AuditLogPanel';
+
 import ResponderDashboard from './pages/response_units/ResponderDashboard';
-import ResidentPortal from './pages/residents/ResidentPortal';
-import ResidentQRPage from './pages/residents/ResidentQRPage';
-import ResidentClaimHistory from './pages/residents/ResidentClaimHistory';
+
+// Citizen Section
+import CitizenIDPage from './pages/Citizen/CitizenIDPage';
+import CitizenClaimHistory from './pages/Citizen/CitizenClaimHistory';
+import CitizenAlerts from './pages/Citizen/CitizenAlerts';
+import CitizenDashboard from './pages/Citizen/CitizenDashboard';
+import CitizenAbout from './pages/Citizen/CitizenAbout';
 
 function App() {
   return (
@@ -33,18 +53,30 @@ function App() {
         <Route path="/report_incident" element={<IncidentReportForm />} />
         <Route path="/public_portal" element={<PublicPortal />} />
         <Route path="/emergency_hotlines" element={<EmergencyHotlines />} />
-        <Route path="/public_advisory" element={<PublicAdvisory />} />
+        <Route path="/about_qc" element={<AboutQC />} />
         <Route path="/survival_guides" element={<SurvivalGuide />} />
       
-      
-        <Route path="/departments" element={<DepartmentDashboard />} />
-        <Route path="/barangays" element={<BarangayPortal />} />
-
         <Route path="/responders" element={<ResponderDashboard />} />
+        <Route path="/departments" element={<DepartmentDashboard />} />
+        <Route path="/departments/incidents" element={<IncidentDispatcherPanel />} />
+        <Route path="/departments/early_warning" element={<EarlyWarningPanel />} />
+        <Route path="/departments/hazard_map" element={<HazardMapPanel />} />
+        <Route path="/departments/barangay_coordination" element={<BarangayCoordinationPanel />} />
+        <Route path="/departments/resource_management" element={<ResourceManagementPanel />} />
+        <Route path="/departments/audit_logs" element={<AuditLogPanel />} />
+        
+        <Route path="/barangays" element={<BarangayDashboard />} />
+        <Route path="/barangays/relief_claim" element={<BarangayReliefGoodsClaim />} />
+        <Route path="/barangays/evac_updater" element={<BarangayEvacuationUpdater />} />
+        <Route path="/barangays/citizen_registry" element={<BarangayCitizenRegistry />} />
+        <Route path="/barangays/sitrep_upload" element={<SitRepUploaderPage />} />
 
-        <Route path="/residents" element={<ResidentPortal />} />
-        <Route path="/residents/qr_id" element={<ResidentQRPage />} />
-        <Route path="/residents/claim_history" element={<ResidentClaimHistory />} />
+
+        <Route path="/citizen" element={<CitizenDashboard />} />
+        <Route path="/citizen/id" element={<CitizenIDPage />} />
+        <Route path="/citizen/claim_history" element={<CitizenClaimHistory />} />
+        <Route path="/citizen/alerts" element={<CitizenAlerts />} />
+        <Route path="/citizen/about" element={<CitizenAbout />} />
         
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />

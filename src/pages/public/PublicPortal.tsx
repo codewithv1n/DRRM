@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, BookOpen, PhoneCall, Megaphone, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, BookOpen, PhoneCall, Info, ArrowLeft, ShieldAlert } from 'lucide-react';
 
 export default function PublicPortal() {
   const navigate = useNavigate();
@@ -45,13 +45,13 @@ export default function PublicPortal() {
       route: '/emergency_hotlines'
     },
     {
-      title: 'Public Advisories',
-      description: 'Stay updated with the latest city-wide announcements, weather alerts, and news.',
-      icon: <Megaphone className="w-8 h-8 text-emerald-500" />,
-      bgColor: 'bg-emerald-50',
-      borderColor: 'border-emerald-100',
-      hoverColor: 'hover:border-emerald-300 hover:shadow-emerald-500/20',
-      route: '/public_advisory'
+      title: 'About Quezon City',
+      description: 'Learn about our city, population, and our vision for a disaster-resilient community.',
+      icon: <Info className="w-8 h-8 text-orange-400" />,
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-100',
+      hoverColor: 'hover:border-orange-300 hover:shadow-orange-400/20',
+      route: '/about_qc'
     }
   ];
 
@@ -73,7 +73,7 @@ export default function PublicPortal() {
           <div className="bg-orange-100 p-2 rounded-lg">
             <ShieldAlert className="w-6 h-6 text-orange-500" />
           </div>
-          <span className="font-bold text-lg tracking-wider text-slate-900">GOVSERVE</span>
+          <span className="font-bold text-lg tracking-wider text-slate-900">Quezon City</span>
         </div>
       </div>
 

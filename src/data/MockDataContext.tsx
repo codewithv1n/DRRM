@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import { initialIncidents } from './mockData';
-import type { Incident } from './mockData';
+import { initialIncidents, initialResources } from './mockData';
+import type { Incident, Resource } from './mockData';
 
 // Types for additional models
 export interface Alert {
@@ -67,6 +67,9 @@ interface MockDataContextType {
   updateIncidentStatus: (id: string, status: Incident['status'], gpsLocation?: string) => void;
   assignResponder: (incidentId: string, responderId: string) => void;
 
+  resources: Resource[];
+  updateResourceStatus: (id: string, status: Resource['status'], assignedTo?: string) => void;
+
   evacuationCenters: EvacuationCenter[];
   updateEvacuationOccupancy: (id: string, delta: number) => void;
 
@@ -88,7 +91,25 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [actionQueue, setActionQueue] = useState<QueuedAction[]>([]);
 
   const [incidents, setIncidents] = useState<Incident[]>(initialIncidents);
-  const [activeAlerts, setActiveAlerts] = useState<Alert[]>([]);
+  const [resources, setResources] = useState<Resource[]>(initialResources);
+  const [activeAlerts, setActiveAlerts] = useState<Alert[]>([
+    {
+      id: `ALT-${Date.now() - 3600000}`,
+      level: 'General Alert',
+      message: 'WALANG PASOK: Classes in ALL LEVELS (public and private) in Quezon City are suspended today due to severe weather conditions.',
+      timestamp: new Date(Date.now() - 3600000).toISOString(),
+      channel: 'City Information Office',
+      deliveryStatus: 'Sent'
+    },
+    {
+      id: `ALT-${Date.now() - 7200000}`,
+      level: 'Red Alert',
+      message: 'Pre-emptive evacuation is now in effect for all low-lying areas near Tullahan River.',
+      timestamp: new Date(Date.now() - 7200000).toISOString(),
+      channel: 'QC DRRMO',
+      deliveryStatus: 'Sent'
+    }
+  ]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [reliefClaims] = useState<ReliefClaimResident[]>([
     { id: 'RC-001', status: 'Claimed', scannedBy: 'System Admin', timestamp: new Date(Date.now() - 86400000).toISOString() },
@@ -172,7 +193,16 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     setIncidents(prev =>
       prev.map(inc => inc.id === incidentId ? { ...inc, assignedResponder: responderId, status: 'Responding' as const } : inc)
     );
+    // Optionally update resource status automatically here if responderId matches a resource
+    setResources(prev => 
+      prev.map(res => res.id === responderId ? { ...res, status: 'Deployed', assignedTo: incidentId } : res)
+    );
     addAuditLog('Dispatch Unit', 'Department Admin', `Assigned ${responderId} to incident ${incidentId}`);
+  };
+
+  const updateResourceStatus = (id: string, status: Resource['status'], assignedTo?: string) => {
+    setResources(prev => prev.map(res => res.id === id ? { ...res, status, assignedTo } : res));
+    addAuditLog('Update Resource', 'Department Admin', `Resource ${id} status changed to ${status}`);
   };
 
   const updateEvacuationOccupancy = (id: string, delta: number, bypassQueue = false) => {
@@ -221,6 +251,7 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     <MockDataContext.Provider value={{ 
       isOffline, setIsOffline, actionQueue, syncQueue,
       incidents, addIncident, updateIncidentStatus, assignResponder,
+      resources, updateResourceStatus,
       evacuationCenters, updateEvacuationOccupancy,
       activeAlerts, broadcastAlert,
       auditLogs, addAuditLog,

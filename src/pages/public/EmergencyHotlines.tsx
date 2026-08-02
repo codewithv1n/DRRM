@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Flame, Shield, Activity, PhoneCall, Search } from 'lucide-react';
+import { ArrowLeft, Phone, Flame, Shield, Activity, PhoneCall } from 'lucide-react';
 
 export default function EmergencyHotlines() {
   const navigate = useNavigate();
@@ -68,17 +68,6 @@ export default function EmergencyHotlines() {
         </div>
 
         <div className="p-6">
-          {/* Search Bar */}
-          <div className="mb-6">
-             <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex items-center gap-3">
-               <Search className="w-5 h-5 text-slate-400 ml-2" />
-               <input 
-                 type="text" 
-                 placeholder="Search for a specific hotline..." 
-                 className="flex-1 outline-none text-sm p-1 text-slate-700 bg-transparent" 
-               />
-             </div>
-          </div>
 
           {/* Hotlines Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
