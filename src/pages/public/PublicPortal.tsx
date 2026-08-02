@@ -45,7 +45,7 @@ export default function PublicPortal() {
       route: '/emergency_hotlines'
     },
     {
-      title: 'About Quezon City',
+      title: 'About',
       description: 'Learn about our city, population, and our vision for a disaster-resilient community.',
       icon: <Info className="w-8 h-8 text-orange-400" />,
       bgColor: 'bg-orange-50',
