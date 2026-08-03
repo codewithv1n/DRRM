@@ -13,7 +13,6 @@ import SurvivalGuide from './pages/public/SurvivalGuide';
 // Auth Pages
 import LoginPage from './auth/LoginPage';
 
-// Dashboards
 
 
 // Barangay Section
@@ -31,6 +30,7 @@ import HazardMapPanel from './pages/departments/HazardMapPanel';
 import BarangayCoordinationPanel from './pages/departments/BarangayCoordinationPanel';
 import ResourceManagementPanel from './pages/departments/ResourceManagementPanel';
 import AuditLogPanel from './pages/departments/AuditLogPanel';
+import ReliefDispatchPanel from './pages/departments/ReliefDispatchPanel';
 
 import ResponderDashboard from './pages/response_units/ResponderDashboard';
 
@@ -39,8 +39,8 @@ import CitizenIDPage from './pages/citizen/CitizenIDPage';
 import CitizenClaimHistory from './pages/citizen/CitizenClaimHistory';
 import CitizenAlerts from './pages/citizen/CitizenAlerts';
 import CitizenDashboard from './pages/citizen/CitizenDashboard';
-import CitizenAbout from './pages/citizen/CitizenAbout';
 import CitizenResources from './pages/citizen/CitizenResources';
+import CitizenReportLogs from './pages/citizen/CitizenReportLogs';
 
 function App() {
   return (
@@ -58,6 +58,7 @@ function App() {
         <Route path="/survival_guides" element={<SurvivalGuide />} />
       
         <Route path="/responders" element={<ResponderDashboard />} />
+
         <Route path="/departments" element={<DepartmentDashboard />} />
         <Route path="/departments/incidents" element={<IncidentDispatcherPanel />} />
         <Route path="/departments/early_warning" element={<EarlyWarningPanel />} />
@@ -65,6 +66,7 @@ function App() {
         <Route path="/departments/barangay_coordination" element={<BarangayCoordinationPanel />} />
         <Route path="/departments/resource_management" element={<ResourceManagementPanel />} />
         <Route path="/departments/audit_logs" element={<AuditLogPanel />} />
+        <Route path="/departments/relief_dispatch" element={<ReliefDispatchPanel />} />
         
         <Route path="/barangays" element={<BarangayDashboard />} />
         <Route path="/barangays/relief_claim" element={<BarangayReliefGoodsClaim />} />
@@ -77,8 +79,8 @@ function App() {
         <Route path="/citizen/id" element={<CitizenIDPage />} />
         <Route path="/citizen/claim_history" element={<CitizenClaimHistory />} />
         <Route path="/citizen/alerts" element={<CitizenAlerts />} />
-        <Route path="/citizen/about" element={<CitizenAbout />} />
         <Route path="/citizen/resources" element={<CitizenResources />} />
+        <Route path="/citizen/report_logs" element={<CitizenReportLogs />} />
         
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
