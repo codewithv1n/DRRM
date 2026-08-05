@@ -1,4 +1,4 @@
-export type EmergencyType = 'Fire' | 'Flood' | 'Medical' | 'Road Obstruction';
+export type EmergencyType = 'Fire' | 'Flood' | 'Medical' | 'Road Obstruction' | 'Earthquake' | 'Other' | (string & {});
 export type IncidentStatus = 'Pending' | 'Responding' | 'Resolved';
 export type IncidentPriority = 'Critical' | 'High' | 'Medium' | 'Low';
 

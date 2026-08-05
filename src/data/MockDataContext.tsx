@@ -36,6 +36,16 @@ export interface ReliefClaimResident {
   timestamp: string;
 }
 
+export interface ReliefDispatch {
+  id: string;
+  barangay: string;
+  type: string;
+  quantity: number;
+  vehicle: string;
+  status: 'Pending' | 'In Transit' | 'Delivered';
+  timestamp: string;
+}
+
 export interface SitRep {
   id: string;
   barangay: string;
@@ -51,6 +61,41 @@ export interface QueuedAction {
   type: 'RELIEF_CLAIM' | 'INCIDENT_UPDATE' | 'HAZARD_UPDATE';
   payload: any;
   timestamp: string;
+}
+
+export interface ReliefInventoryItem {
+  id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  lastUpdated: string;
+}
+
+export interface PendingDonation {
+  id: string;
+  donorName: string;
+  items: { name: string; quantity: number; unit: string }[];
+  status: 'Pending' | 'Received';
+  eta: string;
+}
+
+export interface SystemUser {
+  id: string;
+  role: string;
+  barangay?: string;
+  name: string;
+  email: string;
+  password?: string;
+  familyMembers?: { 
+    firstName: string; 
+    middleName?: string; 
+    lastName: string; 
+    relation: string; 
+    age: string; 
+    gender: string; 
+    medicalInfo?: string; 
+  }[];
 }
 
 interface MockDataContextType {
@@ -81,6 +126,23 @@ interface MockDataContextType {
   reliefClaims: ReliefClaimResident[];
 
   barangaySitReps: SitRep[];
+
+  reliefInventory: ReliefInventoryItem[];
+  updateInventoryQuantity: (id: string, newQuantity: number) => void;
+  addInventoryItem: (item: Omit<ReliefInventoryItem, 'id' | 'lastUpdated'>) => void;
+
+  pendingDonations: PendingDonation[];
+  receiveDonation: (id: string) => void;
+  addPendingDonation: (donation: Omit<PendingDonation, 'id' | 'status'>) => void;
+
+  reliefDispatches: ReliefDispatch[];
+  addReliefDispatch: (dispatch: Omit<ReliefDispatch, 'id' | 'status' | 'timestamp'>) => void;
+  requestRelief: (request: { barangay: string; type: string; quantity: number }) => void;
+  updateReliefDispatchStatus: (id: string, status: ReliefDispatch['status']) => void;
+  updateReliefDispatchQuantity: (id: string, newQuantity: number) => void;
+
+  systemUsers: SystemUser[];
+  addSystemUser: (user: Omit<SystemUser, 'id'>) => void;
 }
 
 const MockDataContext = createContext<MockDataContextType | undefined>(undefined);
@@ -114,6 +176,26 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     { id: 'RC-001', status: 'Claimed', scannedBy: 'System Admin', timestamp: new Date(Date.now() - 86400000).toISOString() },
     { id: 'RC-002', status: 'Pending', scannedBy: 'QR Scanner', timestamp: new Date().toISOString() }
   ]);
+  const [reliefDispatches, setReliefDispatches] = useState<ReliefDispatch[]>([
+    {
+      id: 'DSP-001',
+      barangay: 'Commonwealth',
+      type: 'Family Food Pack',
+      quantity: 500,
+      vehicle: 'RES-01 (Truck)',
+      status: 'Delivered',
+      timestamp: new Date(Date.now() - 7200000).toISOString()
+    },
+    {
+      id: 'DSP-002',
+      barangay: 'Commonwealth',
+      type: 'Hygiene Kit A',
+      quantity: 300,
+      vehicle: 'RES-03 (Van)',
+      status: 'In Transit',
+      timestamp: new Date().toISOString()
+    }
+  ]);
   
   const [evacuationCenters, setEvacuationCenters] = useState<EvacuationCenter[]>([
     { id: 'EC-01', name: 'Commonwealth Elem. School', capacity: 500, currentOccupancy: 120, lastUpdatedAt: new Date().toISOString() },
@@ -133,6 +215,39 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     { id: 'SR-06', barangay: 'Bagumbayan', householdCount: 67, damageSeverity: 'Minor', evacueeCount: 85, timestamp: new Date(Date.now() - 15 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Secretary Lim' },
     { id: 'SR-07', barangay: 'Culiat', householdCount: 155, damageSeverity: 'Moderate', evacueeCount: 340, timestamp: new Date(Date.now() - 25 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Captain Navarro' },
     { id: 'SR-08', barangay: 'Damayan', householdCount: 200, damageSeverity: 'Critical', evacueeCount: 780, timestamp: new Date(Date.now() - 8 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Admin Torres' },
+  ]);
+
+  const [reliefInventory, setReliefInventory] = useState<ReliefInventoryItem[]>([
+    { id: 'INV-01', name: 'Family Food Pack', category: 'Food', quantity: 1500, unit: 'packs', lastUpdated: new Date().toISOString() },
+    { id: 'INV-02', name: 'Hygiene Kit A', category: 'Hygiene', quantity: 800, unit: 'kits', lastUpdated: new Date().toISOString() },
+    { id: 'INV-03', name: 'Sleeping Kit', category: 'Non-Food', quantity: 500, unit: 'kits', lastUpdated: new Date().toISOString() },
+    { id: 'INV-04', name: 'Bottled Water (Box)', category: 'Food', quantity: 2000, unit: 'boxes', lastUpdated: new Date().toISOString() },
+    { id: 'INV-05', name: 'NFA Rice (50kg)', category: 'Food', quantity: 300, unit: 'sacks', lastUpdated: new Date().toISOString() },
+    { id: 'INV-06', name: 'Canned Sardines (100/box)', category: 'Food', quantity: 450, unit: 'boxes', lastUpdated: new Date().toISOString() },
+    { id: 'INV-07', name: 'Instant Noodles (72/box)', category: 'Food', quantity: 600, unit: 'boxes', lastUpdated: new Date().toISOString() },
+    { id: 'INV-08', name: 'First Aid Kit (Standard)', category: 'Medical', quantity: 250, unit: 'kits', lastUpdated: new Date().toISOString() },
+    { id: 'INV-09', name: 'Modular Tents (Family)', category: 'Equipment', quantity: 150, unit: 'units', lastUpdated: new Date().toISOString() },
+    { id: 'INV-10', name: 'Thermal Blankets', category: 'Non-Food', quantity: 1200, unit: 'pcs', lastUpdated: new Date().toISOString() },
+    { id: 'INV-11', name: 'Face Masks (50/box)', category: 'Medical', quantity: 1000, unit: 'boxes', lastUpdated: new Date().toISOString() },
+    { id: 'INV-12', name: 'Rubbing Alcohol (Gallon)', category: 'Hygiene', quantity: 400, unit: 'gallons', lastUpdated: new Date().toISOString() },
+    { id: 'INV-13', name: 'Heavy Duty Flashlights', category: 'Equipment', quantity: 350, unit: 'pcs', lastUpdated: new Date().toISOString() },
+    { id: 'INV-14', name: 'Portable Generators (5kW)', category: 'Equipment', quantity: 12, unit: 'units', lastUpdated: new Date().toISOString() },
+  ]);
+
+  const [pendingDonations, setPendingDonations] = useState<PendingDonation[]>([
+    { id: 'DON-01', donorName: 'Red Cross PH', items: [{ name: 'Family Food Pack', quantity: 500, unit: 'packs' }], status: 'Pending', eta: new Date(Date.now() + 86400000).toISOString() },
+    { id: 'DON-02', donorName: 'Private Citizen', items: [{ name: 'Bottled Water (Box)', quantity: 50, unit: 'boxes' }], status: 'Pending', eta: new Date(Date.now() + 43200000).toISOString() },
+    { id: 'DON-03', donorName: 'Local NGO', items: [{ name: 'Sleeping Kit', quantity: 100, unit: 'kits' }], status: 'Received', eta: new Date(Date.now() - 86400000).toISOString() },
+  ]);
+
+  const [systemUsers, setSystemUsers] = useState<SystemUser[]>([
+    {
+      id: 'ADM-001',
+      role: 'Barangay Admin',
+      barangay: 'Balingasa',
+      name: 'John Doe',
+      email: 'jdoe@balingasa.qc.gov.ph'
+    }
   ]);
 
   const addAuditLog = (action: string, userRole: string, details: string) => {
@@ -227,6 +342,92 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     }));
   };
 
+  const addReliefDispatch = (dispatchData: Omit<ReliefDispatch, 'id' | 'status' | 'timestamp'>) => {
+    const newDispatch: ReliefDispatch = {
+      ...dispatchData,
+      id: `DSP-${Math.floor(Math.random() * 10000)}`,
+      status: 'Delivered', // Instantly delivered
+      timestamp: new Date().toISOString()
+    };
+    setReliefDispatches(prev => [newDispatch, ...prev]);
+    addAuditLog('Relief Dispatch', 'Department Admin', `Dispatched ${newDispatch.quantity} ${newDispatch.type} to ${newDispatch.barangay}`);
+  };
+
+  const requestRelief = (requestData: { barangay: string; type: string; quantity: number }) => {
+    const newRequest: ReliefDispatch = {
+      id: `REQ-${Math.floor(Math.random() * 10000)}`,
+      barangay: requestData.barangay,
+      type: requestData.type,
+      quantity: requestData.quantity,
+      vehicle: 'Pending Assignment',
+      status: 'Pending',
+      timestamp: new Date().toISOString()
+    };
+    setReliefDispatches(prev => [newRequest, ...prev]);
+    addAuditLog('Relief Request', 'Barangay Admin', `Requested ${requestData.quantity} ${requestData.type} for ${requestData.barangay}`);
+  };
+
+  const updateReliefDispatchStatus = (id: string, status: ReliefDispatch['status']) => {
+    setReliefDispatches(prev => prev.map(d => d.id === id ? { ...d, status } : d));
+    addAuditLog('Update Dispatch', 'System', `Dispatch ${id} status updated to ${status}`);
+  };
+
+  const updateReliefDispatchQuantity = (id: string, newQuantity: number) => {
+    setReliefDispatches(prev => prev.map(d => d.id === id ? { ...d, quantity: Math.max(0, newQuantity) } : d));
+  };
+
+  const updateInventoryQuantity = (id: string, newQuantity: number) => {
+    setReliefInventory(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(0, newQuantity), lastUpdated: new Date().toISOString() } : item));
+  };
+
+  const addInventoryItem = (itemData: Omit<ReliefInventoryItem, 'id' | 'lastUpdated'>) => {
+    const newItem: ReliefInventoryItem = {
+      ...itemData,
+      id: `INV-${Date.now()}`,
+      lastUpdated: new Date().toISOString()
+    };
+    setReliefInventory(prev => [...prev, newItem]);
+    addAuditLog('Add Inventory Item', 'Department Admin', `Added ${newItem.quantity} ${newItem.unit} of ${newItem.name}`);
+  };
+
+  const receiveDonation = (id: string) => {
+    setPendingDonations(prev => prev.map(don => {
+      if (don.id === id) {
+        // Automatically add items to inventory
+        don.items.forEach(donatedItem => {
+          setReliefInventory(currentInv => {
+            const existing = currentInv.find(i => i.name === donatedItem.name);
+            if (existing) {
+              return currentInv.map(i => i.id === existing.id ? { ...i, quantity: i.quantity + donatedItem.quantity, lastUpdated: new Date().toISOString() } : i);
+            } else {
+              return [...currentInv, {
+                id: `INV-${Date.now()}-${Math.random()}`,
+                name: donatedItem.name,
+                category: 'Donation',
+                quantity: donatedItem.quantity,
+                unit: donatedItem.unit,
+                lastUpdated: new Date().toISOString()
+              }];
+            }
+          });
+        });
+        addAuditLog('Receive Donation', 'System', `Received donation from ${don.donorName}`);
+        return { ...don, status: 'Received' };
+      }
+      return don;
+    }));
+  };
+
+  const addPendingDonation = (donationData: Omit<PendingDonation, 'id' | 'status'>) => {
+    const newDonation: PendingDonation = {
+      ...donationData,
+      id: `DON-${Date.now()}`,
+      status: 'Pending'
+    };
+    setPendingDonations(prev => [...prev, newDonation]);
+    addAuditLog('Add Expected Donation', 'Department Admin', `Logged expected donation from ${donationData.donorName}`);
+  };
+
   const broadcastAlert = (level: string, message: string, useBackup = false) => {
     const newAlert: Alert = {
       id: `ALT-${Date.now()}`,
@@ -239,6 +440,14 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     setActiveAlerts(prev => [newAlert, ...prev]);
   };
 
+  const addSystemUser = (user: Omit<SystemUser, 'id'>) => {
+    const newUser: SystemUser = {
+      ...user,
+      id: `USR-${Date.now()}`
+    };
+    setSystemUsers(prev => [...prev, newUser]);
+  };
+
   return (
     <MockDataContext.Provider value={{ 
       isOffline, setIsOffline, actionQueue, syncQueue,
@@ -248,7 +457,11 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
       activeAlerts, broadcastAlert,
       auditLogs, addAuditLog,
       reliefClaims,
-      barangaySitReps
+      barangaySitReps,
+      reliefDispatches, addReliefDispatch, requestRelief, updateReliefDispatchStatus, updateReliefDispatchQuantity,
+      reliefInventory, updateInventoryQuantity, addInventoryItem,
+      pendingDonations, receiveDonation, addPendingDonation,
+      systemUsers, addSystemUser
     }}>
       {children}
     </MockDataContext.Provider>
