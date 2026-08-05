@@ -1,123 +1,136 @@
 import { useNavigate } from 'react-router-dom';
-import { Shield, ShieldAlert, ArrowRight, AlertTriangle, Users, Package, Radio, Activity, User, Building, Map, CheckSquare, BarChart } from 'lucide-react';
+import { 
+  Sparkles, ArrowRight, AlertTriangle, Users, Package, 
+  Radio, Activity, User
+} from 'lucide-react';
 
 export default function LandingPage() {
   const navigate = useNavigate();
 
   const features = [
     {
-      icon: <AlertTriangle className="w-6 h-6 text-orange-500" />,
+      icon: <AlertTriangle className="w-5 h-5" />,
       title: "Incident Reporting",
-      description: "Fast and reliable emergency reporting for immediate response and action.",
-      bgColor: "bg-orange-50"
+      description: "Fast and reliable emergency reporting for immediate response and action."
     },
     {
-      icon: <Users className="w-6 h-6 text-blue-500" />,
+      icon: <Users className="w-5 h-5" />,
       title: "Evacuation Management",
-      description: "Real-time tracking of evacuation centers, capacity, and displaced families.",
-      bgColor: "bg-blue-50"
+      description: "Real-time tracking of evacuation centers, capacity, and displaced families."
     },
     {
-      icon: <Package className="w-6 h-6 text-emerald-500" />,
+      icon: <Package className="w-5 h-5" />,
       title: "Relief Operations",
-      description: "Streamlined distribution and tracking of relief goods to affected residents.",
-      bgColor: "bg-emerald-50"
+      description: "Streamlined distribution and tracking of relief goods to affected residents."
     },
     {
-      icon: <Radio className="w-6 h-6 text-red-500" />,
+      icon: <Radio className="w-5 h-5" />,
       title: "Early Warning System",
-      description: "City-wide automated SMS alerts and advisory broadcasting.",
-      bgColor: "bg-red-50"
+      description: "City-wide automated SMS alerts and advisory broadcasting."
     },
     {
-      icon: <Activity className="w-6 h-6 text-indigo-500" />,
+      icon: <Activity className="w-5 h-5" />,
       title: "Response Tracking",
-      description: "Monitor deployed units and field operations from a central command.",
-      bgColor: "bg-indigo-50"
+      description: "Monitor deployed units and field operations from a central command."
     },
     {
-      icon: <User className="w-6 h-6 text-purple-500" />,
+      icon: <User className="w-5 h-5" />,
       title: "Citizen Portal",
-      description: "Digital IDs and personal dashboard for every constituent.",
-      bgColor: "bg-purple-50"
+      description: "Digital IDs and personal dashboard for every constituent."
     }
   ];
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden font-sans text-foreground flex flex-col">
-      {/* Abstract Background Floating Icons */}
-      <div className="absolute top-20 left-10 text-primary/10 animate-pulse"><Building className="w-12 h-12" /></div>
-      <div className="absolute top-80 left-20 text-primary/10 animate-pulse"><CheckSquare className="w-10 h-10" /></div>
-      <div className="absolute top-40 right-20 text-primary/10 animate-pulse"><Map className="w-16 h-16" /></div>
-      <div className="absolute bottom-40 right-32 text-primary/10 animate-pulse"><BarChart className="w-12 h-12" /></div>
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col selection:bg-blue-500/30">
       
       {/* Header */}
-      <header className="w-full px-8 py-6 flex justify-between items-center z-10 max-w-7xl mx-auto">
-        <div className="flex items-center gap-2 cursor-pointer">
-          <div className="bg-white/10 p-2 rounded-full ">
-              <Shield className="w-5 h-5 text-orange-400" />
-          </div>
-          <span className="font-bold text-lg tracking-wider text-foreground">Quezon City</span>
+      <header className="w-full px-6 py-6 flex justify-between items-center z-10 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 cursor-pointer">
+          <img src="/logo-system.png" alt="GovServe Logo" className="h-8 object-contain shrink-0" />
+          <span className="font-bold text-lg tracking-tight text-slate-900">GOVSERVE</span>
         </div>
         
         <div className="flex gap-4 items-center">
-          <button onClick={() => navigate('/login')} className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-            Sign In
+          <button onClick={() => navigate('/login')} className="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors cursor-pointer px-5 py-2 rounded-xl flex items-center gap-2">
+            Sign In <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 z-10 w-full max-w-7xl mx-auto mt-12 mb-20">
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center px-4 z-10 w-full max-w-7xl mx-auto mt-12 mb-24">
         
         {/* Badge */}
-        <div className="bg-card border border-border shadow-sm rounded-full px-4 py-1.5 flex items-center gap-2 mb-8 cursor-pointer hover:shadow-md transition-shadow">
-          <ShieldAlert className="w-4 h-4 text-primary" />
-          <span className="text-xs font-semibold text-muted-foreground tracking-wide">Disaster Management System</span>
+        <div className="bg-blue-50 border border-blue-100 rounded-full px-4 py-1.5 flex items-center gap-2 mb-8">
+          <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+          <span className="text-xs font-semibold text-blue-600 tracking-wide">Government Services Management</span>
         </div>
 
         {/* Hero Title */}
-        <div className="text-center mb-6">
-          <h1 className="text-5xl md:text-6xl font-black text-foreground leading-tight tracking-tight">
-            Disaster Risk Reduction &<br />
-            <span className="text-primary">Management Response</span><br />
-            Made Simple
+        <div className="text-center mb-6 w-full max-w-4xl">
+          <h1 className="text-[40px] md:text-[56px] lg:text-[64px] font-bold text-slate-900 leading-[1.1] tracking-tight">
+            Disaster Management<br />
+            <span className="text-blue-600">Made Simple</span>
           </h1>
         </div>
 
         {/* Subtitle */}
-        <p className="text-center text-muted-foreground max-w-2xl text-lg mb-10">
-          A comprehensive digital platform for incident reporting, evacuation center management, relief goods tracking, and city-wide coordination.
+        <p className="text-center text-slate-500 max-w-2xl text-lg mb-10 leading-relaxed">
+          Streamline incident reporting, evacuation center management, relief goods tracking, and city-wide coordination — all in one unified platform.
         </p>
 
-        {/* CTA Button */}
-        <button 
-          onClick={() => navigate('/public_portal')}
-          className="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-2xl shadow-lg hover:shadow-xl hover:shadow-primary/20 transition-all hover:-translate-y-1 flex items-center gap-3 cursor-pointer group mb-20"
-        >
-          Public Portal 
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </button>
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-20">
+          <button 
+            onClick={() => navigate('/public_portal')}
+            className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+          >
+            Access the Portal <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Stats Row */}
+        <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-24 max-w-6xl">
+          {[
+            { label: 'Digital Process', value: '100%' },
+            { label: 'System Access', value: '24/7' },
+            { label: 'Departments', value: '5+' },
+            { label: 'Updates', value: 'Real-time' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center">
+              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-1">
+                {stat.value}
+              </div>
+              <div className="text-xs md:text-sm font-medium text-slate-500">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Features Section Title */}
+        <div className="text-center mb-10">
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">Complete Disaster Management Suite</h2>
+          <p className="text-slate-500 text-sm md:text-base">Everything you need to manage emergencies and response operations efficiently</p>
+        </div>
 
         {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
+        <div className="flex flex-wrap justify-center gap-4 lg:gap-6 w-full max-w-5xl">
           {features.map((feature, index) => (
-            <div key={index} className="bg-card rounded-2xl p-8 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-start cursor-default">
-              <div className={`${feature.bgColor} p-4 rounded-xl mb-6`}>
+            <div key={index} className="bg-white rounded-[20px] p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col items-start w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] text-left cursor-default">
+              <div className="bg-blue-50 text-blue-600 p-3 rounded-2xl mb-4">
                 {feature.icon}
               </div>
-              <h3 className="text-lg font-bold text-foreground mb-2">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <h3 className="text-sm font-bold text-slate-900 mb-2">{feature.title}</h3>
+              <p className="text-[13px] text-slate-500 leading-relaxed">
                 {feature.description}
               </p>
             </div>
           ))}
         </div>
+
       </main>
 
-      <footer className="text-center py-6 text-xs text-muted-foreground border-t border-border mt-auto bg-card/50 backdrop-blur-sm z-10 relative">
-        © 2026 GOVSERVE. Secure Government Platform.
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-linear-to-r from-primary/50 to-primary"></div>
+      <footer className="w-full max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 border-t border-slate-200 mt-auto">
+        <div>© 2026 GOVSERVE. Disaster Risk Reduction & Emergency Response</div>
       </footer>
     </div>
   );
