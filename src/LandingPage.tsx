@@ -94,7 +94,7 @@ export default function LandingPage() {
           {[
             { label: 'Digital Process', value: '100%' },
             { label: 'System Access', value: '24/7' },
-            { label: 'Departments', value: '5+' },
+            { label: 'Departments', value: '3' },
             { label: 'Updates', value: 'Real-time' },
           ].map((stat, i) => (
             <div key={i} className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center">
