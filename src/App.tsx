@@ -3,11 +3,11 @@ import { MockDataProvider } from './data/MockDataContext';
 
 // Public Pages
 import LandingPage from './LandingPage';
-import IncidentReportForm from './pages/public/IncidentReportForm';
-import PublicPortal from './pages/public/PublicPortal';
-import About from './pages/public/About';
-import DonationsPage from './pages/public/DonationsPage';
-import SurvivalGuide from './pages/public/SurvivalGuide';
+import IncidentReportForm from './pages/publicPortal/IncidentReportForm';
+import PublicPortal from './pages/publicPortal/PublicPortal';
+import About from './pages/publicPortal/About';
+import DonationsPage from './pages/publicPortal/DonationsPage';
+import SurvivalGuide from './pages/publicPortal/SurvivalGuide';
  
 
 // Auth Pages
@@ -18,6 +18,7 @@ import LoginPage from './auth/LoginPage';
 // Barangay Section
 import BarangayDashboard from './pages/barangays/BarangayDashboard'; 
 import SitRepUploaderPage from './pages/barangays/SitrepUploaderPage';  
+import SitrepLogsPage from './pages/barangays/SitrepLogsPage';
 import BarangayReliefInventory from './pages/barangays/BarangayReliefInventory';
 import BarangayReliefRequests from './pages/barangays/BarangayReliefRequests';
 import BarangayReliefDistribution from './pages/barangays/BarangayReliefDistribution';
@@ -32,6 +33,8 @@ import AuditLogsPage from './pages/admin/AuditLogsPage';
 import ReliefDispatchPanel from './pages/admin/ReliefDispatchPage';
 import ReliefInventoryPanel from './pages/admin/ReliefInventoryPage';
 import ValidateDonationsPanel from './pages/admin/ValidateDonationsPanel';
+import BarangaySitrepCoordinationPage from './pages/admin/BarangaySitrepCoordinationPage';
+import EvacuationCenterMonitoringPage from './pages/admin/EvacuationCenterMonitoringPage';
 
 // Responder Section 
 import ResponderDashboard from './pages/response_units/ResponderDashboard';
@@ -71,12 +74,15 @@ function App() {
         <Route path="/admin/relief_dispatch" element={<ReliefDispatchPanel />} />
         <Route path="/admin/relief_inventory" element={<ReliefInventoryPanel />} />
         <Route path="/admin/validate_donations" element={<ValidateDonationsPanel />} />
+        <Route path="/admin/sitrep_coordination" element={<BarangaySitrepCoordinationPage />} />
+        <Route path="/admin/evacuation_centers" element={<EvacuationCenterMonitoringPage />} />
         
         <Route path="/barangays" element={<BarangayDashboard />} />
         <Route path="/barangays/relief_inventory" element={<BarangayReliefInventory />} />
         <Route path="/barangays/relief_requests" element={<BarangayReliefRequests />} />
         <Route path="/barangays/relief_distribution" element={<BarangayReliefDistribution />} />
         <Route path="/barangays/sitrep_upload" element={<SitRepUploaderPage />} />
+        <Route path="/barangays/sitrep_logs" element={<SitrepLogsPage />} />
 
 
         <Route path="/citizen" element={<CitizenDashboard />} />
