@@ -6,6 +6,7 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -228,25 +229,14 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
           data: {
             type: 'Feature',
             geometry: {
-              type: 'Polygon',
-              coordinates: [[
+              type: 'LineString',
+              coordinates: [
                 [121.080, 14.670],
-                [121.110, 14.675],
-                [121.100, 14.650],
-                [121.070, 14.645],
-                [121.080, 14.670]
-              ]]
+                [121.070, 14.640],
+                [121.060, 14.610]
+              ]
             },
             properties: {}
-          }
-        });
-        m.addLayer({
-          id: 'hazard-quake-fill',
-          type: 'fill',
-          source: 'hazard-quake',
-          paint: {
-            'fill-color': '#f43f5e',
-            'fill-opacity': 0.2
           }
         });
         m.addLayer({
@@ -254,15 +244,78 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
           type: 'line',
           source: 'hazard-quake',
           paint: {
-            'line-color': '#e11d48',
-            'line-width': 3,
-            'line-dasharray': [2, 2]
+            'line-color': '#f43f5e',
+            'line-width': 4
           }
         });
       }
+
+      // Base coordinates for movement animation
+      const floodBaseCoords = [
+        [121.030, 14.640],
+        [121.050, 14.645],
+        [121.055, 14.630],
+        [121.035, 14.625]
+      ];
+      
+      // West Valley Fault approximation through Quezon City
+      const quakeBaseCoords = [
+        [121.110, 14.730], // Payatas / Macabud
+        [121.095, 14.700], // Batasan Hills
+        [121.085, 14.680], // Loyola Grand Villas
+        [121.075, 14.650], // Loyola Heights / Ateneo
+        [121.072, 14.630], // Blue Ridge
+        [121.070, 14.610], // White Plains
+        [121.065, 14.590]  // Ugong Norte
+      ];
+
+      // Add pulsing animation to hazard zones
+      let startTime = 0;
+      function animateHazards(timestamp: number) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        
+        // Sine wave for smooth pulsing opacity (between 0.1 and 0.4)
+        const opacity = 0.25 + Math.sin(elapsed / 400) * 0.15;
+        
+        if (map.current) {
+          // Update Opacity
+          if (map.current.getLayer('hazard-flood-fill')) {
+            map.current.setPaintProperty('hazard-flood-fill', 'fill-opacity', opacity);
+          }
+          if (map.current.getLayer('hazard-quake-line')) {
+            map.current.setPaintProperty('hazard-quake-line', 'line-opacity', opacity + 0.3); // Make line slightly more visible than fill
+          }
+          
+          // Update Positions (GeoJSON Data)
+          const floodSource = map.current.getSource('hazard-flood') as maplibregl.GeoJSONSource;
+          if (floodSource && floodSource.setData) {
+            // Flood zones are geographically fixed, so we don't apply an offset
+            floodSource.setData({
+              type: 'Feature',
+              geometry: { type: 'Polygon', coordinates: [floodBaseCoords] },
+              properties: {}
+            });
+          }
+          
+          const quakeSource = map.current.getSource('hazard-quake') as maplibregl.GeoJSONSource;
+          if (quakeSource && quakeSource.setData) {
+            // Fault lines are geographically fixed, so we don't apply an offset to them
+            quakeSource.setData({
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: quakeBaseCoords },
+              properties: {}
+            });
+          }
+        }
+        
+        animationRef.current = requestAnimationFrame(animateHazards);
+      }
+      animationRef.current = requestAnimationFrame(animateHazards);
     });
 
     return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
       resizeObserver.disconnect();
       m.remove();
       map.current = null;
