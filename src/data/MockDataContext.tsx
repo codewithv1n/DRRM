@@ -42,7 +42,7 @@ export interface ReliefDispatch {
   type: string;
   quantity: number;
   vehicle: string;
-  status: 'Pending' | 'In Transit' | 'Delivered';
+  status: 'Pending' | 'Preparing' | 'En Route' | 'Arrived' | 'Delivered';
   timestamp: string;
 }
 
@@ -108,7 +108,7 @@ interface MockDataContextType {
   // Data
   incidents: Incident[];
   addIncident: (incident: Omit<Incident, 'id' | 'timestamp' | 'status' | 'assignedResponder'>) => void;
-  updateIncidentStatus: (id: string, status: Incident['status'], gpsLocation?: string) => void;
+  updateIncidentStatus: (id: string, status: Incident['status'], gpsLocation?: string, debrief?: Incident['debrief']) => void;
   assignResponder: (incidentId: string, responderId: string) => void;
 
   resources: Resource[];
@@ -182,7 +182,7 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
       barangay: 'Commonwealth',
       type: 'Family Food Pack',
       quantity: 500,
-      vehicle: 'RES-01 (Truck)',
+      vehicle: 'Task Force 1',
       status: 'Delivered',
       timestamp: new Date(Date.now() - 7200000).toISOString()
     },
@@ -191,8 +191,8 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
       barangay: 'Commonwealth',
       type: 'Hygiene Kit A',
       quantity: 300,
-      vehicle: 'RES-03 (Van)',
-      status: 'In Transit',
+      vehicle: 'Task Force 3',
+      status: 'En Route',
       timestamp: new Date().toISOString()
     }
   ]);
@@ -266,7 +266,7 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     // Process queue based on type
     actionQueue.forEach(action => {
       if (action.type === 'INCIDENT_UPDATE') {
-        updateIncidentStatus(action.payload.id, action.payload.status, action.payload.gpsLocation, true);
+        updateIncidentStatus(action.payload.id, action.payload.status, action.payload.gpsLocation, action.payload.debrief, true);
       } else if (action.type === 'HAZARD_UPDATE') {
         updateEvacuationOccupancy(action.payload.id, action.payload.delta, true);
       }
@@ -286,19 +286,19 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     addAuditLog('Report Incident', 'Public', `Incident reported at ${newIncident.location}`);
   };
 
-  const updateIncidentStatus = (id: string, status: Incident['status'], gpsLocation?: string, bypassQueue = false) => {
+  const updateIncidentStatus = (id: string, status: Incident['status'], gpsLocation?: string, debrief?: Incident['debrief'], bypassQueue = false) => {
     if (isOffline && !bypassQueue) {
       setActionQueue(prev => [...prev, {
         id: `QA-${Date.now()}`,
         type: 'INCIDENT_UPDATE',
-        payload: { id, status, gpsLocation },
+        payload: { id, status, gpsLocation, debrief },
         timestamp: new Date().toISOString()
       }]);
       return; // Stop here, it's queued
     }
 
     setIncidents(prev => 
-      prev.map(inc => inc.id === id ? { ...inc, status, gpsLocation: gpsLocation || inc.gpsLocation } : inc)
+      prev.map(inc => inc.id === id ? { ...inc, status, gpsLocation: gpsLocation || inc.gpsLocation, debrief: debrief || inc.debrief } : inc)
     );
     addAuditLog('Update Status', 'Response Unit', `Incident ${id} marked as ${status} ${gpsLocation ? `at [${gpsLocation}]` : ''}`);
   };

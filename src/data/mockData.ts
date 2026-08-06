@@ -1,5 +1,5 @@
 export type EmergencyType = 'Fire' | 'Flood' | 'Medical' | 'Road Obstruction' | 'Earthquake' | 'Other' | (string & {});
-export type IncidentStatus = 'Pending' | 'Responding' | 'Resolved';
+export type IncidentStatus = 'Pending' | 'Acknowledged' | 'Responding' | 'En Route' | 'On Scene' | 'Requesting Backup' | 'Resolved';
 export type IncidentPriority = 'Critical' | 'High' | 'Medium' | 'Low';
 
 export interface Incident {
@@ -16,6 +16,12 @@ export interface Incident {
   deviceIp?: string;
   isVerified?: boolean;
   spamScore?: number;
+  debrief?: {
+    rescued: number;
+    casualties: number;
+    medicalAssistance: string;
+    remarks: string;
+  };
 }
 
 export const initialIncidents: Incident[] = [
@@ -41,7 +47,7 @@ export const initialIncidents: Incident[] = [
     priority: 'High',
     status: 'Responding',
     timestamp: new Date().toISOString(),
-    assignedResponder: 'RES-01',
+    assignedResponder: 'Task Force 1',
     isVerified: false,
     gpsLocation: '14.6961 N, 121.0963 E',
     spamScore: 0.8
@@ -81,7 +87,7 @@ export const initialIncidents: Incident[] = [
     priority: 'High',
     status: 'Resolved',
     timestamp: new Date(Date.now() - 3600000).toISOString(),
-    assignedResponder: 'RES-03',
+    assignedResponder: 'Task Force 3',
     isVerified: true,
     gpsLocation: '14.6812 N, 121.0801 E',
     spamScore: 0.02
