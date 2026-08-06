@@ -26,8 +26,8 @@ export default function HazardMapPanel() {
     <DepartmentLayout pendingCount={pendingCount}>
       <div className="animate-fade-in space-y-8">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 font-display">Hazard & Evacuation Monitor</h2>
-          <p className="text-slate-500 mt-1">Monitor live API hazard zones and manage evacuation center occupancies</p>
+          <h2 className="text-2xl font-bold text-slate-900 font-display">Hazard Map Monitoring</h2>
+          <p className="text-slate-500 mt-1">Monitor live API hazard zones</p>
         </div>
 
         {/* Real-time Hazard Sensors Row */}
