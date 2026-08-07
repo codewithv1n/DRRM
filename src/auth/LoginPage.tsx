@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, Map, Heart, Users, Package, Radio } from 'lucide-react';
 
@@ -8,22 +8,62 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.role === 'System Admin' || user.role === 'Admin') navigate('/admin', { replace: true });
+        else if (user.role === 'Barangay Admin') navigate('/barangays', { replace: true });
+        else if (user.role === 'Responder') navigate('/responders', { replace: true });
+        else if (user.role === 'Citizen') navigate('/citizen', { replace: true });
+      } catch (e) {
+        localStorage.removeItem('user');
+      }
+    }
+  }, [navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const user = username.toLowerCase();
-    
-    if (user === 'admin' || user === 'department' || user.includes('admin')) {
-        navigate('/departments');
-    } else if (user === 'brgy' || user === 'barangay' || user.includes('brgy')) {
-        navigate('/barangays');
-    } else if (user === 'rescue' || user === 'responder' || user.includes('rescue')) {
-        navigate('/responders');
-    } else if (user === 'juan' || user === 'resident' || user.includes('juan')) {
-        navigate('/residents');
-    } else {
-        setError('Invalid credentials. Use: admin, brgy, rescue, or juan');
+    try {
+        const response = await fetch('http://localhost:3000/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: username,
+                password: password
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            setError(errorData.error || 'Invalid credentials');
+            return;
+        }
+
+        const data = await response.json();
+        const role = data.user.role;
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        // Route based on role
+        if (role === 'System Admin' || role === 'Admin') {
+            navigate('/admin', { replace: true });
+        } else if (role === 'Barangay Admin') {
+            navigate('/barangays', { replace: true });
+        } else if (role === 'Responder') {
+            navigate('/responders', { replace: true });
+        } else if (role === 'Citizen') {
+            navigate('/citizen', { replace: true });
+        } else {
+            setError('Unrecognized user role');
+        }
+    } catch (err) {
+        console.error('Login failed:', err);
+        setError('Failed to connect to the server');
     }
   };
 
@@ -146,12 +186,7 @@ export default function LoginPage() {
                 </button>
               </div>
             </form>
-            
-            <div className="mt-6 text-center">
-              <p className="text-[10px] text-slate-400 font-medium">
-                Don't have an account yet? <a href="#" className="text-[#2563EB] font-bold hover:underline">Create Account / Register</a>
-              </p>
-            </div>
+          
           </div>
           
         </div>
