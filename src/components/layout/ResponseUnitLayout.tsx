@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import {
   LogOut, LayoutDashboard,
-  ChevronRight, Shield, Menu, Search, Moon, HelpCircle, Bell
+  Menu, Bell, Package
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface ResponseUnitLayoutProps {
   children: React.ReactNode;
@@ -12,42 +12,59 @@ interface ResponseUnitLayoutProps {
 
 export default function ResponseUnitLayout({ children, activeIncidentsCount }: ResponseUnitLayoutProps) {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
+
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path.includes('deliveries')) return 'Relief Deliveries';
+    return 'Active Missions';
+  };
+
+  const NavItem = ({ icon: Icon, label, path, badgeCount = 0 }: { icon: any; label: string; path: string; badgeCount?: number }) => {
+    const isActive = location.pathname === path;
+    return (
+      <button
+        onClick={() => navigate(path)}
+        className={`flex items-center justify-between px-3 py-3 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer ${
+          isActive
+            ? 'bg-sidebar-primary/20 text-sidebar-foreground font-medium shadow-sm border border-sidebar-primary/30'
+            : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="w-5 h-5" />
+          <span className="text-sm">{label}</span>
+        </div>
+        {badgeCount > 0 && (
+          <span className="bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{badgeCount}</span>
+        )}
+      </button>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex font-sans text-slate-900">
-      {/* Sidebar - Minimal for field personnel */}
-      <aside className={`fixed lg:sticky top-0 h-screen z-50 bg-[#0B1120] flex flex-col w-70 shrink-0 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+    <div className="min-h-screen bg-background flex font-sans text-slate-900">
+      {/* Sidebar */}
+      <aside className={`select-none fixed lg:sticky top-0 h-screen z-50 bg-gradient-sidebar flex flex-col w-70 shrink-0 transition-all duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-70'}`}>
         <div className="p-6 flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#2563EB] text-white rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/20">
-            <Shield className="w-6 h-6" />
-          </div>
+          <img src="/logo-system.png" alt="GovServe Logo" className="w-11 h-11 object-contain shrink-0" />
           <div className="flex flex-col overflow-hidden text-white">
-            <h1 className="font-bold text-[15px] text-white leading-tight truncate">GOVSERVE</h1>
-            <p className="text-[11px] text-slate-400 font-medium truncate">Response Unit</p>
+            <h1 className="font-bold text-[18px] text-sidebar-foreground leading-tight truncate">GOVSERVE</h1>
+            <p className="text-[12px] text-sidebar-foreground/50 font-medium truncate">Response Unit</p>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto py-2 space-y-1 scrollbar-thin">
-          <div className="px-5 pt-6 pb-2 text-[10px] uppercase font-bold tracking-widest text-slate-500">Modules</div>
-          <button className="flex items-center justify-between px-3 py-3 mx-2 w-[calc(100%-16px)] rounded-xl bg-[#2563EB] text-white font-medium shadow-sm cursor-pointer">
-            <div className="flex items-center gap-3">
-              <LayoutDashboard className="w-5 h-5" />
-              <span className="text-sm">Active Missions</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {activeIncidentsCount > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">{activeIncidentsCount}</span>
-              )}
-              <ChevronRight className="w-4 h-4 opacity-70" />
-            </div>
-          </button>
+          <div className="px-5 pt-6 pb-2 text-[11px] uppercase font-semibold tracking-widest text-sidebar-foreground/50">Modules</div>
+          <NavItem icon={LayoutDashboard} label="Active Missions" path="/responders" badgeCount={activeIncidentsCount} />
+          <NavItem icon={Package} label="Relief Deliveries" path="/responders/deliveries" />
         </div>
 
-        <div className="p-4 mt-auto">
-          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group">
+        <div className="p-4 mt-auto border-t border-sidebar-accent">
+          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-sidebar-accent transition-colors cursor-pointer group">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#1E293B] flex items-center justify-center text-slate-300 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-sidebar-accent flex items-center justify-center text-sidebar-foreground shrink-0">
                 <span className="text-xs font-bold">RT</span>
               </div>
               <div className="flex flex-col">
@@ -63,35 +80,20 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount }: R
       </aside>
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-background">
         {/* Header */}
-        <header className="sticky top-0 z-40 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 shrink-0">
+        <header className="sticky top-0 z-40 h-16 bg-white/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-4 lg:px-6 shrink-0 shadow-soft">
           <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg cursor-pointer">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg cursor-pointer">
               <Menu className="w-5 h-5" />
             </button>
-            <div className="hidden lg:flex items-center text-slate-800 font-bold text-lg">
-              Active Missions
+            <div className="hidden sm:flex items-center text-slate-800 font-bold text-lg">
+              {getPageTitle()}
             </div>
           </div>
           
           <div className="flex items-center gap-4 lg:gap-6">
-            <div className="hidden md:flex items-center relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3" />
-              <input 
-                type="text" 
-                placeholder="Search missions..."
-                className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-                <Moon className="w-5 h-5" />
-              </button>
-              <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-                <HelpCircle className="w-5 h-5" />
-              </button>
+            <div className="flex items-center gap-2 relative">
               <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
                 <Bell className="w-5 h-5" />
                 {activeIncidentsCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
@@ -103,7 +105,7 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount }: R
                 <span className="text-[11px] font-bold text-slate-700">Rescue Team A</span>
                 <span className="text-[10px] text-slate-500">QC Task Force</span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+              <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs">
                 RT
               </div>
             </div>

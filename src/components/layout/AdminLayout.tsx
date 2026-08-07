@@ -1,27 +1,43 @@
 import React, { useState } from 'react';
 import {
   LayoutDashboard, Siren, Radio, Map,
-  ChevronRight, Bell, Menu, Users, LogOut, Package, Shield,
-  Search, Moon, HelpCircle
+  ChevronRight, Bell, Menu, Users, LogOut, Package, Shield, FileText, Home
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useMockData } from '../../data/MockDataContext';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
   pendingCount?: number;
 }
 
-export default function AdminLayout({ children, pendingCount = 0 }: AdminLayoutProps) {
+export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const { incidents, pendingDonations, activeAlerts } = useMockData();
+
+  const pendingIncidents = incidents ? incidents.filter(i => i.status === 'Pending') : [];
+  const pDonations = pendingDonations ? pendingDonations : [];
+  const failedAlerts = activeAlerts ? activeAlerts.filter(a => a.deliveryStatus === 'Failed') : [];
+
+  const notifications = [
+    ...pendingIncidents.map(i => ({ id: i.id, type: 'Incident', title: `New ${i.type} at ${i.location}`, time: i.timestamp, icon: Siren, color: 'text-red-500', bg: 'bg-red-50' })),
+    ...pDonations.map(d => ({ id: d.id, type: 'Donation', title: `Pending donation from ${d.donorName}`, time: d.eta, icon: Package, color: 'text-emerald-500', bg: 'bg-emerald-50' })),
+    ...failedAlerts.map(a => ({ id: a.id, type: 'Alert', title: `Failed Alert: ${a.level}`, time: a.timestamp, icon: Radio, color: 'text-amber-500', bg: 'bg-amber-50' }))
+  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+  const displayCount = notifications.length;
 
   // Derive title from path
   const getPageTitle = () => {
     const path = location.pathname;
     if (path.includes('incidents')) return 'Incident Dispatcher';
     if (path.includes('early_warning')) return 'City-Wide Alerts';
-    if (path.includes('relief')) return 'Relief Operations';
+    if (path.includes('sitrep_coordination')) return 'Barangay SitReps';
+    if (path.includes('evacuation_centers')) return 'Evacuation Centers';
+    if (path.includes('relief') || path.includes('validate_donations')) return 'Relief Operations';
     if (path.includes('hazard_map')) return 'Hazard Map';
     if (path.includes('user_management')) return 'User Management';
     if (path.includes('audit_logs')) return 'Audit Logs';
@@ -33,17 +49,16 @@ export default function AdminLayout({ children, pendingCount = 0 }: AdminLayoutP
     return (
       <button
         onClick={() => navigate(path)}
-        className={`flex items-center justify-between px-3 py-3 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer ${
+        className={`flex items-center px-3 py-3 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer ${
           isActive
-            ? 'bg-[#2563EB] text-white font-medium shadow-sm'
-            : 'text-slate-400 hover:text-white hover:bg-white/5'
+            ? 'bg-sidebar-primary/20 text-sidebar-foreground font-medium shadow-sm border border-sidebar-primary/30'
+            : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent'
         }`}
       >
         <div className="flex items-center gap-3">
           <Icon className="w-5 h-5" />
           <span className="text-sm">{label}</span>
         </div>
-        {isActive && <ChevronRight className="w-4 h-4 opacity-70" />}
       </button>
     );
   };
@@ -55,8 +70,8 @@ export default function AdminLayout({ children, pendingCount = 0 }: AdminLayoutP
         onClick={() => navigate(path)}
         className={`flex items-center pl-10 pr-3 py-2 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer text-sm ${
           isActive
-            ? 'bg-[#2563EB]/10 text-blue-400 font-medium'
-            : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+            ? 'bg-sidebar-primary/20 text-sidebar-foreground font-medium'
+            : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent'
         }`}
       >
         {label}
@@ -74,8 +89,8 @@ export default function AdminLayout({ children, pendingCount = 0 }: AdminLayoutP
           onClick={() => setIsOpen(!isOpen)}
           className={`flex items-center justify-between px-3 py-3 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer ${
             isActive || isOpen
-              ? 'text-white bg-white/5 font-medium'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              ? 'text-sidebar-foreground bg-sidebar-accent font-medium'
+              : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -94,20 +109,18 @@ export default function AdminLayout({ children, pendingCount = 0 }: AdminLayoutP
   };
 
   const GroupLabel = ({ label }: { label: string }) => (
-    <div className="px-5 pt-6 pb-2 text-[10px] uppercase font-bold tracking-widest text-slate-500">{label}</div>
+    <div className="px-5 pt-6 pb-2 text-[11px] uppercase font-semibold tracking-widest text-sidebar-foreground/50">{label}</div>
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex font-sans text-slate-900">
+    <div className="min-h-screen bg-background flex font-sans text-slate-900">
       {/* Sidebar */}
-      <aside className={`fixed lg:sticky top-0 h-screen z-50 bg-[#0B1120] flex flex-col w-70 shrink-0 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`select-none fixed lg:sticky top-0 h-screen z-50 bg-gradient-sidebar flex flex-col w-70 shrink-0 transition-all duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-70'}`}>
         <div className="p-6 flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#2563EB] text-white rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/20">
-            <Shield className="w-6 h-6" />
-          </div>
+          <img src="/logo-system.png" alt="GovServe Logo" className="w-11 h-11 object-contain shrink-0" />
           <div className="flex flex-col overflow-hidden text-white">
-            <h1 className="font-bold text-[15px] text-white leading-tight truncate">GOVSERVE</h1>
-            <p className="text-[11px] text-slate-400 font-medium truncate">Administrator</p>
+            <h1 className="font-bold text-[18px] text-sidebar-foreground leading-tight truncate">GOVSERVE</h1>
+            <p className="text-[12px] text-sidebar-foreground/50 font-medium truncate">Administrator</p>
           </div>
         </div>
 
@@ -117,25 +130,27 @@ export default function AdminLayout({ children, pendingCount = 0 }: AdminLayoutP
           
           <GroupLabel label="Operations" />
           <NavItem icon={Siren} label="Incident Dispatcher" path="/admin/incidents" />
-          <NavItem icon={Radio} label="City-Wide Alerts" path="/admin/early_warning" />
+          <NavItem icon={Radio} label="City-Wide Announcement" path="/admin/early_warning" />
+          <NavItem icon={FileText} label="Barangay SitReps" path="/admin/sitrep_coordination" />
           <NavDropdown icon={Package} label="Relief Services" activePaths={['/admin/relief_inventory', '/admin/relief_dispatch', '/admin/validate_donations']}>
             <SubNavItem label="Inventory" path="/admin/relief_inventory" />
             <SubNavItem label="Dispatch" path="/admin/relief_dispatch" />
-            <SubNavItem label="Donations" path="/admin/validate_donations" />
+            <SubNavItem label="Donations" path="/admin/validate_donations" /> 
           </NavDropdown>
           
           <GroupLabel label="Monitoring" />
           <NavItem icon={Map} label="Hazard Maps" path="/admin/hazard_map" />
+          <NavItem icon={Home} label="Evacuation Centers" path="/admin/evacuation_centers" />
           
           <GroupLabel label="System" />
           <NavItem icon={Users} label="User Management" path="/admin/user_management" />
           <NavItem icon={Shield} label="Audit Logs" path="/admin/audit_logs" />
         </div>
 
-        <div className="p-4 mt-auto">
-          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group">
+        <div className="p-4 mt-auto border-t border-sidebar-accent">
+          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-sidebar-accent transition-colors cursor-pointer group">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#1E293B] flex items-center justify-center text-slate-300 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-sidebar-accent flex items-center justify-center text-sidebar-foreground shrink-0">
                 <span className="text-xs font-bold">AD</span>
               </div>
               <div className="flex flex-col">
@@ -151,39 +166,57 @@ export default function AdminLayout({ children, pendingCount = 0 }: AdminLayoutP
       </aside>
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-[#F8FAFC]">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-background">
         {/* Header */}
-        <header className="sticky top-0 z-40 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 shrink-0">
+        <header className="sticky top-0 z-40 h-16 bg-white/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-4 lg:px-6 shrink-0 shadow-soft">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg cursor-pointer">
               <Menu className="w-5 h-5" />
             </button>
-            <div className="hidden lg:flex items-center text-slate-800 font-bold text-lg">
+            <div className="hidden sm:flex items-center text-slate-800 font-bold text-lg">
               {getPageTitle()}
             </div>
           </div>
           
           <div className="flex items-center gap-4 lg:gap-6">
-            <div className="hidden md:flex items-center relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3" />
-              <input 
-                type="text" 
-                placeholder="Search applications, records..."
-                className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-                <Moon className="w-5 h-5" />
-              </button>
-              <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-                <HelpCircle className="w-5 h-5" />
-              </button>
-              <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
+            <div className="flex items-center gap-2 relative">
+              <button 
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+              >
                 <Bell className="w-5 h-5" />
-                {pendingCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
+                {displayCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
               </button>
+
+              {isNotifOpen && (
+                <div className="absolute top-full mt-2 right-0 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50">
+                  <div className="p-4 border-b border-slate-50 flex items-center justify-between">
+                    <h3 className="font-bold text-slate-900">Notifications</h3>
+                    <span className="text-[10px] font-bold bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">{displayCount} New</span>
+                  </div>
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.length > 0 ? notifications.map(n => {
+                      const Icon = n.icon;
+                      return (
+                        <div key={n.id} className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors flex gap-3 cursor-pointer">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${n.bg} ${n.color}`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-slate-800 line-clamp-2">{n.title}</p>
+                            <p className="text-[10px] text-slate-500 mt-1">{new Date(n.time).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      )
+                    }) : (
+                      <div className="p-8 text-center text-slate-500 text-sm">No new notifications</div>
+                    )}
+                  </div>
+                  <div className="p-3 border-t border-slate-50 bg-slate-50 text-center">
+                    <button onClick={() => setIsNotifOpen(false)} className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">Close</button>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200">
@@ -191,7 +224,7 @@ export default function AdminLayout({ children, pendingCount = 0 }: AdminLayoutP
                 <span className="text-[11px] font-bold text-slate-700">Administrator</span>
                 <span className="text-[10px] text-slate-500">QCDRRMO</span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+              <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs">
                 AD
               </div>
             </div>
