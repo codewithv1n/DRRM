@@ -7,10 +7,18 @@ export default function DonationsPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    type: '',
+    description: ''
+  });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setPhoto(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -21,16 +29,39 @@ export default function DonationsPage() {
 
   const handleRemoveImage = () => {
     setImagePreview(null);
+    setPhoto(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    
+    try {
+      const data = new FormData();
+      data.append('full_name', formData.fullName);
+      data.append('email', formData.email);
+      data.append('donation_type', formData.type);
+      data.append('description', formData.description);
+      if (photo) {
+        data.append('photo', photo);
+      }
+
+      const response = await fetch('http://localhost:3000/api/donations/pending', {
+        method: 'POST',
+        body: data,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit donation');
+      }
+
       setSubmitted(true);
-    }, 1500);
+    } catch (error) {
+      console.error(error);
+      alert('Error submitting donation. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -104,6 +135,8 @@ export default function DonationsPage() {
                         <input 
                           type="text" 
                           required
+                          value={formData.fullName}
+                          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                           placeholder="Concerned Citizen"
                           className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all outline-none text-slate-800 text-sm placeholder:text-slate-400"
                         />
@@ -122,6 +155,8 @@ export default function DonationsPage() {
                         <input 
                           type="email" 
                           required
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           placeholder="citizen@example.com"
                           className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all outline-none text-slate-800 text-sm placeholder:text-slate-400"
                         />
@@ -139,6 +174,8 @@ export default function DonationsPage() {
                         </div>
                         <select 
                           required
+                          value={formData.type}
+                          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                           className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all outline-none text-slate-800 text-sm appearance-none cursor-pointer"
                         >
                           <option value="">Select relief type...</option>
@@ -159,6 +196,8 @@ export default function DonationsPage() {
                       <textarea 
                         required
                         rows={3}
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         placeholder="E.g., 5 boxes of canned goods, 2 sacks of rice..."
                         className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all outline-none text-slate-800 text-sm placeholder:text-slate-400 resize-none"
                       />
@@ -231,6 +270,8 @@ export default function DonationsPage() {
                     onClick={() => {
                       setSubmitted(false);
                       setImagePreview(null);
+                      setPhoto(null);
+                      setFormData({ fullName: '', email: '', type: '', description: '' });
                     }}
                     className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm"
                   >
