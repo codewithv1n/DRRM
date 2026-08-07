@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { 
-  QrCode, 
+import {  
   Package, 
   ArrowRight, 
   CloudSun,
@@ -9,7 +8,8 @@ import {
   BookOpen,
   Navigation,
   Sparkles,
-  LocateFixed
+  LocateFixed,
+  BellRing
 } from 'lucide-react';
 import { useMockData } from '../../data/MockDataContext';
 import ResidentLayout from '../../components/layout/CitizenLayout';
@@ -99,17 +99,17 @@ export default function CitizenDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
               <button 
-                onClick={() => navigate('/citizen/id')}
+                onClick={() => navigate('/citizen/alerts')}
                 className="bg-white text-left p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all group flex flex-col justify-between h-36 cursor-pointer"
               >
                 <div className="bg-primary/10 text-primary p-2.5 rounded-xl w-fit group-hover:bg-primary/20 transition-colors">
-                  <QrCode className="w-5 h-5" />
+                  <BellRing className="w-5 h-5" />
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-800 text-sm mb-0.5 group-hover:text-primary transition-colors flex items-center gap-1">
-                    My QR ID Pass <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Alerts & Advisories <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </h4>
-                  <p className="text-[11px] text-slate-400">Present code for relief scans.</p>
+                  <p className="text-[11px] text-slate-400">View active city warnings.</p>
                 </div>
               </button>
 
