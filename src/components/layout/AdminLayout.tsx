@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Siren, Radio, Map,
   ChevronRight, Bell, Menu, Users, LogOut, Package, Shield, FileText, Home
@@ -14,6 +14,18 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  useEffect(() => {
+    if (!localStorage.getItem('user')) {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
+
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userName = user?.name || 'EOC Head';
+  const userInitials = userName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { incidents, pendingDonations, activeAlerts } = useMockData();
@@ -151,14 +163,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex items-center justify-between p-3 rounded-xl hover:bg-sidebar-accent transition-colors cursor-pointer group">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-sidebar-accent flex items-center justify-center text-sidebar-foreground shrink-0">
-                <span className="text-xs font-bold">AD</span>
+                <span className="text-xs font-bold">{userInitials}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-white">EOC Head</span>
-                <span className="text-[11px] text-slate-500 truncate w-24">admin@qc.gov.ph</span>
+                <span className="text-sm font-semibold text-white truncate w-32">{userName}</span>
+                <span className="text-[11px] text-slate-500 truncate w-32">{user?.email || 'admin@qc.gov.ph'}</span>
               </div>
             </div>
-            <button onClick={() => navigate('/login')} className="p-2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
+            <button onClick={() => { localStorage.removeItem('user'); navigate('/login', { replace: true }); }} className="p-2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
@@ -221,11 +233,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             
             <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200">
               <div className="flex flex-col text-right">
-                <span className="text-[11px] font-bold text-slate-700">Administrator</span>
-                <span className="text-[10px] text-slate-500">QCDRRMO</span>
+                <span className="text-[11px] font-bold text-slate-700 truncate w-32">{userName}</span>
+                <span className="text-[10px] text-slate-500 truncate w-32">{user?.role || 'Admin'}</span>
               </div>
               <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs">
-                AD
+                {userInitials}
               </div>
             </div>
           </div>

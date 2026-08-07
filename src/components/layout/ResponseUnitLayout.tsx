@@ -1,24 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LogOut, LayoutDashboard,
-  Menu, Bell, Package
+  Menu, Bell, Package, Siren
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface ResponseUnitLayoutProps {
   children: React.ReactNode;
-  activeIncidentsCount: number;
+  activeIncidentsCount?: number;
 }
 
-export default function ResponseUnitLayout({ children, activeIncidentsCount }: ResponseUnitLayoutProps) {
+export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 }: ResponseUnitLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (!localStorage.getItem('user')) {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
+
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userName = user?.name || 'Responder';
+  const userInitials = userName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
 
   const getPageTitle = () => {
     const path = location.pathname;
+    if (path.includes('incidents')) return 'Incident Response';
     if (path.includes('deliveries')) return 'Relief Deliveries';
-    return 'Active Missions';
+    return 'Dashboard';
   };
 
   const NavItem = ({ icon: Icon, label, path, badgeCount = 0 }: { icon: any; label: string; path: string; badgeCount?: number }) => {
@@ -57,7 +70,8 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount }: R
 
         <div className="flex-1 overflow-y-auto py-2 space-y-1 scrollbar-thin">
           <div className="px-5 pt-6 pb-2 text-[11px] uppercase font-semibold tracking-widest text-sidebar-foreground/50">Modules</div>
-          <NavItem icon={LayoutDashboard} label="Active Missions" path="/responders" badgeCount={activeIncidentsCount} />
+          <NavItem icon={LayoutDashboard} label="Dashboard" path="/responders" />
+          <NavItem icon={Siren} label="Incident Response" path="/responders/incidents" badgeCount={activeIncidentsCount} />
           <NavItem icon={Package} label="Relief Deliveries" path="/responders/deliveries" />
         </div>
 
@@ -65,14 +79,14 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount }: R
           <div className="flex items-center justify-between p-3 rounded-xl hover:bg-sidebar-accent transition-colors cursor-pointer group">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-sidebar-accent flex items-center justify-center text-sidebar-foreground shrink-0">
-                <span className="text-xs font-bold">RT</span>
+                <span className="text-xs font-bold">{userInitials}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-white">Rescue Team A</span>
-                <span className="text-[11px] text-slate-500 truncate w-24">QC Task Force</span>
+                <span className="text-sm font-semibold text-white truncate w-32">{userName}</span>
+                <span className="text-[11px] text-slate-500 truncate w-32">{user?.email || 'Rescue Unit'}</span>
               </div>
             </div>
-            <button onClick={() => navigate('/login')} className="p-2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
+            <button onClick={() => { localStorage.removeItem('user'); navigate('/login', { replace: true }); }} className="p-2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
@@ -102,11 +116,11 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount }: R
             
             <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200">
               <div className="flex flex-col text-right">
-                <span className="text-[11px] font-bold text-slate-700">Rescue Team A</span>
-                <span className="text-[10px] text-slate-500">QC Task Force</span>
+                <span className="text-[11px] font-bold text-slate-700 truncate w-32">{userName}</span>
+                <span className="text-[10px] text-slate-500 truncate w-32">{user?.role || 'Responder'}</span>
               </div>
               <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs">
-                RT
+                {userInitials}
               </div>
             </div>
           </div>
