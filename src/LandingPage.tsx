@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { 
   Sparkles, ArrowRight, AlertTriangle, Users, Package, 
   Radio, Activity, User
@@ -6,6 +7,21 @@ import {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.role === 'System Admin' || user.role === 'Admin') navigate('/admin', { replace: true });
+        else if (user.role === 'Barangay Admin') navigate('/barangays', { replace: true });
+        else if (user.role === 'Responder') navigate('/responders', { replace: true });
+        else if (user.role === 'Citizen') navigate('/citizen', { replace: true });
+      } catch (e) {
+        localStorage.removeItem('user');
+      }
+    }
+  }, [navigate]);
 
   const features = [
     {
@@ -47,7 +63,7 @@ export default function LandingPage() {
       <header className="w-full px-6 py-6 flex justify-between items-center z-10 max-w-7xl mx-auto">
         <div className="flex items-center gap-3 cursor-pointer">
           <img src="/logo-system.png" alt="GovServe Logo" className="h-8 object-contain shrink-0" />
-          <span className="font-bold text-lg tracking-tight text-slate-900">GOVSERVE</span>
+          <span className="font-bold text-lg tracking-tight text-slate-900">GovServe</span>
         </div>
         
         <div className="flex gap-4 items-center">
@@ -76,7 +92,7 @@ export default function LandingPage() {
 
         {/* Subtitle */}
         <p className="text-center text-slate-500 max-w-2xl text-lg mb-10 leading-relaxed">
-          Streamline incident reporting, evacuation center management, relief goods tracking, and city-wide coordination — all in one unified platform.
+          Streamline incident reporting, evacuation center management, relief goods tracking, and city-wide coordination all in one unified platform.
         </p>
 
         {/* CTA Buttons */}
@@ -129,8 +145,8 @@ export default function LandingPage() {
 
       </main>
 
-      <footer className="w-full max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between text-xs text-slate-400 border-t border-slate-200 mt-auto">
-        <div>© 2026 GOVSERVE. Disaster Risk Reduction & Emergency Response</div>
+      <footer className="w-full max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-center text-xs text-slate-400 border-t border-slate-200 mt-auto">
+        <div>© 2026 GOVSERVE.</div>
       </footer>
     </div>
   );

@@ -63,7 +63,7 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
         <div className="p-6 flex items-center gap-3">
           <img src="/logo-system.png" alt="GovServe Logo" className="w-11 h-11 object-contain shrink-0" />
           <div className="flex flex-col overflow-hidden text-white">
-            <h1 className="font-bold text-[18px] text-sidebar-foreground leading-tight truncate">GOVSERVE</h1>
+            <h1 className="font-bold text-[18px] text-sidebar-foreground leading-tight truncate">GovServe</h1>
             <p className="text-[12px] text-sidebar-foreground/50 font-medium truncate">Response Unit</p>
           </div>
         </div>

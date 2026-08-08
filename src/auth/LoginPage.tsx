@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, Map, Heart, Users, Package, Radio } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -13,10 +13,10 @@ export default function LoginPage() {
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
-        if (user.role === 'System Admin' || user.role === 'Admin') navigate('/admin', { replace: true });
+        if (user.role === 'System Admin' || user.role === 'Admin') navigate('/admin', { replace: true, state: { loginSuccess: true } });
         else if (user.role === 'Barangay Admin') navigate('/barangays', { replace: true });
         else if (user.role === 'Responder') navigate('/responders', { replace: true });
-        else if (user.role === 'Citizen') navigate('/citizen', { replace: true });
+        else if (user.role === 'Citizen') navigate('/citizen', { replace: true, state: { loginSuccess: true } });
       } catch (e) {
         localStorage.removeItem('user');
       }
@@ -51,13 +51,13 @@ export default function LoginPage() {
 
         // Route based on role
         if (role === 'System Admin' || role === 'Admin') {
-            navigate('/admin', { replace: true });
+            navigate('/admin', { replace: true, state: { loginSuccess: true } });
         } else if (role === 'Barangay Admin') {
             navigate('/barangays', { replace: true });
         } else if (role === 'Responder') {
             navigate('/responders', { replace: true });
         } else if (role === 'Citizen') {
-            navigate('/citizen', { replace: true });
+            navigate('/citizen', { replace: true, state: { loginSuccess: true } });
         } else {
             setError('Unrecognized user role');
         }
@@ -71,54 +71,35 @@ export default function LoginPage() {
     <div className="min-h-screen flex w-full font-sans">
       
       {/* Left Panel - Branding & Information */}
-      <div className="hidden lg:flex w-1/2 flex-col justify-between py-12 px-8 bg-[#0B1120] text-white relative items-center text-center">
+      <div className="hidden lg:flex w-1/2 flex-col justify-between py-12 px-12 bg-[#202E4C] text-white relative overflow-hidden">
+        
+        {/* Large Background Logo */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none z-0">
+          <img src="/logo-system.png" alt="Background Logo" className="w-3xl max-w-none object-contain scale-110 drop-shadow-2xl brightness-110" />
+        </div>
         
         {/* Top Header */}
-        <div>
-          <h2 className="text-[12px] font-bold tracking-[0.2em] text-white uppercase">GOVSERVE</h2>
+        <div className="relative z-10">
+          <h2 className="text-[10px] font-bold tracking-[0.2em] text-white/90 uppercase">DISASTER RISK REDUCTION & EMERGENCY RESPONSE</h2>
         </div>
 
         {/* Center Content */}
-        <div className="max-w-125 w-full flex flex-col items-center">
-          <h1 className="text-[35px] font-bold mb-4 leading-tight tracking-tight text-white">
-            Disaster Risk Management<br/>Portal
+        <div className="w-full relative z-10 max-w-lg mt-auto mb-auto">
+          <h1 className="text-[44px] font-extrabold mb-5 leading-[1.1] tracking-tight text-white">
+            Disaster Risk <br/>
+            Reduction & <br/>
+            Emergency <br/>
+            Response
           </h1>
-          <p className="text-slate-400 text-[13px] leading-relaxed mb-10 font-medium px-4">
-            Streamlining incident reporting, evacuation centers, relief operations, and early warnings. Click any module below to learn more.
+          <p className="text-white/90 text-[14px] leading-[1.6] font-medium max-w-md">
+            A centralized digital platform for securely managing local government disaster response, incident reports, and evacuation records.
           </p>
-
-          <div className="flex flex-col gap-3 w-full items-center">
-            <div className="flex justify-center gap-3 w-full">
-              <div className="bg-[#1E293B] border border-[#334155] py-2.5 px-5 rounded-2xl flex items-center gap-2.5 cursor-pointer hover:bg-slate-700 transition-colors">
-                <Heart className="w-4 h-4 text-blue-400" />
-                <span className="font-semibold text-[11px] text-slate-200">Rescue Ops</span>
-              </div>
-              <div className="bg-[#1E293B] border border-[#334155] py-2.5 px-5 rounded-2xl flex items-center gap-2.5 cursor-pointer hover:bg-slate-700 transition-colors">
-                <Users className="w-4 h-4 text-blue-400" />
-                <span className="font-semibold text-[11px] text-slate-200">Evacuation</span>
-              </div>
-              <div className="bg-[#1E293B] border border-[#334155] py-2.5 px-5 rounded-2xl flex items-center gap-2.5 cursor-pointer hover:bg-slate-700 transition-colors">
-                <Package className="w-4 h-4 text-blue-400" />
-                <span className="font-semibold text-[11px] text-slate-200">Relief Goods</span>
-              </div>
-            </div>
-            <div className="flex justify-center gap-3 w-full">
-              <div className="bg-[#1E293B] border border-[#334155] py-2.5 px-5 rounded-2xl flex items-center gap-2.5 cursor-pointer hover:bg-slate-700 transition-colors">
-                <Map className="w-4 h-4 text-blue-400" />
-                <span className="font-semibold text-[11px] text-slate-200">Hazard Maps</span>
-              </div>
-              <div className="bg-[#1E293B] border border-[#334155] py-2.5 px-5 rounded-2xl flex items-center gap-2.5 cursor-pointer hover:bg-slate-700 transition-colors">
-                <Radio className="w-4 h-4 text-blue-400" />
-                <span className="font-semibold text-[11px] text-slate-200">Early Warning</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
-        <div>
-          <p className="text-[10px] text-slate-500 font-medium">
-            © GOVSERVE 
+        <div className="relative z-10">
+          <p className="text-[10px] font-bold tracking-widest text-white/80 uppercase">
+            OFFICIAL GOVERNMENT PORTAL
           </p>
         </div>
       </div>
@@ -128,9 +109,9 @@ export default function LoginPage() {
         <div className="w-full max-w-120 px-8">
           
           <div className="bg-white px-8 py-10 rounded-2xl shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-slate-100">
-            <div className="text-center mb-8">
+            <div className="text-left mb-8">
               <h2 className="text-[20px] font-bold text-[#0F172A] mb-1.5 tracking-tight">Welcome Back</h2>
-              <p className="text-slate-500 text-[11px] font-medium px-4">Sign in to access your disaster management dashboard</p>
+              <p className="text-slate-500 text-[11px] font-medium">Sign in to access your disaster management dashboard</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
