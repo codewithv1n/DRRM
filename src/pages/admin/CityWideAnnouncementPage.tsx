@@ -1,13 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Send, Radio, AlertTriangle, Route, BookOpen, Megaphone } from 'lucide-react';
-import { useMockData } from '../../data/MockDataContext';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 
+interface DBAnnouncement {
+  announcement_id: string;
+  level: string;
+  message: string;
+  delivery_status: string;
+  created_at: string;
+}
+
 export default function EarlyWarningPanel() {
-  const { activeAlerts, broadcastAlert, addAuditLog, incidents } = useMockData();
-  const pendingCount = incidents ? incidents.filter(i => i.status === 'Pending').length : 0;
+  const [activeAlerts, setActiveAlerts] = useState<DBAnnouncement[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('General Alert');
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      const annRes = await fetch('http://localhost:3000/api/announcements');
+      if (annRes.ok) setActiveAlerts(await annRes.json());
+      
+      const incRes = await fetch('http://localhost:3000/api/incidents');
+      if (incRes.ok) {
+        const incidents = await incRes.json();
+        setPendingCount(incidents.filter((i: any) => i.status === 'Pending').length);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const alertLevels = [
     { label: 'Evacuation Order', level: 'Evacuation Order', color: 'bg-red-600 hover:bg-red-700', icon: <Megaphone className="w-5 h-5" /> },
@@ -16,16 +45,24 @@ export default function EarlyWarningPanel() {
     { label: 'General Alert', level: 'General Alert', color: 'bg-amber-500 hover:bg-amber-600', icon: <AlertTriangle className="w-5 h-5" /> },
   ];
 
-  const handleBroadcast = () => {
+  const handleBroadcast = async () => {
     if (!broadcastMessage.trim()) return;
-    broadcastAlert(selectedLevel, broadcastMessage, false);
-    addAuditLog('Broadcast', 'Department Admin', `Sent primary broadcast [${selectedLevel}]: ${broadcastMessage}`);
+    try {
+      await fetch('http://localhost:3000/api/announcements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          level: selectedLevel,
+          message: broadcastMessage,
+          delivery_status: 'Sent'
+        })
+      });
+      fetchData();
+    } catch (error) {
+      console.error('Error broadcasting:', error);
+    }
     setBroadcastMessage('');
-  };
-
-  const handleFallbackBroadcast = (alertMsg: string) => {
-    broadcastAlert('Red Alert', alertMsg, true);
-    addAuditLog('Broadcast Fallback', 'Department Admin', `Triggered SMS Backup for: ${alertMsg}`);
+    setShowConfirm(false);
   };
 
   const statusDot = (status: string) => {
@@ -81,7 +118,9 @@ export default function EarlyWarningPanel() {
               placeholder="E.g. WALANG PASOK: All classes are suspended today..."
             />
             <button
-              onClick={handleBroadcast}
+              onClick={() => {
+                if (broadcastMessage.trim()) setShowConfirm(true);
+              }}
               disabled={!broadcastMessage.trim()}
               className="w-full mt-3 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 disabled:from-slate-300 disabled:to-slate-400 text-white font-bold py-3 rounded-xl transition-all text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 disabled:shadow-none"
             >
@@ -106,35 +145,23 @@ export default function EarlyWarningPanel() {
 
           <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
             {activeAlerts.length > 0 ? activeAlerts.map(alert => (
-              <div key={alert.id} className="px-6 py-4 hover:bg-slate-50/50 transition-colors">
+              <div key={alert.announcement_id} className="px-6 py-4 hover:bg-slate-50/50 transition-colors">
                 <div className="flex items-start justify-between gap-4 mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">{alert.level}</span>
-                    {alert.channel === 'SMS Backup' && (
-                      <span className="text-[9px] font-black bg-slate-700 text-white px-2 py-0.5 rounded-full uppercase tracking-widest">SMS Backup</span>
-                    )}
                   </div>
                   <div className="flex items-center gap-2">
-                    {statusDot(alert.deliveryStatus)}
+                    {statusDot(alert.delivery_status)}
                     <span className={`text-xs font-bold ${
-                      alert.deliveryStatus === 'Failed' ? 'text-red-500' :
-                      alert.deliveryStatus === 'Pending' ? 'text-amber-500' : 'text-emerald-600'
+                      alert.delivery_status === 'Failed' ? 'text-red-500' :
+                      alert.delivery_status === 'Pending' ? 'text-amber-500' : 'text-emerald-600'
                     }`}>
-                      {alert.deliveryStatus}
+                      {alert.delivery_status}
                     </span>
-                    <span className="text-[10px] text-slate-400">{new Date(alert.timestamp).toLocaleTimeString()}</span>
+                    <span className="text-[10px] text-slate-400">{new Date(alert.created_at).toLocaleTimeString()}</span>
                   </div>
                 </div>
                 <p className="text-sm text-slate-700 mb-2">{alert.message}</p>
-
-                {alert.deliveryStatus === 'Failed' && (
-                  <button
-                    onClick={() => handleFallbackBroadcast(alert.message)}
-                    className="mt-1 w-full text-xs bg-linear-to-r from-slate-800 to-slate-900 text-white px-3 py-2 rounded-lg font-semibold hover:from-slate-900 hover:to-black transition-all flex items-center justify-center gap-2"
-                  >
-                    <Radio className="w-3 h-3" /> Retry via SMS Backup Gateway
-                  </button>
-                )}
               </div>
             )) : (
               <div className="px-6 py-16 text-center">
@@ -146,6 +173,39 @@ export default function EarlyWarningPanel() {
           </div>
         </div>
       </div>
+      {showConfirm && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200">
+            <div className="p-6">
+              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+                <Send className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold text-center text-slate-900 mb-2">Confirm Broadcast</h3>
+              <p className="text-center text-slate-500 text-sm mb-6">Are you sure you want to post this announcement? This action cannot be undone and will immediately notify citizens and barangays.</p>
+              
+              <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
+                <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">{selectedLevel}</div>
+                <div className="text-sm text-slate-700 italic wrap-break-word">"{broadcastMessage}"</div>
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowConfirm(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleBroadcast}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors text-sm"
+                >
+                  Confirm & Post
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </DepartmentLayout>
   );

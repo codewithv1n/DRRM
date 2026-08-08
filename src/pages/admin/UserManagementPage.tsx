@@ -1,32 +1,55 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useMockData } from '../../data/MockDataContext';
 import { UserPlus, Shield, Mail, Key, IdCard, X } from 'lucide-react';
 
 export default function UserManagement() {
-  const { incidents, systemUsers, addSystemUser } = useMockData();
+  const { incidents } = useMockData();
   const pendingCount = incidents ? incidents.filter(i => i.status === 'Pending').length : 0;
 
   const [activeTab, setActiveTab] = useState<'account' | 'family'>('account');
   const [userListTab, setUserListTab] = useState('All');
   const [showModal, setShowModal] = useState(false);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [users, setUsers] = useState<any[]>([]);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/auth/users');
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data.users || []);
+      }
+    } catch (e) {
+      console.error("Failed to fetch users", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const [form, setForm] = useState({
     role: 'Citizen',
     barangay: '',
     firstName: '',
-    middleName: '',
     lastName: '',
     contactNumber: '',
     purok: '',
     email: '',
     password: '',
-    familyMembers: [] as { firstName: string, middleName: string, lastName: string, relation: string, age: string, gender: string, medicalInfo: string }[]
+    familyMembers: [] as { firstName: string, lastName: string, relation: string, age: string, gender: string, medicalInfo: string }[]
   });
 
   const handleAddFamilyMember = () => {
     setForm(prev => ({
       ...prev,
-      familyMembers: [...prev.familyMembers, { firstName: '', middleName: '', lastName: '', relation: '', age: '', gender: '', medicalInfo: '' }]
+      familyMembers: [...prev.familyMembers, { firstName: '', lastName: '', relation: '', age: '', gender: '', medicalInfo: '' }]
     }));
   };
 
@@ -43,30 +66,79 @@ export default function UserManagement() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.firstName || !form.lastName || !form.email || !form.password) return;
     const requiresBarangay = form.role === 'Citizen' || form.role === 'Barangay Admin';
     if (requiresBarangay && !form.barangay) return;
 
-    const fullName = `${form.firstName} ${form.middleName ? form.middleName + ' ' : ''}${form.lastName}`.trim();
+    const fullName = `${form.firstName} ${form.lastName}`.trim();
 
-    addSystemUser({
-      role: form.role,
-      barangay: requiresBarangay ? form.barangay : undefined,
-      name: fullName,
-      email: form.email,
-      password: form.password,
-      familyMembers: form.role === 'Citizen' ? form.familyMembers : undefined
-    });
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/admin/create-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          role: form.role,
+          barangay: requiresBarangay ? form.barangay : undefined,
+          name: fullName,
+          email: form.email,
+          password: form.password,
+          contactNumber: form.contactNumber,
+          purok: form.purok,
+          familyMembers: form.role === 'Citizen' ? form.familyMembers : undefined
+        }),
+      });
 
-    setForm({ role: 'Citizen', barangay: '', firstName: '', middleName: '', lastName: '', contactNumber: '', purok: '', email: '', password: '', familyMembers: [] });
-    setActiveTab('account');
-    setShowModal(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        showToast(`Error: ${errorData.error || 'Unknown error'}`, 'error');
+        return;
+      }
+
+      const result = await response.json();
+      console.log("Account created successfully:", result);
+      showToast("Account created successfully!", 'success');
+
+      fetchUsers();
+
+      setForm({ role: 'Citizen', barangay: '', firstName: '', lastName: '', contactNumber: '', purok: '', email: '', password: '', familyMembers: [] });
+      setActiveTab('account');
+      setShowModal(false);
+    } catch (error) {
+      console.error("Failed to create account:", error);
+      showToast("Failed to connect to the server.", 'error');
+    }
   };
 
   return (
     <DepartmentLayout pendingCount={pendingCount}>
+      {/* Toast Notification */}
+      <div 
+        className={`fixed top-6 right-6 z-100 flex items-center gap-3 px-5 py-3.5 rounded-md shadow-lg font-medium text-sm transition-all duration-300 transform ${
+          toast 
+            ? 'translate-x-0 opacity-100' 
+            : 'translate-x-full opacity-0 pointer-events-none'
+        } ${
+          toast?.type === 'success' 
+            ? 'bg-green-500 text-white' 
+            : 'bg-red-500 text-white'
+        }`}
+      >
+        <div className="flex items-center justify-center shrink-0">
+          {toast?.type === 'success' ? (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <X className="w-5 h-5" />
+          )}
+        </div>
+        <p>{toast?.message}</p>
+      </div>
+
       <div className="animate-fade-in space-y-8">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
           <div>
@@ -75,7 +147,7 @@ export default function UserManagement() {
           </div>
           <button 
             onClick={() => setShowModal(true)}
-            className="bg-primary hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-sm shadow-primary/20 flex items-center gap-2 cursor-pointer"
+            className="bg-primary hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-sm shadow-primary/20 flex items-center gap-2 cursor-pointer"
           >
             <UserPlus className="w-5 h-5" />
             Create Account
@@ -143,7 +215,6 @@ export default function UserManagement() {
                           <option value="Citizen">Citizen</option>
                           <option value="Barangay Admin">Barangay Admin</option>
                           <option value="Responder">Responder (Response Unit)</option>
-                          <option value="Department Admin">Department Admin</option>
                         </select>
                       </div>
                     </div>
@@ -169,20 +240,13 @@ export default function UserManagement() {
 
                     <div>
                       <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Full Name</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <input 
                           type="text"
                           required
                           placeholder="First Name"
                           value={form.firstName}
                           onChange={e => setForm({...form, firstName: e.target.value})}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                        />
-                        <input 
-                          type="text"
-                          placeholder="Middle Name (Optional)"
-                          value={form.middleName}
-                          onChange={e => setForm({...form, middleName: e.target.value})}
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                         />
                         <input 
@@ -264,7 +328,7 @@ export default function UserManagement() {
                       <button 
                         type="button" 
                         onClick={handleAddFamilyMember} 
-                        className="text-xs font-bold text-primary hover:text-orange-600 transition-colors cursor-pointer"
+                        className="text-xs font-bold text-primary hover:text-blue-600 transition-colors cursor-pointer"
                       >
                         + Add Member
                       </button>
@@ -284,20 +348,13 @@ export default function UserManagement() {
                             >
                               <X className="w-4 h-4" />
                             </button>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <input 
                                 type="text" 
                                 placeholder="First Name" 
                                 required
                                 value={member.firstName}
                                 onChange={(e) => handleUpdateFamilyMember(idx, 'firstName', e.target.value)}
-                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                              />
-                              <input 
-                                type="text" 
-                                placeholder="Middle Name" 
-                                value={member.middleName}
-                                onChange={(e) => handleUpdateFamilyMember(idx, 'middleName', e.target.value)}
                                 className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
                               />
                               <input 
@@ -351,7 +408,7 @@ export default function UserManagement() {
                   </div>
                 )}
 
-                <button type="submit" className="w-full bg-orange-400 hover:bg-orange-500 text-white font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-6 shadow-sm hover:shadow-md cursor-pointer">
+                <button type="submit" className="w-full bg-blue-400 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-6 shadow-sm hover:shadow-md cursor-pointer">
                   <UserPlus className="w-4 h-4" />
                   Create Account
                 </button>
@@ -362,27 +419,27 @@ export default function UserManagement() {
 
           {/* Accounts Table */}
           <div className="w-full">
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.01)] overflow-hidden">
-              <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white rounded-md border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <h3 className="font-bold text-slate-900 flex items-center gap-2">
                     <Shield className="w-5 h-5 text-slate-400" />
                     Registered Users
                   </h3>
-                  <span className="text-xs font-bold bg-orange-100 text-orange-600 px-3 py-1 rounded-full">
-                    {systemUsers?.length || 0} Total
+                  <span className="text-xs font-bold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
+                    {users.length} Total
                   </span>
                 </div>
                 
                 {/* Role Tabs */}
-                <div className="flex bg-slate-200/50 p-1 rounded-xl overflow-x-auto max-w-full hide-scrollbar">
-                  {['All', 'Citizen', 'Barangay Admin', 'Response Unit', 'Department Admin'].map(role => (
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-full overflow-x-auto max-w-full hide-scrollbar">
+                  {['All', 'Citizen', 'Barangay Admin', 'Response Unit'].map(role => (
                     <button
                       key={role}
                       type="button"
                       onClick={() => setUserListTab(role)}
-                      className={`px-4 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                        userListTab === role ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
+                      className={`px-5 py-2 text-[13px] font-bold rounded-full transition-all whitespace-nowrap cursor-pointer ${
+                        userListTab === role ? 'bg-white text-blue-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                       }`}
                     >
                       {role}
@@ -391,42 +448,42 @@ export default function UserManagement() {
                 </div>
               </div>
               
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50/50 border-b border-slate-100">
-                    <tr className="text-left text-xs text-slate-500 uppercase tracking-wider font-semibold">
-                      <th className="px-6 py-4">Role & Location</th>
-                      <th className="px-6 py-4">User Details</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4 text-right">Actions</th>
+              <div className="overflow-x-auto p-4">
+                <table className="w-full text-left border-collapse border border-slate-200">
+                  <thead className="bg-slate-100">
+                    <tr>
+                      <th className="border border-slate-200 px-4 py-2 font-bold text-slate-700">Role & Location</th>
+                      <th className="border border-slate-200 px-4 py-2 font-bold text-slate-700">User Details</th>
+                      <th className="border border-slate-200 px-4 py-2 font-bold text-slate-700">Status</th>
+                      <th className="border border-slate-200 px-4 py-2 font-bold text-slate-700 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {systemUsers?.filter((user: any) => userListTab === 'All' || user.role === userListTab).map((user: any) => (
-                      <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4">
+                  <tbody>
+                    {users.filter((user: any) => userListTab === 'All' || user.role === userListTab || (userListTab === 'Response Unit' && user.role === 'Responder')).map((user: any, index: number) => (
+                      <tr key={user.id} className={`${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-slate-100 transition-colors`}>
+                        <td className="border border-slate-200 px-4 py-2">
                           <span className="font-bold text-slate-800 block">{user.role}</span>
                           {user.barangay && <span className="text-xs text-slate-500">Brgy. {user.barangay}</span>}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="border border-slate-200 px-4 py-2">
                           <div className="font-medium text-slate-900">{user.name}</div>
                           <div className="text-xs text-slate-500">{user.email}</div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="border border-slate-200 px-4 py-2">
                           <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase">
                             Active
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="border border-slate-200 px-4 py-2 text-right">
                           <button className="text-slate-400 hover:text-red-500 font-semibold text-xs transition-colors cursor-pointer">
                             Revoke
                           </button>
                         </td>
                       </tr>
                     ))}
-                    {!systemUsers || systemUsers.filter((user: any) => userListTab === 'All' || user.role === userListTab).length === 0 && (
+                    {users.filter((user: any) => userListTab === 'All' || user.role === userListTab || (userListTab === 'Response Unit' && user.role === 'Responder')).length === 0 && (
                       <tr>
-                        <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
+                        <td colSpan={4} className="border border-slate-200 px-4 py-8 text-center text-slate-400">
                           No users found for this role.
                         </td>
                       </tr>

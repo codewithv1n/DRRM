@@ -1,9 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Activity,  CheckCircle, Siren, Filter
 } from 'lucide-react';
-import { useMockData } from '../../data/MockDataContext';
 import DepartmentLayout from '../../components/layout/AdminLayout';
+
+interface DBIncident {
+  incident_id: string;
+  reporter_name: string;
+  contact_number: string;
+  location: string;
+  type: string;
+  status: string;
+  created_at: string;
+  gps_location: string | null;
+  assigned_responder: string | null;
+}
 
 function timeAgo(ts: string) {
   const mins = Math.max(0, Math.floor((Date.now() - new Date(ts).getTime()) / 60000));
@@ -13,11 +24,30 @@ function timeAgo(ts: string) {
   return `${hrs} hr${hrs > 1 ? 's' : ''} ago`;
 }
 
-const RESPONSE_UNITS = ['RES-01', 'RES-02', 'RES-03', 'RES-04', 'RES-05'];
+const RESPONSE_UNITS = ['Task Force 1', 'Task Force 2', 'Task Force 3', 'Task Force 4', 'Task Force 5'];
 
 export default function IncidentDispatcherPanel() {
-  const { incidents, assignResponder } = useMockData();
+  const [incidents, setIncidents] = useState<DBIncident[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('All');
+
+  const fetchIncidents = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/incidents');
+      if (response.ok) {
+        const data = await response.json();
+        setIncidents(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch incidents', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchIncidents();
+    // Refresh every 10 seconds
+    const interval = setInterval(fetchIncidents, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredIncidents = filterStatus === 'All' 
     ? incidents 
@@ -27,9 +57,20 @@ export default function IncidentDispatcherPanel() {
   const respondingCount = incidents.filter(i => i.status === 'Responding').length;
   const resolvedCount = incidents.filter(i => i.status === 'Resolved').length;
 
-  const handleAssign = (incidentId: string, responderId: string) => {
+  const handleAssign = async (incidentId: string, responderId: string) => {
     if (!responderId) return;
-    assignResponder(incidentId, responderId);
+    try {
+      await fetch(`http://localhost:3000/api/incidents/${incidentId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'Responding', assigned_responder: responderId }),
+      });
+      fetchIncidents();
+    } catch (error) {
+      console.error('Error assigning responder:', error);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -45,7 +86,7 @@ export default function IncidentDispatcherPanel() {
     }
   };
 
-  const getPriorityBadge = (priority: string) => {
+  const getPriorityBadge = (priority?: string) => {
     if (!priority) return null;
     let colors = 'bg-slate-100 text-slate-700';
     if (priority === 'Critical') colors = 'bg-red-100 text-red-700';
@@ -112,8 +153,13 @@ export default function IncidentDispatcherPanel() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredIncidents.map(incident => (
-                  <tr key={incident.id} className="hover:bg-slate-50/50 transition-colors">
+                {filteredIncidents.map(incident => {
+                  let priority = 'Medium';
+                  if (incident.type === 'Fire' || incident.type === 'Earthquake') priority = 'Critical';
+                  else if (incident.type === 'Medical' || incident.type === 'Flood') priority = 'High';
+
+                  return (
+                  <tr key={incident.incident_id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary/10 rounded-lg">
@@ -121,22 +167,22 @@ export default function IncidentDispatcherPanel() {
                         </div>
                         <div>
                           <div className="font-bold text-slate-800">{incident.type}</div>
-                          <div className="text-xs text-slate-500 font-mono mt-0.5">{incident.id}</div>
-                          <div className="text-[10px] text-slate-400 mt-1">{timeAgo(incident.timestamp)}</div>
+                          <div className="text-xs text-slate-500 font-mono mt-0.5">{incident.incident_id}</div>
+                          <div className="text-[10px] text-slate-400 mt-1">{timeAgo(incident.created_at)}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-bold text-slate-700">{incident.location}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">{incident.reporterName} • {incident.contactNumber}</div>
-                      {incident.gpsLocation && (
-                        <div className="text-[10px] text-slate-400 font-mono mt-1">GPS: {incident.gpsLocation}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{incident.reporter_name} • {incident.contact_number}</div>
+                      {incident.gps_location && (
+                        <div className="text-[10px] text-slate-400 font-mono mt-1">GPS: {incident.gps_location}</div>
                       )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-2 items-start">
                         {getStatusBadge(incident.status)}
-                        {getPriorityBadge(incident.priority)}
+                        {getPriorityBadge(priority)}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -145,7 +191,7 @@ export default function IncidentDispatcherPanel() {
                           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dispatch Unit</span>
                           <select 
                             className="text-xs border border-primary/30 rounded-lg px-2 py-1.5 bg-primary/5 text-primary font-bold focus:outline-none focus:border-primary shadow-sm cursor-pointer"
-                            onChange={(e) => handleAssign(incident.id, e.target.value)}
+                            onChange={(e) => handleAssign(incident.incident_id, e.target.value)}
                             value=""
                           >
                             <option value="" disabled>Select Responder</option>
@@ -154,11 +200,11 @@ export default function IncidentDispatcherPanel() {
                             ))}
                           </select>
                         </div>
-                      ) : incident.status === 'Responding' && incident.assignedResponder ? (
+                      ) : incident.status === 'Responding' && incident.assigned_responder ? (
                         <div className="flex flex-col items-end gap-1">
                           <span className="text-[10px] text-slate-400">Assigned To:</span>
                           <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">
-                            {incident.assignedResponder}
+                            {incident.assigned_responder}
                           </span>
                         </div>
                       ) : (
@@ -166,7 +212,7 @@ export default function IncidentDispatcherPanel() {
                       )}
                     </td>
                   </tr>
-                ))}
+                )})}
                 {filteredIncidents.length === 0 && (
                   <tr>
                     <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
