@@ -39,6 +39,7 @@ import EvacuationCenterMonitoringPage from './pages/admin/EvacuationCenterMonito
 // Responder Section 
 import ResponderDashboard from './pages/response_units/ResponderDashboard';
 import ReliefDeliveryMissions from './pages/response_units/ReliefDeliveryMissions';
+import IncidentResponsePage from './pages/response_units/IncidentResponsePage';
 
 // Citizen Section
 import CitizenAnnouncements from './pages/citizen/CitizenAnnouncements';
@@ -63,6 +64,7 @@ function App() {
         <Route path="/survival_guides" element={<SurvivalGuide />} />
       
         <Route path="/responders" element={<ResponderDashboard />} />
+        <Route path="/responders/incidents" element={<IncidentResponsePage />} />
         <Route path="/responders/deliveries" element={<ReliefDeliveryMissions />} />
 
         <Route path="/admin" element={<DepartmentDashboard />} />
