@@ -1,37 +1,72 @@
-import { useState } from 'react';
-import { Truck, CheckCircle, Clock, AlertTriangle, Plus, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Truck, CheckCircle, Clock, AlertTriangle, Image as ImageIcon, X, Search, Filter } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useMockData } from '../../data/MockDataContext';
 
 export default function ValidateDonationsPanel() {
-  const { incidents, pendingDonations, receiveDonation, addPendingDonation } = useMockData();
+  const { incidents } = useMockData();
   const pendingCount = incidents.filter(i => i.status === 'Pending').length;
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newDonation, setNewDonation] = useState({ donorName: '', itemName: '', quantity: 1, unit: 'packs', eta: '' });
+  const [donations, setDonations] = useState<any[]>([]);
+  const [donationLogs, setDonationLogs] = useState<any[]>([]);
+  const [viewPhotoUrl, setViewPhotoUrl] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'pending' | 'logs'>('pending');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState('All');
 
-  const handleAddDonation = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newDonation.donorName || !newDonation.itemName || !newDonation.eta) return;
-    
-    addPendingDonation({
-      donorName: newDonation.donorName,
-      items: [{ name: newDonation.itemName, quantity: Number(newDonation.quantity), unit: newDonation.unit }],
-      eta: new Date(newDonation.eta).toISOString()
-    });
-    setShowAddModal(false);
-    setNewDonation({ donorName: '', itemName: '', quantity: 1, unit: 'packs', eta: '' });
+  useEffect(() => {
+    fetchDonations();
+    fetchLogs();
+  }, []);
+
+  const fetchDonations = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/donations/pending');
+      const data = await res.json();
+      setDonations(data);
+    } catch (error) {
+      console.error("Error fetching donations:", error);
+    }
   };
 
-  // Filter out pending donations that are older than 7 days
-  const activeDonations = pendingDonations.filter(donation => {
-    if (donation.status === 'Received') return true;
-    
-    const etaDate = new Date(donation.eta);
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    return etaDate > sevenDaysAgo;
+  const fetchLogs = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/donations/logs');
+      const data = await res.json();
+      setDonationLogs(data);
+    } catch (error) {
+      console.error("Error fetching donation logs:", error);
+    }
+  };
+
+  const receiveDonation = async (id: string) => {
+    try {
+      await fetch(`http://localhost:3000/api/donations/pending/${id}/receive`, {
+        method: 'PUT'
+      });
+      fetchDonations();
+      fetchLogs();
+    } catch (error) {
+      console.error("Error receiving donation:", error);
+    }
+  };
+
+  // Filter donations based on active tab, search, and category
+  const sourceData = activeTab === 'pending' ? donations : donationLogs;
+
+  const filteredDonations = sourceData.filter(donation => {
+    const matchesSearch = donation.full_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = filterCategory === 'All' || donation.donation_type === filterCategory;
+    if (!matchesSearch || !matchesCategory) return false;
+
+    if (activeTab === 'pending') {
+      const etaDate = new Date(donation.created_at);
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      return etaDate > sevenDaysAgo;
+    } else {
+      return true;
+    }
   });
 
   return (
@@ -42,60 +77,117 @@ export default function ValidateDonationsPanel() {
             <h2 className="text-2xl font-bold text-slate-900 font-display">Validate Donations</h2>
             <p className="text-slate-500 mt-1">Review and receive incoming donations from citizens.</p>
           </div>
-          <button 
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-sm shadow-emerald-500/20 cursor-pointer"
-          >
-            <Plus className="w-5 h-5" />
-            Add Expected Donation
-          </button>
+          <div className="flex bg-slate-100 p-1 rounded-xl">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                activeTab === 'pending' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Pending Validation
+            </button>
+            <button
+              onClick={() => setActiveTab('logs')}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                activeTab === 'logs' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Donation Logs
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.01)] overflow-hidden">
+          <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="Search donor..." 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+              />
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Filter className="w-4 h-4 text-slate-400" />
+              <select 
+                value={filterCategory}
+                onChange={e => setFilterCategory(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none cursor-pointer"
+              >
+                <option value="All">All Categories</option>
+                <option value="Food & Water">Food & Water</option>
+                <option value="Clothes & Blankets">Clothes & Blankets</option>
+                <option value="Medical Supplies">Medical Supplies</option>
+                <option value="Hygiene Kits">Hygiene Kits</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Donor / Status</th>
+                  <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Donor</th>
                   <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Items</th>
                   <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ETA</th>
+                  <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                  <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Picture</th>
                   <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {activeDonations.map(donation => (
-                  <tr key={donation.id} className="hover:bg-slate-50/50 transition-colors">
+                {filteredDonations.map(donation => (
+                  <tr key={donation.donation_pending_id || donation.donation_log_id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg shrink-0 ${donation.status === 'Received' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                        <div className={`p-2 rounded-lg shrink-0 ${donation.status === 'Received' || activeTab === 'logs' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
                           <Truck className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="font-bold text-slate-800">{donation.donorName}</div>
-                          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider inline-block mt-1 ${
-                            donation.status === 'Received' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'
-                          }`}>
-                            {donation.status}
-                          </span>
+                          <div className="font-bold text-slate-800">{donation.full_name}</div>
                         </div>
                       </div>
                     </td>
                     <td className="p-4 text-sm text-slate-600">
-                      {donation.items.map(item => (
-                        <div key={item.name} className="whitespace-nowrap">
-                          <span className="font-semibold text-slate-800">{item.quantity}</span> {item.unit} {item.name}
-                        </div>
-                      ))}
+                      <div className="whitespace-nowrap">
+                        <span className="font-semibold text-slate-800">{donation.donation_type}</span>
+                        {donation.quantity !== undefined && (
+                          <div className="text-xs text-slate-500 mt-0.5 font-bold flex items-center gap-2">
+                            Qty: {donation.quantity}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4 text-sm text-slate-500">
                       <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" /> {new Date(donation.eta).toLocaleString()}
+                        <Clock className="w-3.5 h-3.5" /> {new Date(donation.created_at || donation.received_at).toLocaleString()}
                       </div>
                     </td>
+                    <td className="p-4 text-sm">
+                        <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider inline-block ${
+                          donation.status === 'Received' || activeTab === 'logs' ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'
+                        }`}>
+                          {donation.status || (activeTab === 'logs' ? 'Received' : 'Pending')}
+                        </span>
+                    </td>
+                    <td className="p-4 text-sm">
+                        {donation.photo_path ? (
+                          <button 
+                            onClick={() => setViewPhotoUrl(`http://localhost:3000${donation.photo_path}`)}
+                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold"
+                          >
+                            <ImageIcon className="w-4 h-4" /> View Pic
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 text-xs italic">N/A</span>
+                        )}
+                    </td>
                     <td className="p-4 text-right">
-                      {donation.status === 'Pending' ? (
+                      {activeTab !== 'logs' && donation.status !== 'Received' ? (
                         <button 
-                          onClick={() => setConfirmId(donation.id)}
+                          onClick={() => setConfirmId(donation.donation_pending_id)}
                           className="text-xs bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center gap-1.5"
                         >
                           <CheckCircle className="w-3.5 h-3.5" />
@@ -110,10 +202,10 @@ export default function ValidateDonationsPanel() {
                     </td>
                   </tr>
                 ))}
-                {activeDonations.length === 0 && (
+                {filteredDonations.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-12 text-center text-slate-400 text-sm">
-                      No pending donations.
+                    <td colSpan={6} className="p-12 text-center text-slate-400 text-sm">
+                      {activeTab === 'pending' ? 'No pending donations.' : 'No received donations logs yet.'}
                     </td>
                   </tr>
                 )}
@@ -153,82 +245,26 @@ export default function ValidateDonationsPanel() {
         </div>
       )}
 
-      {/* Add Expected Donation Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50">
-              <h3 className="text-lg font-bold text-slate-800">Add Expected Donation</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+      {/* Photo View Modal */}
+      {viewPhotoUrl && (
+        <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden relative">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-800">Donation Photo</h3>
+              <button 
+                onClick={() => setViewPhotoUrl(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleAddDonation} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Sender / Donor Name (Nagpadala)</label>
-                <input 
-                  type="text" 
-                  required
-                  value={newDonation.donorName}
-                  onChange={e => setNewDonation({...newDonation, donorName: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                  placeholder="e.g. Red Cross, Juan Dela Cruz"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Item Name</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={newDonation.itemName}
-                    onChange={e => setNewDonation({...newDonation, itemName: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                    placeholder="e.g. Bottled Water, Rice"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Quantity</label>
-                  <input 
-                    type="number" 
-                    min="1"
-                    required
-                    value={newDonation.quantity}
-                    onChange={e => setNewDonation({...newDonation, quantity: parseInt(e.target.value)})}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Unit</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={newDonation.unit}
-                    onChange={e => setNewDonation({...newDonation, unit: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                    placeholder="e.g. boxes, sacks"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Expected Time of Arrival (ETA)</label>
-                <input 
-                  type="datetime-local" 
-                  required
-                  value={newDonation.eta}
-                  onChange={e => setNewDonation({...newDonation, eta: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                />
-              </div>
-              <div className="pt-4 border-t border-slate-100">
-                <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-sm shadow-emerald-500/20 cursor-pointer">
-                  Save Expected Donation
-                </button>
-              </div>
-            </form>
+            <div className="p-6 flex justify-center bg-slate-50">
+              <img src={viewPhotoUrl} alt="Donation" className="max-h-[60vh] object-contain rounded-lg shadow-sm" />
+            </div>
           </div>
         </div>
       )}
+
     </DepartmentLayout>
   );
 }
