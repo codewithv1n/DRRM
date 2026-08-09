@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { TrendingUp,  Siren, Package, Gift, Home, CheckCircle2, X } from 'lucide-react';
-import { useMockData } from '../../data/MockDataContext';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 
 function OverviewPanel({ incidents, pendingCount }: { incidents: any[], pendingCount: number }) {
-  const { evacuationCenters } = useMockData();
+  const [evacuationCenters, setEvacuationCenters] = useState<any[]>([]);
   const [reliefInventory, setReliefInventory] = useState<any[]>([]);
   const [pendingDonationsCount, setPendingDonationsCount] = useState(0);
 
@@ -21,6 +20,12 @@ function OverviewPanel({ incidents, pendingCount }: { incidents: any[], pendingC
         if (donRes.ok) {
           const donData = await donRes.json();
           setPendingDonationsCount(donData.length);
+        }
+
+        const evRes = await fetch('http://localhost:3000/api/evacuation-centers');
+        if (evRes.ok) {
+          const evData = await evRes.json();
+          setEvacuationCenters(evData.data || []);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
