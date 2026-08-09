@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Building2, Users, Search, Filter, 
   AlertCircle, CheckCircle2, Clock, ShieldAlert, Home
@@ -16,9 +16,30 @@ function timeAgo(ts?: string) {
 }
 
 export default function EvacuationCenterMonitoringPage() {
-  const { evacuationCenters, incidents } = useMockData();
+  const { incidents } = useMockData();
+  const [evacuationCenters, setEvacuationCenters] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
+
+  useEffect(() => {
+    fetch('http://localhost:3000/api/evacuation-centers')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.data) {
+          const mapped = data.data.map((c: any) => ({
+            id: c.evacuation_center_id,
+            name: c.name,
+            currentOccupancy: c.current_occupants || 0,
+            capacity: c.capacity || 0,
+            lastUpdatedAt: c.created_at,
+            barangay: c.barangay,
+            location: c.location
+          }));
+          setEvacuationCenters(mapped);
+        }
+      })
+      .catch(err => console.error("Failed to fetch evacuation centers:", err));
+  }, []);
 
   const pendingCount = incidents ? incidents.filter(i => i.status === 'Pending').length : 0;
 
@@ -70,7 +91,6 @@ export default function EvacuationCenterMonitoringPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 font-display flex items-center gap-3">
-              <Building2 className="w-7 h-7 text-blue-600" />
               Evacuation Center Monitoring
             </h2>
             <p className="text-slate-500 mt-1">
