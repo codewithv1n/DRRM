@@ -98,7 +98,6 @@ export function getFloodRisk(weather: OpenMeteoWeather): 'Low' | 'Medium' | 'Hig
 }
 
 // ─── API Config ──────────────────────────────────────────────────────
-
 const USGS_API = 'https://earthquake.usgs.gov/fdsnws/event/1/query';
 const USGS_PARAMS = new URLSearchParams({
   format: 'geojson',
@@ -266,7 +265,8 @@ export function useHazardApis(): HazardApiData {
   useEffect(() => {
     const hazardsPayload: any[] = [];
     
-    earthquakes.forEach(eq => {
+    // Send only the most recent earthquake to prevent DB bloat
+    earthquakes.slice(0, 1).forEach(eq => {
       hazardsPayload.push({
         hazard_ref_id: eq.id,
         type: 'Earthquake',
@@ -292,7 +292,8 @@ export function useHazardApis(): HazardApiData {
       });
     }
 
-    typhoons.forEach(tc => {
+    // Send only the most recent typhoon to prevent DB bloat
+    typhoons.slice(0, 1).forEach(tc => {
       hazardsPayload.push({
         hazard_ref_id: tc.id,
         type: 'Typhoon',

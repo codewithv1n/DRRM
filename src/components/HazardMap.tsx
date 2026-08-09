@@ -2,10 +2,13 @@ import { useRef, useEffect } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
+interface HazardMapProps {
+  incidents?: any[];
+}
+
+export default function HazardMap({ }: HazardMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
   const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -14,7 +17,7 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
     const m = new maplibregl.Map({
       container: mapContainer.current,
       style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-      center: [121.0493, 14.6515],
+      center: [121.0493, 14.6515], // QC
       zoom: 12,
       minZoom: 12,
       maxZoom: 20,
@@ -250,7 +253,7 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
         });
       }
 
-      // Base coordinates for movement animation
+     
       const floodBaseCoords = [
         [121.030, 14.640],
         [121.050, 14.645],
@@ -258,15 +261,15 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
         [121.035, 14.625]
       ];
       
-      // West Valley Fault approximation through Quezon City
+     
       const quakeBaseCoords = [
-        [121.110, 14.730], // Payatas / Macabud
-        [121.095, 14.700], // Batasan Hills
-        [121.085, 14.680], // Loyola Grand Villas
-        [121.075, 14.650], // Loyola Heights / Ateneo
-        [121.072, 14.630], // Blue Ridge
-        [121.070, 14.610], // White Plains
-        [121.065, 14.590]  // Ugong Norte
+        [121.110, 14.730], 
+        [121.095, 14.700], 
+        [121.085, 14.680], 
+        [121.075, 14.650], 
+        [121.072, 14.630], 
+        [121.070, 14.610], 
+        [121.065, 14.590]  
       ];
 
       // Add pulsing animation to hazard zones
@@ -275,7 +278,6 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
         if (!startTime) startTime = timestamp;
         const elapsed = timestamp - startTime;
         
-        // Sine wave for smooth pulsing opacity (between 0.1 and 0.4)
         const opacity = 0.25 + Math.sin(elapsed / 400) * 0.15;
         
         if (map.current) {
@@ -290,7 +292,6 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
           // Update Positions (GeoJSON Data)
           const floodSource = map.current.getSource('hazard-flood') as maplibregl.GeoJSONSource;
           if (floodSource && floodSource.setData) {
-            // Flood zones are geographically fixed, so we don't apply an offset
             floodSource.setData({
               type: 'Feature',
               geometry: { type: 'Polygon', coordinates: [floodBaseCoords] },
@@ -300,7 +301,6 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
           
           const quakeSource = map.current.getSource('hazard-quake') as maplibregl.GeoJSONSource;
           if (quakeSource && quakeSource.setData) {
-            // Fault lines are geographically fixed, so we don't apply an offset to them
             quakeSource.setData({
               type: 'Feature',
               geometry: { type: 'LineString', coordinates: quakeBaseCoords },
@@ -312,6 +312,7 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
         animationRef.current = requestAnimationFrame(animateHazards);
       }
       animationRef.current = requestAnimationFrame(animateHazards);
+
     });
 
     return () => {
@@ -321,16 +322,6 @@ export default function HazardMap({ incidents = [] }: { incidents?: any[] }) {
       map.current = null;
     };
   }, []);
-
-  useEffect(() => {
-    if (!map.current) return;
-
-    // Clear existing markers
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
-
-    // Markers are disabled for Hazard Monitoring per request
-  }, [incidents]);
 
   return (
     <>
