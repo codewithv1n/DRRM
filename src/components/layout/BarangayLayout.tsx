@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   FileText, LogOut, LayoutDashboard,
- Menu, Bell, Package, List, Megaphone, History
+  Menu, Bell, Package, List, Megaphone, History, Building2, Sun, Moon
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -25,6 +25,39 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
   const userInitials = userName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
 
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [lastReadTime, setLastReadTime] = useState(parseInt(localStorage.getItem('lastReadTime_Barangay') || '0'));
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+      return localStorage.getItem('theme') === 'dark';
+    }
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const hasUnread = notifications.some(n => new Date(n.created_at || n.timestamp || Date.now()).getTime() > lastReadTime);
+
+  useEffect(() => {
+    fetch('http://localhost:3000/api/announcements')
+      .then(res => res.json())
+      .then(data => {
+        setNotifications(data.data || data || []);
+      })
+      .catch(console.error);
+  }, []);
 
   // Derive title from path
   const getPageTitle = () => {
@@ -34,6 +67,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
     if (path.includes('relief_distribution')) return 'Relief Distribution';
     if (path.includes('sitrep_upload')) return 'SitRep Uploader';
     if (path.includes('sitrep_logs')) return 'SitRep Logs';
+    if (path.includes('evacuation_centers')) return 'Evacuation Centers';
     return 'Dashboard';
   };
 
@@ -79,6 +113,8 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
           <NavItem icon={Package} label="Relief Inventory" path="/barangays/relief_inventory" />
           <NavItem icon={List} label="Relief Requests" path="/barangays/relief_requests" />
           <NavItem icon={Megaphone} label="Relief Distribution" path="/barangays/relief_distribution" />
+          <GroupLabel label="Monitoring" />
+          <NavItem icon={Building2} label="Evacuation Monitoring" path="/barangays/evacuation_centers" />
           <NavItem icon={FileText} label="SitRep Uploader" path="/barangays/sitrep_upload" />
           <NavItem icon={History} label="SitRep Logs" path="/barangays/sitrep_logs" />
         </div>
@@ -90,7 +126,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
                 <span className="text-xs font-bold">{userInitials}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-white truncate w-32">{userName}</span>
+                <span className="text-sm font-semibold text-sidebar-foreground truncate w-32">{userName}</span>
                 <span className="text-[11px] text-slate-500 truncate w-32">{user?.barangay ? `Brgy. ${user.barangay}` : 'Barangay'}</span>
               </div>
             </div>
@@ -116,10 +152,66 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
           
           <div className="flex items-center gap-4 lg:gap-6">
             <div className="flex items-center gap-2 relative">
-              <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer mr-1"
+                title="Toggle Dark Mode"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
+
+              <button 
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  if (!showNotifications) {
+                    const now = Date.now();
+                    setLastReadTime(now);
+                    localStorage.setItem('lastReadTime_Barangay', now.toString());
+                  }
+                }} 
+                className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+              >
+                <Bell className="w-5 h-5" />
+                {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute top-full mt-2 right-0 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50">
+                  <div className="p-4 border-b border-slate-50 flex items-center justify-between">
+                    <h3 className="font-bold text-slate-900">Notifications</h3>
+                    <span className="text-[10px] font-bold bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">{notifications.length} New</span>
+                  </div>
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      notifications.slice(0, 5).map((notif: any) => {
+                        const bg = notif.level === 'Critical' ? 'bg-red-50' : notif.level === 'Warning' ? 'bg-amber-50' : 'bg-blue-50';
+                        const color = notif.level === 'Critical' ? 'text-red-500' : notif.level === 'Warning' ? 'text-amber-500' : 'text-blue-500';
+                        return (
+                          <div key={notif.id} className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors flex gap-3 cursor-pointer">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${bg} ${color}`}>
+                              <Megaphone className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-800 line-clamp-2">{notif.level} Alert: {notif.message}</p>
+                              <p className="text-[10px] text-slate-500 mt-1">
+                                {new Date(notif.created_at || notif.timestamp || Date.now()).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="p-8 text-center text-slate-500 text-sm flex flex-col items-center">
+                        <Bell className="w-8 h-8 text-slate-300 mb-2" />
+                        No new notifications
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 border-t border-slate-50 bg-slate-50 text-center">
+                    <button onClick={() => setShowNotifications(false)} className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">Close</button>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200">

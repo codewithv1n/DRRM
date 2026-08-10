@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   LogOut, LayoutDashboard,
-  Menu, Bell, Package, Siren
+  Menu, Bell, Package, Siren, Sun, Moon
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -26,6 +26,25 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
   const userInitials = userName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
 
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+      return localStorage.getItem('theme') === 'dark';
+    }
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   const getPageTitle = () => {
     const path = location.pathname;
@@ -82,7 +101,7 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
                 <span className="text-xs font-bold">{userInitials}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-white truncate w-32">{userName}</span>
+                <span className="text-sm font-semibold text-sidebar-foreground truncate w-32">{userName}</span>
                 <span className="text-[11px] text-slate-500 truncate w-32">{user?.email || 'Rescue Unit'}</span>
               </div>
             </div>
@@ -108,6 +127,13 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
           
           <div className="flex items-center gap-4 lg:gap-6">
             <div className="flex items-center gap-2 relative">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer mr-1"
+                title="Toggle Dark Mode"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
               <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
                 <Bell className="w-5 h-5" />
                 {activeIncidentsCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}

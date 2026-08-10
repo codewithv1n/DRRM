@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Siren, Radio, Map,
-  ChevronRight, Bell, Menu, Users, LogOut, Package, Shield, FileText, Home
+  ChevronRight, Bell, Menu, Users, LogOut, Package, Shield, FileText, Home, Sun, Moon
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useMockData } from '../../data/MockDataContext';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -23,22 +22,93 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
-  const userName = user?.name || 'EOC Head';
+  const userName = user?.name || 'Admin';
   const userInitials = userName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
 
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const { incidents, pendingDonations, activeAlerts } = useMockData();
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [lastReadTime, setLastReadTime] = useState(parseInt(localStorage.getItem('lastReadTime_Admin') || '0'));
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+      return localStorage.getItem('theme') === 'dark';
+    }
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
 
-  const pendingIncidents = incidents ? incidents.filter(i => i.status === 'Pending') : [];
-  const pDonations = pendingDonations ? pendingDonations : [];
-  const failedAlerts = activeAlerts ? activeAlerts.filter(a => a.deliveryStatus === 'Failed') : [];
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
-  const notifications = [
-    ...pendingIncidents.map(i => ({ id: i.id, type: 'Incident', title: `New ${i.type} at ${i.location}`, time: i.timestamp, icon: Siren, color: 'text-red-500', bg: 'bg-red-50' })),
-    ...pDonations.map(d => ({ id: d.id, type: 'Donation', title: `Pending donation from ${d.donorName}`, time: d.eta, icon: Package, color: 'text-emerald-500', bg: 'bg-emerald-50' })),
-    ...failedAlerts.map(a => ({ id: a.id, type: 'Alert', title: `Failed Alert: ${a.level}`, time: a.timestamp, icon: Radio, color: 'text-amber-500', bg: 'bg-amber-50' }))
-  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+  const hasUnread = notifications.some(n => new Date(n.time || n.created_at || Date.now()).getTime() > lastReadTime);
+
+  useEffect(() => {
+    const fetchNotifs = async () => {
+      try {
+        const [incRes, donRes, alertRes] = await Promise.all([
+          fetch('http://localhost:3000/api/incidents'),
+          fetch('http://localhost:3000/api/donations/pending'),
+          fetch('http://localhost:3000/api/announcements')
+        ]);
+        
+        const incData = incRes.ok ? await incRes.json() : [];
+        const donData = donRes.ok ? await donRes.json() : { data: [] };
+        const alertData = alertRes.ok ? await alertRes.json() : { data: [] };
+
+        const pendingIncidents = (Array.isArray(incData) ? incData : []).filter((i: any) => i.status === 'Pending');
+        const pDonations = Array.isArray(donData) ? donData : (donData.data || []);
+        const activeAlerts = Array.isArray(alertData) ? alertData : (alertData.data || []);
+        const failedAlerts = activeAlerts.filter((a: any) => (a.deliveryStatus || a.delivery_status) === 'Failed');
+
+        const formattedNotifs = [
+          ...pendingIncidents.map((i: any) => ({ 
+            id: i.incident_id || i.id, 
+            type: 'Incident', 
+            title: `New ${i.type} at ${i.location}`, 
+            time: i.timestamp || i.created_at || Date.now(), 
+            icon: Siren, 
+            color: 'text-red-500', 
+            bg: 'bg-red-50' 
+          })),
+          ...pDonations.map((d: any) => ({ 
+            id: d.donation_id || d.id, 
+            type: 'Donation', 
+            title: `Pending donation from ${d.donor_name || d.donorName || 'Unknown'}`, 
+            time: d.eta || d.created_at || Date.now(), 
+            icon: Package, 
+            color: 'text-emerald-500', 
+            bg: 'bg-emerald-50' 
+          })),
+          ...failedAlerts.map((a: any) => ({ 
+            id: a.id, 
+            type: 'Alert', 
+            title: `Failed Alert: ${a.level}`, 
+            time: a.timestamp || a.created_at || Date.now(), 
+            icon: Radio, 
+            color: 'text-amber-500', 
+            bg: 'bg-amber-50' 
+          }))
+        ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+        setNotifications(formattedNotifs);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const displayCount = notifications.length;
 
@@ -166,7 +236,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <span className="text-xs font-bold">{userInitials}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-white truncate w-32">{userName}</span>
+                <span className="text-sm font-semibold text-sidebar-foreground truncate w-32">{userName}</span>
                 <span className="text-[11px] text-slate-500 truncate w-32">{user?.email || 'admin@qc.gov.ph'}</span>
               </div>
             </div>
@@ -192,19 +262,34 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           
           <div className="flex items-center gap-4 lg:gap-6">
             <div className="flex items-center gap-2 relative">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer mr-1"
+                title="Toggle Dark Mode"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+
               <button 
-                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                onClick={() => {
+                  setIsNotifOpen(!isNotifOpen);
+                  if (!isNotifOpen) {
+                    const now = Date.now();
+                    setLastReadTime(now);
+                    localStorage.setItem('lastReadTime_Admin', now.toString());
+                  }
+                }}
                 className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
               >
                 <Bell className="w-5 h-5" />
-                {displayCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
+                {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
               </button>
 
               {isNotifOpen && (
                 <div className="absolute top-full mt-2 right-0 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50">
                   <div className="p-4 border-b border-slate-50 flex items-center justify-between">
                     <h3 className="font-bold text-slate-900">Notifications</h3>
-                    <span className="text-[10px] font-bold bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">{displayCount} New</span>
+                    <span className="text-[10px] font-bold bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">{displayCount} Total</span>
                   </div>
                   <div className="max-h-96 overflow-y-auto">
                     {notifications.length > 0 ? notifications.map(n => {
