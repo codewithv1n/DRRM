@@ -61,6 +61,27 @@
 }
 
 @layer base {
+  .dark {
+    --color-background: hsl(222 47% 7%);
+    --color-foreground: hsl(220 14% 96%);
+    --color-card: hsl(222 47% 11%);
+    --color-border: hsl(222 40% 16%);
+    
+    /* Override hardcoded Tailwind colors for automatic Dark Mode */
+    --color-white: hsl(222 47% 11%);
+    --color-slate-50: hsl(222 47% 13%);
+    --color-slate-100: hsl(222 40% 16%);
+    --color-slate-200: hsl(222 40% 20%);
+    --color-slate-300: hsl(220 14% 60%);
+    --color-slate-400: hsl(220 14% 70%);
+    --color-slate-500: hsl(220 14% 80%);
+    --color-slate-600: hsl(220 14% 85%);
+    --color-slate-700: hsl(220 14% 90%);
+    --color-slate-800: hsl(220 14% 96%);
+    --color-slate-900: hsl(0 0% 100%);
+    --color-slate-950: hsl(0 0% 100%);
+  }
+
   :root {
     font-family: var(--font-sans);
     font-size: 14px;
