@@ -1,5 +1,22 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { MockDataProvider } from './data/MockDataContext';
+
+function DarkModeManager() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    if (location.pathname === '/' || location.pathname === '/login') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    }
+  }, [location.pathname]);
+
+  return null;
+}
 
 // Public Pages
 import LandingPage from './LandingPage';
@@ -22,6 +39,7 @@ import SitrepLogsPage from './pages/barangays/SitrepLogsPage';
 import BarangayReliefInventory from './pages/barangays/BarangayReliefInventory';
 import BarangayReliefRequests from './pages/barangays/BarangayReliefRequests';
 import BarangayReliefDistribution from './pages/barangays/BarangayReliefDistribution';
+import BarangayEvacuationMonitoringPage from './pages/barangays/BarangayEvacuationMonitoringPage';
 
 // Department Section
 import DepartmentDashboard from './pages/admin/AdminDashboard';
@@ -51,6 +69,7 @@ import CitizenReportLogs from './pages/citizen/CitizenReportLogs';
 function App() {
   return (
     <MockDataProvider>
+      <DarkModeManager />
       <Routes>
         <Route path="/" element={<LandingPage />} />
 
@@ -83,6 +102,7 @@ function App() {
         <Route path="/barangays/relief_inventory" element={<BarangayReliefInventory />} />
         <Route path="/barangays/relief_requests" element={<BarangayReliefRequests />} />
         <Route path="/barangays/relief_distribution" element={<BarangayReliefDistribution />} />
+        <Route path="/barangays/evacuation_centers" element={<BarangayEvacuationMonitoringPage />} />
         <Route path="/barangays/sitrep_upload" element={<SitRepUploaderPage />} />
         <Route path="/barangays/sitrep_logs" element={<SitrepLogsPage />} />
 
@@ -93,11 +113,12 @@ function App() {
         <Route path="/citizen/alerts" element={<CitizenAlerts />} />
         <Route path="/citizen/report_logs" element={<CitizenReportLogs />} />
         
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* Fallback - redirect to landing page */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </MockDataProvider>
   );
 }
 
 export default App;
+
