@@ -73,7 +73,6 @@ export default function LoginPage() {
       {/* Left Panel - Branding & Information */}
       <div className="hidden lg:flex w-1/2 flex-col justify-between py-10 px-12 bg-[#0B1526] text-white relative overflow-hidden">
         
-        {/* Subtle radial glow */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(30,52,89,0.4)_0%,transparent_70%)] pointer-events-none z-0"></div>
 
         {/* Government Seal Watermark */}
@@ -105,7 +104,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="relative z-10 flex justify-between items-center w-full pb-2">
+        <div className="relative z-10 flex justify-between items-center w-full border-t border-white/10 pt-6 pb-2">
           <p className="text-[10px] font-bold tracking-[0.15em] text-white/40 uppercase">
             OFFICIAL LGU PORTAL
           </p>
@@ -179,6 +178,15 @@ export default function LoginPage() {
               </div>
             </form>
           
+            <div className="mt-8 text-center text-[12px] font-medium text-slate-500">
+              <span className="text-slate-400">Not registered? </span>
+              <button 
+                onClick={() => navigate('/signup')} 
+                className="text-[#2563EB] font-bold hover:underline cursor-pointer ml-1"
+              >
+                Create a Citizen Account
+              </button>
+            </div>
           </div>
           
         </div>
