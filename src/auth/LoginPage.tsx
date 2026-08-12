@@ -14,7 +14,7 @@ export default function LoginPage() {
       try {
         const user = JSON.parse(userStr);
         if (user.role === 'System Admin' || user.role === 'Admin') navigate('/admin', { replace: true, state: { loginSuccess: true } });
-        else if (user.role === 'Barangay Admin') navigate('/barangays', { replace: true });
+        else if (user.role === 'Barangay Admin') navigate('/barangays', { replace: true, state: { loginSuccess: true } });
         else if (user.role === 'Responder') navigate('/responders', { replace: true });
         else if (user.role === 'Citizen') navigate('/citizen', { replace: true, state: { loginSuccess: true } });
       } catch (e) {
@@ -53,7 +53,7 @@ export default function LoginPage() {
         if (role === 'System Admin' || role === 'Admin') {
             navigate('/admin', { replace: true, state: { loginSuccess: true } });
         } else if (role === 'Barangay Admin') {
-            navigate('/barangays', { replace: true });
+            navigate('/barangays', { replace: true, state: { loginSuccess: true } });
         } else if (role === 'Responder') {
             navigate('/responders', { replace: true });
         } else if (role === 'Citizen') {
@@ -71,35 +71,46 @@ export default function LoginPage() {
     <div className="min-h-screen flex w-full font-sans">
       
       {/* Left Panel - Branding & Information */}
-      <div className="hidden lg:flex w-1/2 flex-col justify-between py-12 px-12 bg-[#202E4C] text-white relative overflow-hidden">
+      <div className="hidden lg:flex w-1/2 flex-col justify-between py-10 px-12 bg-[#0B1526] text-white relative overflow-hidden">
         
-        {/* Large Background Logo */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none z-0">
-          <img src="/logo-system.png" alt="Background Logo" className="w-3xl max-w-none object-contain scale-110 drop-shadow-2xl brightness-110" />
+        {/* Subtle radial glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(30,52,89,0.4)_0%,transparent_70%)] pointer-events-none z-0"></div>
+
+        {/* Government Seal Watermark */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 1 }}>
+          <img 
+            src="/logo-system.png" 
+            alt="System Logo" 
+            className="object-contain opacity-[0.12]"
+            style={{ width: '520px', height: '520px' }}
+          />
         </div>
         
         {/* Top Header */}
         <div className="relative z-10">
-          <h2 className="text-[10px] font-bold tracking-[0.2em] text-white/90 uppercase">DISASTER RISK REDUCTION & EMERGENCY RESPONSE</h2>
+          <h2 className="text-[20px] font-extrabold text-white mb-1 tracking-tight">Disaster Risk Reduction & Emergency Response</h2>
+          <p className="text-[12px] text-white/60 font-medium">Republic of the Philippines • Local Government Unit</p>
         </div>
 
-        {/* Center Content */}
-        <div className="w-full relative z-10 max-w-lg mt-auto mb-auto">
-          <h1 className="text-[44px] font-extrabold mb-5 leading-[1.1] tracking-tight text-white">
+        {/* Center Content - overlaid on seal */}
+        <div className="w-full relative z-10 flex flex-col items-center text-center mx-auto mt-auto mb-auto" style={{ maxWidth: '500px' }}>
+          <h1 className="text-[44px] font-extrabold mb-6 leading-[1.1] tracking-tight text-white">
             Disaster Risk <br/>
             Reduction & <br/>
-            Emergency <br/>
-            Response
+            Emergency Response
           </h1>
-          <p className="text-white/90 text-[14px] leading-[1.6] font-medium max-w-md">
+          <p className="text-white/70 text-[14px] leading-relaxed mx-auto font-normal" style={{ maxWidth: '420px' }}>
             A centralized digital platform for securely managing local government disaster response, incident reports, and evacuation records.
           </p>
         </div>
 
         {/* Footer */}
-        <div className="relative z-10">
-          <p className="text-[10px] font-bold tracking-widest text-white/80 uppercase">
-            OFFICIAL GOVERNMENT PORTAL
+        <div className="relative z-10 flex justify-between items-center w-full pb-2">
+          <p className="text-[10px] font-bold tracking-[0.15em] text-white/40 uppercase">
+            OFFICIAL LGU PORTAL
+          </p>
+          <p className="text-[10px] font-normal text-white/35">
+            Republic of the Philippines
           </p>
         </div>
       </div>
