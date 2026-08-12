@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  LogOut, LayoutDashboard,
-  Menu, Bell, Package, Siren, Sun, Moon
+  LogOut, LayoutDashboard, ChevronDown,
+  Menu, Bell, Package, Siren, Sun, Moon, Shield
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -26,6 +26,7 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
   const userInitials = userName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
 
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
       return localStorage.getItem('theme') === 'dark';
@@ -90,26 +91,12 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
         <div className="flex-1 overflow-y-auto py-2 space-y-1 scrollbar-thin">
           <div className="px-5 pt-6 pb-2 text-[11px] uppercase font-semibold tracking-widest text-sidebar-foreground/50">Modules</div>
           <NavItem icon={LayoutDashboard} label="Dashboard" path="/responders" />
+          <NavItem icon={Shield} label="Unit Status" path="/responders/status" />
           <NavItem icon={Siren} label="Incident Response" path="/responders/incidents" badgeCount={activeIncidentsCount} />
           <NavItem icon={Package} label="Relief Deliveries" path="/responders/deliveries" />
         </div>
 
-        <div className="p-4 mt-auto border-t border-sidebar-accent">
-          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-sidebar-accent transition-colors cursor-pointer group">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-sidebar-accent flex items-center justify-center text-sidebar-foreground shrink-0">
-                <span className="text-xs font-bold">{userInitials}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-sidebar-foreground truncate w-32">{userName}</span>
-                <span className="text-[11px] text-slate-500 truncate w-32">{user?.email || 'Rescue Unit'}</span>
-              </div>
-            </div>
-            <button onClick={() => { localStorage.removeItem('user'); navigate('/login', { replace: true }); }} className="p-2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+
       </aside>
 
       {/* Main Container */}
@@ -140,14 +127,32 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
               </button>
             </div>
             
-            <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200">
-              <div className="flex flex-col text-right">
-                <span className="text-[11px] font-bold text-slate-700 truncate w-32">{userName}</span>
-                <span className="text-[10px] text-slate-500 truncate w-32">{user?.role || 'Responder'}</span>
-              </div>
-              <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs">
-                {userInitials}
-              </div>
+            <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200 relative">
+              <button 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-3 hover:bg-slate-50 p-2 rounded-xl transition-colors cursor-pointer"
+              >
+                <div className="flex flex-col text-right">
+                  <span className="text-[11px] font-bold text-slate-700 truncate w-32">{userName}</span>
+                  <span className="text-[10px] text-slate-500 truncate w-32">{user?.role || 'Responder'}</span>
+                </div>
+                <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs">
+                  {userInitials}
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isProfileOpen && (
+                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                  <button 
+                    onClick={() => { localStorage.removeItem('user'); navigate('/login', { replace: true }); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>

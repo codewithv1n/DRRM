@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  FileText, LogOut, LayoutDashboard,
+  FileText, LogOut, LayoutDashboard, ChevronDown,
   Menu, Bell, Package, List, Megaphone, History, Building2, Sun, Moon
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -26,6 +26,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
 
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [lastReadTime, setLastReadTime] = useState(parseInt(localStorage.getItem('lastReadTime_Barangay') || '0'));
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -119,22 +120,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
           <NavItem icon={History} label="SitRep Logs" path="/barangays/sitrep_logs" />
         </div>
 
-        <div className="p-4 mt-auto border-t border-sidebar-accent">
-          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-sidebar-accent transition-colors cursor-pointer group">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-sidebar-accent flex items-center justify-center text-sidebar-foreground shrink-0">
-                <span className="text-xs font-bold">{userInitials}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-sidebar-foreground truncate w-32">{userName}</span>
-                <span className="text-[11px] text-slate-500 truncate w-32">{user?.barangay ? `Brgy. ${user.barangay}` : 'Barangay'}</span>
-              </div>
-            </div>
-            <button onClick={() => { localStorage.removeItem('user'); navigate('/login', { replace: true }); }} className="p-2 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+
       </aside>
 
       {/* Main Container */}
@@ -214,14 +200,32 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
               )}
             </div>
             
-            <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200">
-              <div className="flex flex-col text-right">
-                <span className="text-[11px] font-bold text-slate-700 truncate w-32">{userName}</span>
-                <span className="text-[10px] text-slate-500 truncate w-32">{user?.barangay ? `Brgy. ${user.barangay}` : 'Barangay'}</span>
-              </div>
-              <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs">
-                {userInitials}
-              </div>
+            <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200 relative">
+              <button 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-3 hover:bg-slate-50 p-2 rounded-xl transition-colors cursor-pointer"
+              >
+                <div className="flex flex-col text-right">
+                  <span className="text-[11px] font-bold text-slate-700 truncate w-32">{userName}</span>
+                  <span className="text-[10px] text-slate-500 truncate w-32">{user?.barangay ? `Brgy. ${user.barangay}` : 'Barangay'}</span>
+                </div>
+                <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xs">
+                  {userInitials}
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isProfileOpen && (
+                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-50">
+                  <button 
+                    onClick={() => { localStorage.removeItem('user'); navigate('/login', { replace: true }); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
