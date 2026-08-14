@@ -124,15 +124,7 @@ export default function SignupPage() {
           </p>
         </div>
 
-        {/* Footer */}
-        <div className="relative z-10 flex justify-between items-center w-full border-t border-white/10 pt-6 pb-2">
-          <p className="text-[10px] font-bold tracking-[0.15em] text-white/40 uppercase">
-            OFFICIAL LGU PORTAL
-          </p>
-          <p className="text-[10px] font-normal text-white/35">
-            Republic of the Philippines
-          </p>
-        </div>
+
       </div>
 
       {/* Right Panel - Signup Form */}

@@ -94,8 +94,7 @@ export default function LoginPage() {
         {/* Center Content - overlaid on seal */}
         <div className="w-full relative z-10 flex flex-col items-center text-center mx-auto mt-auto mb-auto" style={{ maxWidth: '500px' }}>
           <h1 className="text-[44px] font-extrabold mb-6 leading-[1.1] tracking-tight text-white">
-            Disaster Risk <br/>
-            Reduction & <br/>
+            Disaster and <br/>
             Emergency Response
           </h1>
           <p className="text-white/70 text-[14px] leading-relaxed mx-auto font-normal" style={{ maxWidth: '420px' }}>
@@ -103,15 +102,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Footer */}
-        <div className="relative z-10 flex justify-between items-center w-full border-t border-white/10 pt-6 pb-2">
-          <p className="text-[10px] font-bold tracking-[0.15em] text-white/40 uppercase">
-            OFFICIAL LGU PORTAL
-          </p>
-          <p className="text-[10px] font-normal text-white/35">
-            Republic of the Philippines
-          </p>
-        </div>
+
       </div>
 
       {/* Right Panel - Login Form */}
