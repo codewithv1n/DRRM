@@ -26,6 +26,58 @@ function timeAgo(ts: string) {
 
 const RESPONSE_UNITS = ['Task Force 1', 'Task Force 2', 'Task Force 3', 'Task Force 4', 'Task Force 5'];
 
+const addressCache = new Map<string, string>();
+
+const LocationDisplay = ({ text, className = "" }: { text: string, className?: string }) => {
+  const [displayAddress, setDisplayAddress] = useState<string>(text);
+
+  useEffect(() => {
+    if (!text) return;
+
+    // Check if the text contains coordinates like "14.6760 N, 121.0437 E" or similar
+    const match = text.match(/([\d.-]+)\s*[Nn]?\s*,\s*([\d.-]+)\s*[Ee]?/);
+    
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lon = parseFloat(match[2]);
+      
+      const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+      if (addressCache.has(cacheKey)) {
+        setDisplayAddress(addressCache.get(cacheKey)!);
+        return;
+      }
+
+      // Add slight delay to prevent rate limit issues when multiple load at once
+      const delay = Math.random() * 1000;
+      const timeoutId = setTimeout(() => {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.display_name) {
+               // Get a simpler version of the address if possible, or use the full display name
+               let simplified = data.display_name;
+               const parts = data.display_name.split(', ');
+               if (parts.length > 3) {
+                  // e.g. "building, street, suburb, city, state, country" -> "street, suburb, city"
+                  simplified = parts.slice(0, 3).join(', ');
+               }
+               addressCache.set(cacheKey, simplified);
+               setDisplayAddress(simplified);
+            }
+          })
+          .catch(err => console.error("Reverse geocoding error:", err));
+      }, delay);
+      
+      return () => clearTimeout(timeoutId);
+    } else {
+      setDisplayAddress(text);
+    }
+  }, [text]);
+
+  return <span className={className}>{displayAddress}</span>;
+};
+
+
 export default function IncidentDispatcherPanel() {
   const [incidents, setIncidents] = useState<DBIncident[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('All');
@@ -173,10 +225,14 @@ export default function IncidentDispatcherPanel() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-bold text-slate-700">{incident.location}</div>
+                      <div className="text-sm font-bold text-slate-700">
+                        <LocationDisplay text={incident.location} />
+                      </div>
                       <div className="text-xs text-slate-500 mt-0.5">{incident.reporter_name} • {incident.contact_number}</div>
                       {incident.gps_location && (
-                        <div className="text-[10px] text-slate-400 font-mono mt-1">GPS: {incident.gps_location}</div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-1">
+                          GPS: <LocationDisplay text={incident.gps_location} />
+                        </div>
                       )}
                     </td>
                     <td className="px-6 py-4">
