@@ -13,13 +13,6 @@ export interface Alert {
   deliveryStatus: 'Sent' | 'Pending' | 'Failed';
 }
 
-export interface EvacuationCenter {
-  id: string;
-  name: string;
-  capacity: number;
-  currentOccupancy: number;
-  lastUpdatedAt?: string;
-}
 
 export interface AuditLog {
   id: string;
@@ -46,15 +39,6 @@ export interface ReliefDispatch {
   timestamp: string;
 }
 
-export interface SitRep {
-  id: string;
-  barangay: string;
-  householdCount: number;
-  damageSeverity: 'Minor' | 'Moderate' | 'Severe' | 'Critical';
-  evacueeCount: number;
-  timestamp: string;
-  lastUpdatedBy: string;
-}
 
 export interface QueuedAction {
   id: string;
@@ -114,8 +98,6 @@ interface MockDataContextType {
   resources: Resource[];
   updateResourceStatus: (id: string, status: Resource['status'], assignedTo?: string) => void;
 
-  evacuationCenters: EvacuationCenter[];
-  updateEvacuationOccupancy: (id: string, delta: number) => void;
 
   activeAlerts: Alert[];
   broadcastAlert: (level: string, message: string, useBackup?: boolean) => void;
@@ -125,7 +107,6 @@ interface MockDataContextType {
 
   reliefClaims: ReliefClaimResident[];
 
-  barangaySitReps: SitRep[];
 
   reliefInventory: ReliefInventoryItem[];
   updateInventoryQuantity: (id: string, newQuantity: number) => void;
@@ -197,25 +178,8 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   ]);
   
-  const [evacuationCenters, setEvacuationCenters] = useState<EvacuationCenter[]>([
-    { id: 'EC-01', name: 'Commonwealth Elem. School', capacity: 500, currentOccupancy: 120, lastUpdatedAt: new Date().toISOString() },
-    { id: 'EC-02', name: 'Batasan Hills Nat. High School', capacity: 1000, currentOccupancy: 850, lastUpdatedAt: new Date(Date.now() - 15 * 60000).toISOString() },
-    { id: 'EC-03', name: 'Payatas Covered Court', capacity: 300, currentOccupancy: 275, lastUpdatedAt: new Date(Date.now() - 5 * 60000).toISOString() },
-    { id: 'EC-04', name: 'Fairview Terraces Gym', capacity: 800, currentOccupancy: 210, lastUpdatedAt: new Date(Date.now() - 45 * 60000).toISOString() },
-    { id: 'EC-05', name: 'Holy Spirit Elem. School', capacity: 400, currentOccupancy: 0, lastUpdatedAt: new Date(Date.now() - 120 * 60000).toISOString() },
-    { id: 'EC-06', name: 'Bagong Silangan Multi-Purpose Hall', capacity: 600, currentOccupancy: 580, lastUpdatedAt: new Date(Date.now() - 2 * 60000).toISOString() }
-  ]);
+ 
 
-  const [barangaySitReps] = useState<SitRep[]>([
-    { id: 'SR-01', barangay: 'Commonwealth', householdCount: 245, damageSeverity: 'Severe', evacueeCount: 890, timestamp: new Date(Date.now() - 30 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Captain Santos' },
-    { id: 'SR-02', barangay: 'Batasan Hills', householdCount: 180, damageSeverity: 'Critical', evacueeCount: 1200, timestamp: new Date(Date.now() - 10 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Secretary Reyes' },
-    { id: 'SR-03', barangay: 'Payatas', householdCount: 310, damageSeverity: 'Moderate', evacueeCount: 450, timestamp: new Date(Date.now() - 60 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Captain Cruz' },
-    { id: 'SR-04', barangay: 'Fairview', householdCount: 95, damageSeverity: 'Minor', evacueeCount: 120, timestamp: new Date(Date.now() - 5 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Admin Garcia' },
-    { id: 'SR-05', barangay: 'Holy Spirit', householdCount: 420, damageSeverity: 'Severe', evacueeCount: 1560, timestamp: new Date(Date.now() - 90 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Captain Villanueva' },
-    { id: 'SR-06', barangay: 'Bagumbayan', householdCount: 67, damageSeverity: 'Minor', evacueeCount: 85, timestamp: new Date(Date.now() - 15 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Secretary Lim' },
-    { id: 'SR-07', barangay: 'Culiat', householdCount: 155, damageSeverity: 'Moderate', evacueeCount: 340, timestamp: new Date(Date.now() - 25 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Captain Navarro' },
-    { id: 'SR-08', barangay: 'Damayan', householdCount: 200, damageSeverity: 'Critical', evacueeCount: 780, timestamp: new Date(Date.now() - 8 * 60000).toISOString(), lastUpdatedBy: 'Brgy. Admin Torres' },
-  ]);
 
   const [reliefInventory, setReliefInventory] = useState<ReliefInventoryItem[]>([
     { id: 'INV-01', name: 'Family Food Pack', category: 'Food', quantity: 1500, unit: 'packs', lastUpdated: new Date().toISOString() },
@@ -267,8 +231,6 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     actionQueue.forEach(action => {
       if (action.type === 'INCIDENT_UPDATE') {
         updateIncidentStatus(action.payload.id, action.payload.status, action.payload.gpsLocation, action.payload.debrief, true);
-      } else if (action.type === 'HAZARD_UPDATE') {
-        updateEvacuationOccupancy(action.payload.id, action.payload.delta, true);
       }
     });
     setActionQueue([]);
@@ -319,28 +281,6 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     addAuditLog('Update Resource', 'Department Admin', `Resource ${id} status changed to ${status}`);
   };
 
-  const updateEvacuationOccupancy = (id: string, delta: number, bypassQueue = false) => {
-    if (isOffline && !bypassQueue) {
-      setActionQueue(prev => [...prev, {
-        id: `QA-${Date.now()}`,
-        type: 'HAZARD_UPDATE',
-        payload: { id, delta },
-        timestamp: new Date().toISOString()
-      }]);
-      return;
-    }
-
-    setEvacuationCenters(prev => prev.map(ec => {
-      if (ec.id === id) {
-        return {
-          ...ec,
-          currentOccupancy: Math.max(0, ec.currentOccupancy + delta),
-          lastUpdatedAt: new Date().toISOString()
-        };
-      }
-      return ec;
-    }));
-  };
 
   const addReliefDispatch = (dispatchData: Omit<ReliefDispatch, 'id' | 'status' | 'timestamp'>) => {
     const newDispatch: ReliefDispatch = {
@@ -453,11 +393,11 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
       isOffline, setIsOffline, actionQueue, syncQueue,
       incidents, addIncident, updateIncidentStatus, assignResponder,
       resources, updateResourceStatus,
-      evacuationCenters, updateEvacuationOccupancy,
+
       activeAlerts, broadcastAlert,
       auditLogs, addAuditLog,
       reliefClaims,
-      barangaySitReps,
+
       reliefDispatches, addReliefDispatch, requestRelief, updateReliefDispatchStatus, updateReliefDispatchQuantity,
       reliefInventory, updateInventoryQuantity, addInventoryItem,
       pendingDonations, receiveDonation, addPendingDonation,

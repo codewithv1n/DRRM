@@ -1,19 +1,52 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { FileText, Send, AlertCircle, Info, History } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useMockData } from '../../data/MockDataContext';
 import { ASSIGNED_BARANGAY } from './BarangayDashboard';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
 export default function SitrepPanel() {
+  const navigate = useNavigate();
   const { addAuditLog } = useMockData();
   const [showToast, setShowToast] = useState(false);
+  
+  const [generalSituation, setGeneralSituation] = useState('');
+  const [evacuees, setEvacuees] = useState<number | string>('');
+  const [casualties, setCasualties] = useState<number | string>('');
+  const [households, setHouseholds] = useState<number | string>('');
+  const [damageSeverity, setDamageSeverity] = useState('Minor');
 
-  const handleSitRepSubmit = (e: FormEvent) => {
+  const handleSitRepSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setShowToast(true);
-    addAuditLog('Submit SitRep', `Barangay Admin (${ASSIGNED_BARANGAY})`, 'Submitted daily situation report.');
-    setTimeout(() => setShowToast(false), 3000);
+    try {
+      const res = await fetch('http://localhost:3000/api/sitreps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          barangay: ASSIGNED_BARANGAY,
+          general_situation: generalSituation,
+          evacuee_count: Number(evacuees) || 0,
+          casualties: Number(casualties) || 0,
+          household_count: Number(households) || 0,
+          damage_severity: damageSeverity,
+          last_updated_by: `Brgy. Admin (${ASSIGNED_BARANGAY})`
+        })
+      });
+
+      if (res.ok) {
+        setShowToast(true);
+        addAuditLog('Submit SitRep', `Barangay Admin (${ASSIGNED_BARANGAY})`, 'Submitted daily situation report.');
+        setGeneralSituation('');
+        setEvacuees('');
+        setCasualties('');
+        setHouseholds('');
+        setDamageSeverity('Minor');
+        setTimeout(() => setShowToast(false), 3000);
+      }
+    } catch (error) {
+      console.error('Error submitting sitrep:', error);
+    }
   };
 
   return (
@@ -43,23 +76,34 @@ export default function SitrepPanel() {
             <textarea 
               rows={3}
               required
+              value={generalSituation}
+              onChange={(e) => setGeneralSituation(e.target.value)}
               className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
               placeholder="Describe the current situation in the barangay..."
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Number of Evacuees</label>
-              <input type="number" className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" defaultValue={0} />
+              <input type="number" min="0" value={evacuees} onChange={(e) => setEvacuees(e.target.value === '' ? '' : parseInt(e.target.value))} className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Casualties</label>
-              <input type="number" className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" defaultValue={0} />
+              <input type="number" min="0" value={casualties} onChange={(e) => setCasualties(e.target.value === '' ? '' : parseInt(e.target.value))} className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Damaged Houses</label>
-              <input type="number" className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" defaultValue={0} />
+              <input type="number" min="0" value={households} onChange={(e) => setHouseholds(e.target.value === '' ? '' : parseInt(e.target.value))} className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Damage Severity</label>
+              <select value={damageSeverity} onChange={(e) => setDamageSeverity(e.target.value)} className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <option value="Minor">Minor</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Severe">Severe</option>
+                <option value="Critical">Critical</option>
+              </select>
             </div>
           </div>
 
@@ -75,16 +119,16 @@ export default function SitrepPanel() {
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer mt-4"
           >
             <Send className="w-5 h-5" />
-            Submit to QC EOC
+            Submit
           </button>
         </form>
       </div>
 
-      {/* Right Column: Guidelines & History */}
+      {/* Right Column: Guidelines & Quick Link to Logs */}
       <div className="md:col-span-5 space-y-6">
         
         {/* Guidelines */}
-        <div className="bg-blue-50 rounded-xl p-5 border border-blue-100 shadow-sm">
+        <div className="bg-blue-50 rounded-xl p-5 border border-blue-100 shadow-xs">
           <h3 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
             <Info className="w-5 h-5 text-blue-600" />
             SitRep Guidelines
@@ -97,35 +141,26 @@ export default function SitrepPanel() {
           </ul>
         </div>
 
-        {/* Recent Submissions */}
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-          <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <History className="w-5 h-5 text-slate-500" />
-            Recent Submissions
-          </h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-3">
-              <div>
-                <span className="block font-semibold text-slate-700">SitRep #45</span>
-                <span className="text-xs text-slate-500">Today, 8:00 AM</span>
-              </div>
-              <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full">SUBMITTED</span>
-            </div>
-            <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-3">
-              <div>
-                <span className="block font-semibold text-slate-700">SitRep #44</span>
-                <span className="text-xs text-slate-500">Yesterday, 8:00 AM</span>
-              </div>
-              <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full">SUBMITTED</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-              <div>
-                <span className="block font-semibold text-slate-700">SitRep #43</span>
-                <span className="text-xs text-slate-500">Aug 1, 8:00 AM</span>
-              </div>
-              <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-full">SUBMITTED</span>
-            </div>
+        {/* Dedicated SitRep Logs Link Card */}
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
+          <div>
+            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+              <History className="w-5 h-5 text-blue-600" />
+              SitRep Submission Logs
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              All previously submitted Situation Reports are archived and synchronized with QC EOC.
+            </p>
           </div>
+
+          <button 
+            type="button"
+            onClick={() => navigate('/barangays/sitrep_logs')}
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+          >
+            <History className="w-4 h-4" />
+            View Complete SitRep Logs
+          </button>
         </div>
 
       </div>

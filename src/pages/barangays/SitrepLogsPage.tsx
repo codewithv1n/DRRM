@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  History, FileText, Search, CheckCircle2,  
+  FileText, Search, CheckCircle2,  
   Users,  Eye, X, PlusCircle 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -19,59 +19,49 @@ interface SitRepLogItem {
   submittedBy: string;
 }
 
-const mockSitRepLogs: SitRepLogItem[] = [
-  {
-    id: 'SR-LOG-045',
-    reportNumber: 'SitRep #45',
-    submittedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
-    generalSituation: 'Light to moderate rainfall observed in District 1. Pre-emptive evacuation initiated for low-lying coastal areas along Riverbank Zone A.',
-    evacueesCount: 145,
-    casualtiesCount: 0,
-    damagedHousesCount: 3,
-    status: 'Acknowledged by EOC',
-    submittedBy: `Barangay Admin (${ASSIGNED_BARANGAY})`
-  },
-  {
-    id: 'SR-LOG-044',
-    reportNumber: 'SitRep #44',
-    submittedAt: new Date(Date.now() - 26 * 3600000).toISOString(),
-    generalSituation: 'Water level monitoring underway. Barangay DRRM response teams deployed to assist affected households with temporary shelter kits.',
-    evacueesCount: 98,
-    casualtiesCount: 0,
-    damagedHousesCount: 1,
-    status: 'Acknowledged by EOC',
-    submittedBy: `Barangay Admin (${ASSIGNED_BARANGAY})`
-  },
-  {
-    id: 'SR-LOG-043',
-    reportNumber: 'SitRep #43',
-    submittedAt: new Date(Date.now() - 50 * 3600000).toISOString(),
-    generalSituation: 'Initial situational update following localized flooding near Sector 3. Relief distribution conducted in coordination with CSWDO.',
-    evacueesCount: 65,
-    casualtiesCount: 0,
-    damagedHousesCount: 0,
-    status: 'Acknowledged by EOC',
-    submittedBy: `Barangay Admin (${ASSIGNED_BARANGAY})`
-  },
-  {
-    id: 'SR-LOG-042',
-    reportNumber: 'SitRep #42',
-    submittedAt: new Date(Date.now() - 74 * 3600000).toISOString(),
-    generalSituation: 'Normal weather condition restored. Evacuation centers deactivated. All evacuees safely returned to residences.',
-    evacueesCount: 0,
-    casualtiesCount: 0,
-    damagedHousesCount: 0,
-    status: 'Acknowledged by EOC',
-    submittedBy: `Barangay Admin (${ASSIGNED_BARANGAY})`
-  }
-];
-
 export default function SitrepLogsPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLog, setSelectedLog] = useState<SitRepLogItem | null>(null);
+  const [logs, setLogs] = useState<SitRepLogItem[]>([]);
+  const [totalEvacuees, setTotalEvacuees] = useState(0);
 
-  const filteredLogs = mockSitRepLogs.filter(log => 
+  useEffect(() => {
+    fetch('http://localhost:3000/api/sitreps')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.data) {
+          const mapped: SitRepLogItem[] = data.data
+            .filter((item: any) => item.barangay === ASSIGNED_BARANGAY)
+            .map((item: any) => ({
+              id: item.id,
+              reportNumber: 'SitRep-' + item.id.substring(0,6).toUpperCase(),
+              submittedAt: item.created_at,
+              generalSituation: item.general_situation,
+              evacueesCount: item.evacuee_count,
+              casualtiesCount: item.casualties,
+              damagedHousesCount: item.household_count,
+              status: item.status,
+              submittedBy: item.last_updated_by
+            }));
+          setLogs(mapped);
+        }
+      })
+      .catch(err => console.error("Error fetching sitreps:", err));
+
+    fetch('http://localhost:3000/api/evacuation-centers')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.data) {
+          const brgyEvacs = data.data.filter((ec: any) => ec.barangay === ASSIGNED_BARANGAY);
+          const total = brgyEvacs.reduce((sum: number, ec: any) => sum + Number(ec.current_occupants || 0), 0);
+          setTotalEvacuees(total);
+        }
+      })
+      .catch(err => console.error("Error fetching evac centers:", err));
+  }, []);
+
+  const filteredLogs = logs.filter(log => 
     log.reportNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.generalSituation.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.status.toLowerCase().includes(searchTerm.toLowerCase())
@@ -84,7 +74,6 @@ export default function SitrepLogsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-              <History className="w-7 h-7 text-blue-600" />
               SitRep Logs & History
             </h2>
             <p className="text-slate-500 mt-1">
@@ -106,7 +95,7 @@ export default function SitrepLogsPage() {
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
             <div>
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Reports</span>
-              <h3 className="text-2xl font-extrabold text-slate-800 mt-1">{mockSitRepLogs.length}</h3>
+              <h3 className="text-2xl font-extrabold text-slate-800 mt-1">{logs.length}</h3>
               <p className="text-[11px] text-slate-500 mt-0.5">Logged in system</p>
             </div>
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -116,9 +105,9 @@ export default function SitrepLogsPage() {
 
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
             <div>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Last Reported Evacuees</span>
-              <h3 className="text-2xl font-extrabold text-blue-600 mt-1">{mockSitRepLogs[0]?.evacueesCount || 0} pax</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">As of latest report</p>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current Evacuees</span>
+              <h3 className="text-2xl font-extrabold text-blue-600 mt-1">{totalEvacuees} pax</h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">Across active sites</p>
             </div>
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <Users className="w-5 h-5" />

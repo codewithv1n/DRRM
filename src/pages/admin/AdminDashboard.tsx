@@ -63,7 +63,7 @@ function OverviewPanel({ incidents, pendingCount }: { incidents: any[], pendingC
 
   const chartSegments = Object.entries(categoryTotals).map(([cat, val]) => ({
     category: cat,
-    value: val,
+    value: val as number,
     color: CATEGORY_COLORS[cat as keyof typeof CATEGORY_COLORS] || CATEGORY_COLORS['Default'],
     bgColor: bgColors[cat as keyof typeof bgColors] || bgColors['Default']
   }));

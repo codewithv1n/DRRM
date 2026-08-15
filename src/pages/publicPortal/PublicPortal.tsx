@@ -46,7 +46,7 @@ export default function PublicPortal() {
       <header className="w-full px-6 py-6 flex justify-between items-center z-10 max-w-7xl mx-auto">
         <div className="flex items-center gap-3">
           <img src="/logo-system.png" alt="GovServe Logo" className="h-10 object-contain shrink-0" />
-          <span className="font-bold text-lg tracking-wider text-slate-900">GOVSERVE</span>
+          <span className="font-bold text-lg tracking-wider text-slate-900">GovServe</span>
         </div>
         
         <div className="flex gap-4 items-center">

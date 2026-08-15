@@ -29,6 +29,7 @@ import SurvivalGuide from './pages/publicPortal/SurvivalGuide';
 
 // Auth Pages
 import LoginPage from './auth/LoginPage';
+import SignupPage from './auth/SignupPage';
 
 
 
@@ -58,9 +59,10 @@ import EvacuationCenterMonitoringPage from './pages/admin/EvacuationCenterMonito
 import ResponderDashboard from './pages/response_units/ResponderDashboard';
 import ReliefDeliveryMissions from './pages/response_units/ReliefDeliveryMissions';
 import IncidentResponsePage from './pages/response_units/IncidentResponsePage';
+import ResponderUnitStatusPage from './pages/response_units/ResponderUnitStatusPage';
 
 // Citizen Section
-import CitizenAnnouncements from './pages/citizen/CitizenAnnouncements';
+import CitizenAnnouncements from './pages/citizen/CitizenReliefAnnouncements';
 import CitizenClaimHistory from './pages/citizen/CitizenClaimHistory';
 import CitizenAlerts from './pages/citizen/CitizenAlerts';
 import CitizenDashboard from './pages/citizen/CitizenDashboard';
@@ -74,6 +76,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
 
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
 
         {/* Public Routes */}
         <Route path="/report_incident" element={<IncidentReportForm />} />
@@ -83,6 +86,7 @@ function App() {
         <Route path="/survival_guides" element={<SurvivalGuide />} />
       
         <Route path="/responders" element={<ResponderDashboard />} />
+        <Route path="/responders/status" element={<ResponderUnitStatusPage />} />
         <Route path="/responders/incidents" element={<IncidentResponsePage />} />
         <Route path="/responders/deliveries" element={<ReliefDeliveryMissions />} />
 

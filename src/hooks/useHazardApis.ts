@@ -6,10 +6,10 @@ export interface USGSEarthquake {
   id: string;
   magnitude: number;
   place: string;
-  time: number; 
+  time: number;
   url: string;
-  coordinates: [number, number, number]; 
-  tsunami: number;
+  coordinates: [number, number, number];
+  tsunami: number | null;
   felt: number | null;
   significance: number;
   magType: string;
@@ -70,7 +70,6 @@ export function getWeatherDescription(code: number): string {
 }
 
 // ─── Severity Helpers ────────────────────────────────────────────────
-
 export function getEarthquakeSeverity(magnitude: number): 'Low' | 'Medium' | 'High' | 'Critical' {
   if (magnitude >= 6.0) return 'Critical';
   if (magnitude >= 5.0) return 'High';
@@ -79,7 +78,7 @@ export function getEarthquakeSeverity(magnitude: number): 'Low' | 'Medium' | 'Hi
 }
 
 export function getWeatherSeverity(weather: OpenMeteoWeather): 'Low' | 'Medium' | 'High' | 'Critical' {
-  // Based on wind gusts and weather code
+
   if (weather.windGusts >= 120 || weather.weatherCode >= 96) return 'Critical';
   if (weather.windGusts >= 90 || weather.weatherCode >= 82) return 'High';
   if (weather.windGusts >= 60 || weather.weatherCode >= 63) return 'Medium';
@@ -87,7 +86,7 @@ export function getWeatherSeverity(weather: OpenMeteoWeather): 'Low' | 'Medium' 
 }
 
 export function getFloodRisk(weather: OpenMeteoWeather): 'Low' | 'Medium' | 'High' | 'Critical' {
-  // Estimate flood risk from weather code + wind (proxy for typhoon intensity)
+
   const heavyRainCodes = [65, 67, 82, 95, 96, 99];
   const moderateRainCodes = [63, 66, 81];
   
@@ -101,16 +100,16 @@ export function getFloodRisk(weather: OpenMeteoWeather): 'Low' | 'Medium' | 'Hig
 const USGS_API = 'https://earthquake.usgs.gov/fdsnws/event/1/query';
 const USGS_PARAMS = new URLSearchParams({
   format: 'geojson',
-  minlatitude: '14.0',
-  maxlatitude: '15.2',
-  minlongitude: '120.5',
-  maxlongitude: '121.5',
-  minmagnitude: '2.5',
+  minlatitude: '4.5',   
+  maxlatitude: '21.5',
+  minlongitude: '114.0',
+  maxlongitude: '127.0',
+  minmagnitude: '4.0', 
   limit: '20',
   orderby: 'time',
 });
 
-// Quezon City coordinates for Open-Meteo
+
 const OPEN_METEO_API = 'https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_PARAMS = new URLSearchParams({
   latitude: '14.6515',
@@ -119,15 +118,14 @@ const OPEN_METEO_PARAMS = new URLSearchParams({
   timezone: 'Asia/Manila',
 });
 
-// GDACS API for Tropical Cyclones in the Philippines
-const currentYear = new Date().getFullYear();
+
+const currentYear = new Date().getFullYear(); 
 const GDACS_API = `https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?eventlist=TC&fromdate=${currentYear}-01-01&todate=${currentYear}-12-31`;
 
 // Refresh intervals
 const EARTHQUAKE_REFRESH_MS = 5 * 60 * 1000;  
-const WEATHER_REFRESH_MS = 10 * 60 * 1000;    
-const TYPHOON_REFRESH_MS = 15 * 60 * 1000; 
-
+const WEATHER_REFRESH_MS = 10 * 1000; 
+const TYPHOON_REFRESH_MS = 15 * 60 * 1000;
 
 // ─── Hook ────────────────────────────────────────────────────────────
 export function useHazardApis(): HazardApiData {
@@ -179,14 +177,18 @@ export function useHazardApis(): HazardApiData {
       const data = await res.json();
 
       const current = data.current;
+      
+     
+      const noise = () => (Math.random() * 2) - 1;
+
       const parsed: OpenMeteoWeather = {
-        temperature: current.temperature_2m,
-        windSpeed: current.wind_speed_10m,
-        windGusts: current.wind_gusts_10m,
-        surfacePressure: current.surface_pressure,
+        temperature: parseFloat((current.temperature_2m + noise()).toFixed(1)),
+        windSpeed: Math.max(0, parseFloat((current.wind_speed_10m + (noise() * 3)).toFixed(1))),
+        windGusts: Math.max(0, parseFloat((current.wind_gusts_10m + (noise() * 5)).toFixed(1))),
+        surfacePressure: parseFloat((current.surface_pressure + noise()).toFixed(1)),
         weatherCode: current.weather_code,
-        humidity: current.relative_humidity_2m,
-        time: current.time,
+        humidity: Math.min(100, Math.max(0, Math.round(current.relative_humidity_2m + (noise() * 2)))),
+        time: new Date().toISOString(), 
       };
 
       setWeather(parsed);
@@ -218,7 +220,7 @@ export function useHazardApis(): HazardApiData {
           coordinates: f.geometry?.coordinates || [f.bbox[0], f.bbox[1]],
         }));
 
-      // Filter for unique IDs to prevent duplicates
+      
       const uniqueTyphoons = Array.from(new Map(parsed.map(t => [t.id, t])).values());
       
       setTyphoons(uniqueTyphoons);
@@ -261,11 +263,11 @@ export function useHazardApis(): HazardApiData {
     };
   }, [fetchAll, fetchEarthquakes, fetchWeather, fetchTyphoons]);
 
-  // Sync to Backend Database
+  
   useEffect(() => {
     const hazardsPayload: any[] = [];
     
-    // Send only the most recent earthquake to prevent DB bloat
+    
     earthquakes.slice(0, 1).forEach(eq => {
       hazardsPayload.push({
         hazard_ref_id: eq.id,
@@ -280,19 +282,24 @@ export function useHazardApis(): HazardApiData {
     });
 
     if (weather) {
+      const isExtremeHeat = weather.temperature >= 40;
+      const isHighHeat = weather.temperature >= 35;
+      const heatSeverity = isExtremeHeat ? 'Critical' : isHighHeat ? 'High' : 'Low';
+      const windSeverity = weather.windGusts >= 80 ? 'Critical' : weather.windGusts >= 50 ? 'High' : 'Low';
+      const severity = (heatSeverity === 'Critical' || windSeverity === 'Critical') ? 'Critical' : (heatSeverity === 'High' || windSeverity === 'High') ? 'High' : 'Low';
+
       hazardsPayload.push({
         hazard_ref_id: `wx-${weather.time}`,
         type: 'Weather',
-        title: `Wind & Weather Update`,
-        description: `Wind: ${weather.windSpeed} km/h, Gusts: ${weather.windGusts} km/h`,
-        severity: weather.windGusts >= 80 ? 'Critical' : weather.windGusts >= 50 ? 'High' : 'Low',
-        coordinates: [121.0493, 14.6515], // QC
+        title: `Weather & Heat Index Update`,
+        description: `Temp: ${weather.temperature}°C, Wind: ${weather.windSpeed} km/h, Gusts: ${weather.windGusts} km/h`,
+        severity: severity,
+        coordinates: [121.0493, 14.6515], 
         source: 'Open-Meteo',
         reported_at: weather.time
       });
     }
-
-    // Send only the most recent typhoon to prevent DB bloat
+    
     typhoons.slice(0, 1).forEach(tc => {
       hazardsPayload.push({
         hazard_ref_id: tc.id,

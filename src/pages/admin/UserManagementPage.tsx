@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useMockData } from '../../data/MockDataContext';
 import { UserPlus, Shield, Mail, Key, IdCard, X } from 'lucide-react';
+import BarangayOptions from '../../components/BarangayOptions';
 
 export default function UserManagement() {
   const { incidents } = useMockData();
   const pendingCount = incidents ? incidents.filter(i => i.status === 'Pending').length : 0;
 
-  const [activeTab, setActiveTab] = useState<'account' | 'family'>('account');
+
   const [userListTab, setUserListTab] = useState('All');
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
@@ -35,41 +36,18 @@ export default function UserManagement() {
   };
 
   const [form, setForm] = useState({
-    role: 'Citizen',
+    role: 'Barangay Admin',
     barangay: '',
     firstName: '',
     lastName: '',
-    contactNumber: '',
-    purok: '',
     email: '',
-    password: '',
-    familyMembers: [] as { firstName: string, lastName: string, relation: string, age: string, gender: string, medicalInfo: string }[]
+    password: ''
   });
-
-  const handleAddFamilyMember = () => {
-    setForm(prev => ({
-      ...prev,
-      familyMembers: [...prev.familyMembers, { firstName: '', lastName: '', relation: '', age: '', gender: '', medicalInfo: '' }]
-    }));
-  };
-
-  const handleUpdateFamilyMember = (index: number, field: string, value: string) => {
-    const updated = [...form.familyMembers];
-    updated[index] = { ...updated[index], [field]: value } as any;
-    setForm(prev => ({ ...prev, familyMembers: updated }));
-  };
-
-  const handleRemoveFamilyMember = (index: number) => {
-    setForm(prev => ({
-      ...prev,
-      familyMembers: prev.familyMembers.filter((_, i) => i !== index)
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.firstName || !form.lastName || !form.email || !form.password) return;
-    const requiresBarangay = form.role === 'Citizen' || form.role === 'Barangay Admin';
+    const requiresBarangay = form.role === 'Barangay Admin';
     if (requiresBarangay && !form.barangay) return;
 
     const fullName = `${form.firstName} ${form.lastName}`.trim();
@@ -85,10 +63,7 @@ export default function UserManagement() {
           barangay: requiresBarangay ? form.barangay : undefined,
           name: fullName,
           email: form.email,
-          password: form.password,
-          contactNumber: form.contactNumber,
-          purok: form.purok,
-          familyMembers: form.role === 'Citizen' ? form.familyMembers : undefined
+          password: form.password
         }),
       });
 
@@ -104,8 +79,7 @@ export default function UserManagement() {
 
       fetchUsers();
 
-      setForm({ role: 'Citizen', barangay: '', firstName: '', lastName: '', contactNumber: '', purok: '', email: '', password: '', familyMembers: [] });
-      setActiveTab('account');
+      setForm({ role: 'Barangay Admin', barangay: '', firstName: '', lastName: '', email: '', password: '' });
       setShowModal(false);
     } catch (error) {
       console.error("Failed to create account:", error);
@@ -171,31 +145,7 @@ export default function UserManagement() {
                 Create Account
               </h3>
 
-              {form.role === 'Citizen' && (
-                <div className="flex border-b border-slate-200 mb-6">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('account')}
-                    className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors outline-none cursor-pointer ${
-                      activeTab === 'account' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'
-                    }`}
-                  >
-                    Account Info
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('family')}
-                    className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors outline-none cursor-pointer ${
-                      activeTab === 'family' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'
-                    }`}
-                  >
-                    Family Members
-                  </button>
-                </div>
-              )}
-              
               <form onSubmit={handleSubmit} className="space-y-4">
-                {(activeTab === 'account' || form.role !== 'Citizen') && (
                   <div className="space-y-4 animate-fade-in">
                     <div>
                       <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">User Role</label>
@@ -206,20 +156,16 @@ export default function UserManagement() {
                         <select 
                           required
                           value={form.role}
-                          onChange={e => {
-                            setForm({...form, role: e.target.value});
-                            if (e.target.value !== 'Citizen') setActiveTab('account');
-                          }}
+                          onChange={e => setForm({...form, role: e.target.value})}
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
                         >
-                          <option value="Citizen">Citizen</option>
                           <option value="Barangay Admin">Barangay Admin</option>
                           <option value="Responder">Responder (Response Unit)</option>
                         </select>
                       </div>
                     </div>
 
-                    {(form.role === 'Citizen' || form.role === 'Barangay Admin') && (
+                    {form.role === 'Barangay Admin' && (
                       <div>
                         <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Barangay</label>
                         <select 
@@ -229,157 +175,7 @@ export default function UserManagement() {
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
                         >
                           <option value="" disabled>Select a barangay</option>
-                          <optgroup label="District 1">
-                            <option value="Alicia">Alicia</option>
-                            <option value="Amihan">Amihan</option>
-                            <option value="Apolonio Samson">Apolonio Samson</option>
-                            <option value="Bahay Toro">Bahay Toro</option>
-                            <option value="Balingasa">Balingasa</option>
-                            <option value="Bungad">Bungad</option>
-                            <option value="Damar">Damar</option>
-                            <option value="Damayan">Damayan</option>
-                            <option value="Del Monte">Del Monte</option>
-                            <option value="Katipunan">Katipunan</option>
-                            <option value="Lourdes">Lourdes</option>
-                            <option value="Maharlika">Maharlika</option>
-                            <option value="Manresa">Manresa</option>
-                            <option value="Mariblo">Mariblo</option>
-                            <option value="Masambong">Masambong</option>
-                            <option value="N.S. Amoranto">N.S. Amoranto</option>
-                            <option value="Nayong Kanluran">Nayong Kanluran</option>
-                            <option value="Paang Bundok">Paang Bundok</option>
-                            <option value="Pag-ibig sa Nayon">Pag-ibig sa Nayon</option>
-                            <option value="Paltok">Paltok</option>
-                            <option value="Paraiso">Paraiso</option>
-                            <option value="Phil-Am">Phil-Am</option>
-                            <option value="Project 6">Project 6</option>
-                            <option value="Ramon Magsaysay">Ramon Magsaysay</option>
-                            <option value="Saint Peter">Saint Peter</option>
-                            <option value="Salvacion">Salvacion</option>
-                            <option value="San Antonio">San Antonio</option>
-                            <option value="San Isidro Labrador">San Isidro Labrador</option>
-                            <option value="San Jose">San Jose</option>
-                            <option value="Santa Cruz">Santa Cruz</option>
-                            <option value="Santa Teresita">Santa Teresita</option>
-                            <option value="Santo Cristo">Santo Cristo</option>
-                            <option value="Santo Domingo">Santo Domingo</option>
-                            <option value="Siena">Siena</option>
-                            <option value="Talayan">Talayan</option>
-                            <option value="Vasra">Vasra</option>
-                            <option value="Veterans Village">Veterans Village</option>
-                            <option value="West Triangle">West Triangle</option>
-                          </optgroup>
-                          <optgroup label="District 2">
-                            <option value="Bagong Silangan">Bagong Silangan</option>
-                            <option value="Batasan Hills">Batasan Hills</option>
-                            <option value="Commonwealth">Commonwealth</option>
-                            <option value="Holy Spirit">Holy Spirit</option>
-                            <option value="Payatas">Payatas</option>
-                          </optgroup>
-                          <optgroup label="District 3">
-                            <option value="Bagumbayan">Bagumbayan</option>
-                            <option value="Bagumbuhay">Bagumbuhay</option>
-                            <option value="Bayanihan">Bayanihan</option>
-                            <option value="Blue Ridge A">Blue Ridge A</option>
-                            <option value="Blue Ridge B">Blue Ridge B</option>
-                            <option value="Camp Aguinaldo">Camp Aguinaldo</option>
-                            <option value="Claro">Claro</option>
-                            <option value="Dioquino Zobel">Dioquino Zobel</option>
-                            <option value="Duyan-Duyan">Duyan-Duyan</option>
-                            <option value="E. Rodriguez">E. Rodriguez</option>
-                            <option value="East Kamias">East Kamias</option>
-                            <option value="Escopa I">Escopa I</option>
-                            <option value="Escopa II">Escopa II</option>
-                            <option value="Escopa III">Escopa III</option>
-                            <option value="Escopa IV">Escopa IV</option>
-                            <option value="Libis">Libis</option>
-                            <option value="Loyola Heights">Loyola Heights</option>
-                            <option value="Mangga">Mangga</option>
-                            <option value="Marilag">Marilag</option>
-                            <option value="Masagana">Masagana</option>
-                            <option value="Matandang Balara">Matandang Balara</option>
-                            <option value="Milagrosa">Milagrosa</option>
-                            <option value="Pansol">Pansol</option>
-                            <option value="Quirino 2-A">Quirino 2-A</option>
-                            <option value="Quirino 2-B">Quirino 2-B</option>
-                            <option value="San Roque">San Roque</option>
-                            <option value="Silangan">Silangan</option>
-                            <option value="Socorro">Socorro</option>
-                            <option value="Tagumpay">Tagumpay</option>
-                            <option value="Ugong Norte">Ugong Norte</option>
-                            <option value="Villa Maria Clara">Villa Maria Clara</option>
-                            <option value="West Kamias">West Kamias</option>
-                            <option value="White Plains">White Plains</option>
-                          </optgroup>
-                          <optgroup label="District 4">
-                            <option value="Bagong Lipunan ng Crame">Bagong Lipunan ng Crame</option>
-                            <option value="Botocan">Botocan</option>
-                            <option value="Central">Central</option>
-                            <option value="Damayang Lagi">Damayang Lagi</option>
-                            <option value="Don Manuel">Don Manuel</option>
-                            <option value="Doña Aurora">Doña Aurora</option>
-                            <option value="Doña Imelda">Doña Imelda</option>
-                            <option value="Doña Josefa">Doña Josefa</option>
-                            <option value="Horseshoe">Horseshoe</option>
-                            <option value="Immaculate Conception">Immaculate Conception</option>
-                            <option value="Kalusugan">Kalusugan</option>
-                            <option value="Kamuning">Kamuning</option>
-                            <option value="Kaunlaran">Kaunlaran</option>
-                            <option value="Kristong Hari">Kristong Hari</option>
-                            <option value="Krus na Ligas">Krus na Ligas</option>
-                            <option value="Laging Handa">Laging Handa</option>
-                            <option value="Malaya">Malaya</option>
-                            <option value="Mariana">Mariana</option>
-                            <option value="Obrero">Obrero</option>
-                            <option value="Old Capitol Site">Old Capitol Site</option>
-                            <option value="Paligsahan">Paligsahan</option>
-                            <option value="Pinagkaisahan">Pinagkaisahan</option>
-                            <option value="Piñahan">Piñahan</option>
-                            <option value="Roxas">Roxas</option>
-                            <option value="Sacred Heart">Sacred Heart</option>
-                            <option value="San Isidro Galas">San Isidro Galas</option>
-                            <option value="San Martin de Porres">San Martin de Porres</option>
-                            <option value="San Vicente">San Vicente</option>
-                            <option value="Santo Niño">Santo Niño</option>
-                            <option value="Santol">Santol</option>
-                            <option value="Sikatuna Village">Sikatuna Village</option>
-                            <option value="South Triangle">South Triangle</option>
-                            <option value="Tatalon">Tatalon</option>
-                            <option value="Teachers Village East">Teachers Village East</option>
-                            <option value="Teachers Village West">Teachers Village West</option>
-                            <option value="U.P. Campus">U.P. Campus</option>
-                            <option value="U.P. Village">U.P. Village</option>
-                            <option value="Valencia">Valencia</option>
-                          </optgroup>
-                          <optgroup label="District 5">
-                            <option value="Bagbag">Bagbag</option>
-                            <option value="Capri">Capri</option>
-                            <option value="Fairview">Fairview</option>
-                            <option value="Greater Lagro">Greater Lagro</option>
-                            <option value="Gulod">Gulod</option>
-                            <option value="Kaligayahan">Kaligayahan</option>
-                            <option value="Nagkaisang Nayon">Nagkaisang Nayon</option>
-                            <option value="North Fairview">North Fairview</option>
-                            <option value="Novaliches Proper">Novaliches Proper</option>
-                            <option value="Pasong Putik Proper">Pasong Putik Proper</option>
-                            <option value="San Agustin">San Agustin</option>
-                            <option value="San Bartolome">San Bartolome</option>
-                            <option value="Santa Lucia">Santa Lucia</option>
-                            <option value="Santa Monica">Santa Monica</option>
-                          </optgroup>
-                          <optgroup label="District 6">
-                            <option value="Apolonio Samson">Apolonio Samson</option>
-                            <option value="Baesa">Baesa</option>
-                            <option value="Balon-Bato">Balon-Bato</option>
-                            <option value="Culiat">Culiat</option>
-                            <option value="New Era">New Era</option>
-                            <option value="Pasong Tamo">Pasong Tamo</option>
-                            <option value="Sangandaan">Sangandaan</option>
-                            <option value="Sauyo">Sauyo</option>
-                            <option value="Talipapa">Talipapa</option>
-                            <option value="Tandang Sora">Tandang Sora</option>
-                            <option value="Unang Sigaw">Unang Sigaw</option>
-                          </optgroup>
+                          <BarangayOptions />
                         </select>
                       </div>
                     )}
@@ -406,30 +202,6 @@ export default function UserManagement() {
                       </div>
                     </div>
 
-                    {form.role === 'Citizen' && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Contact Number</label>
-                          <input 
-                            type="text"
-                            placeholder="e.g. 09123456789"
-                            value={form.contactNumber}
-                            onChange={e => setForm({...form, contactNumber: e.target.value})}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Complete Address</label>
-                          <input 
-                            type="text"
-                            placeholder="e.g. Block 1 Lot 2, Purok 3"
-                            value={form.purok}
-                            onChange={e => setForm({...form, purok: e.target.value})}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                          />
-                        </div>
-                      </div>
-                    )}
 
                     <div>
                       <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Email Address</label>
@@ -465,94 +237,6 @@ export default function UserManagement() {
                       </div>
                     </div>
                   </div>
-                )}
-
-                {activeTab === 'family' && form.role === 'Citizen' && (
-                  <div className="space-y-4 animate-fade-in">
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Household Members</label>
-                      <button 
-                        type="button" 
-                        onClick={handleAddFamilyMember} 
-                        className="text-xs font-bold text-primary hover:text-blue-600 transition-colors cursor-pointer"
-                      >
-                        + Add Member
-                      </button>
-                    </div>
-                    {form.familyMembers.length === 0 ? (
-                      <div className="text-center p-8 bg-slate-50 border border-slate-200 rounded-xl text-slate-400 text-sm">
-                        No family members added.
-                      </div>
-                    ) : (
-                      <div className="space-y-3 max-h-80 overflow-y-auto p-1">
-                        {form.familyMembers.map((member, idx) => (
-                          <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 relative shadow-sm">
-                            <button 
-                              type="button" 
-                              onClick={() => handleRemoveFamilyMember(idx)} 
-                              className="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <input 
-                                type="text" 
-                                placeholder="First Name" 
-                                required
-                                value={member.firstName}
-                                onChange={(e) => handleUpdateFamilyMember(idx, 'firstName', e.target.value)}
-                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                              />
-                              <input 
-                                type="text" 
-                                placeholder="Last Name" 
-                                required
-                                value={member.lastName}
-                                onChange={(e) => handleUpdateFamilyMember(idx, 'lastName', e.target.value)}
-                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                              <input 
-                                type="text" 
-                                placeholder="Relation" 
-                                required
-                                value={member.relation}
-                                onChange={(e) => handleUpdateFamilyMember(idx, 'relation', e.target.value)}
-                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                              />
-                              <input 
-                                type="number" 
-                                placeholder="Age" 
-                                required
-                                value={member.age}
-                                onChange={(e) => handleUpdateFamilyMember(idx, 'age', e.target.value)}
-                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                              />
-                              <select 
-                                required
-                                value={member.gender}
-                                onChange={(e) => handleUpdateFamilyMember(idx, 'gender', e.target.value)}
-                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none text-slate-500"
-                              >
-                                <option value="" disabled>Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                              </select>
-                              <input 
-                                type="text" 
-                                placeholder="Medical Info (Optional)" 
-                                value={member.medicalInfo}
-                                onChange={(e) => handleUpdateFamilyMember(idx, 'medicalInfo', e.target.value)}
-                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 <button type="submit" className="w-full bg-blue-400 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-6 shadow-sm hover:shadow-md cursor-pointer">
                   <UserPlus className="w-4 h-4" />

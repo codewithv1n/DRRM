@@ -41,7 +41,7 @@ export default function BarangayReliefRequests() {
     <BarangayLayout>
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Relief Requests</h1>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Relief Requests</h1>
           <p className="text-slate-500 mt-1">Manage and track your relief goods requests from the EOC.</p>
         </div>
         <button 
@@ -94,11 +94,11 @@ export default function BarangayReliefRequests() {
                   <td className="p-4 text-center">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                       req.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' :
-                      req.status === 'In Transit' ? 'bg-blue-100 text-blue-700' :
+                      req.status === 'En Route' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' :
                       'bg-amber-100 text-amber-700'
                     }`}>
                       {req.status === 'Delivered' && <CheckCircle className="w-3.5 h-3.5" />}
-                      {req.status === 'In Transit' && <Truck className="w-3.5 h-3.5" />}
+                      {req.status === 'En Route' && <Truck className="w-4 h-4" />}
                       {req.status === 'Pending' && <Clock className="w-3.5 h-3.5" />}
                       {req.status}
                     </span>

@@ -12,7 +12,7 @@ export default function DonationsPage() {
     fullName: '',
     email: '',
     type: '',
-    description: ''
+    quantity: '' as number | string
   });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,7 +41,7 @@ export default function DonationsPage() {
       data.append('full_name', formData.fullName);
       data.append('email', formData.email);
       data.append('donation_type', formData.type);
-      data.append('description', formData.description);
+      data.append('quantity', formData.quantity.toString());
       if (photo) {
         data.append('photo', photo);
       }
@@ -70,7 +70,7 @@ export default function DonationsPage() {
       <header className="w-full px-6 py-6 flex justify-between items-center z-10 max-w-7xl mx-auto">
         <div className="flex items-center gap-3">
           <img src="/logo-system.png" alt="GovServe Logo" className="h-10 object-contain shrink-0" />
-          <span className="font-bold text-lg tracking-wider text-slate-900">GOVSERVE</span>
+          <span className="font-bold text-lg tracking-wider text-slate-900">GovServe</span>
         </div>
         
         <div className="flex gap-4 items-center">
@@ -179,27 +179,32 @@ export default function DonationsPage() {
                           className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all outline-none text-slate-800 text-sm appearance-none cursor-pointer"
                         >
                           <option value="">Select relief type...</option>
-                          <option value="food">Food & Water</option>
-                          <option value="clothes">Clothes & Blankets</option>
-                          <option value="medical">Medical Supplies</option>
-                          <option value="hygiene">Hygiene Kits</option>
-                          <option value="other">Others</option>
+                          <option value="Food & Water">Food & Water</option>
+                          <option value="Clothes & Blankets">Clothes & Blankets</option>
+                          <option value="Medical Supplies">Medical Supplies</option>
+                          <option value="Hygiene Kits">Hygiene Kits</option>
+                          <option value="Others">Others</option>
                         </select>
                       </div>
                     </div>
 
-                    {/* Description */}
+                    {/* Quantity */}
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                        Donation Description & Quantity <span className="text-red-500">*</span>
+                        Quantity <span className="text-red-500">*</span>
                       </label>
-                      <textarea 
+                      <input 
+                        type="number"
+                        min="1"
+                        max="1000000"
                         required
-                        rows={3}
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="E.g., 5 boxes of canned goods, 2 sacks of rice..."
-                        className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all outline-none text-slate-800 text-sm placeholder:text-slate-400 resize-none"
+                        onChange={(e) => {
+                          let val = parseInt(e.target.value);
+                          if (val > 1000000) val = 1000000;
+                          setFormData({ ...formData, quantity: isNaN(val) ? '' : val });
+                        }}
+                        value={formData.quantity}
+                        className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all outline-none text-slate-800 text-sm"
                       />
                     </div>
 
@@ -271,7 +276,7 @@ export default function DonationsPage() {
                       setSubmitted(false);
                       setImagePreview(null);
                       setPhoto(null);
-                      setFormData({ fullName: '', email: '', type: '', description: '' });
+                      setFormData({ fullName: '', email: '', type: '', quantity: '' });
                     }}
                     className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm"
                   >

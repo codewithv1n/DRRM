@@ -33,7 +33,8 @@ export default function EvacuationCenterMonitoringPage() {
             capacity: c.capacity || 0,
             lastUpdatedAt: c.created_at,
             barangay: c.barangay,
-            location: c.location
+            location: c.location,
+            status: c.status || 'Open'
           }));
           setEvacuationCenters(mapped);
         }
@@ -54,14 +55,22 @@ export default function EvacuationCenterMonitoringPage() {
     const pct = Math.round((center.currentOccupancy / center.capacity) * 100);
     
     let matchesStatus = true;
-    if (statusFilter === 'Critical') matchesStatus = pct >= 90;
-    else if (statusFilter === 'Warning') matchesStatus = pct >= 70 && pct < 90;
-    else if (statusFilter === 'Available') matchesStatus = pct < 70;
+    if (statusFilter === 'Critical') matchesStatus = pct >= 90 && center.status.toLowerCase() !== 'closed';
+    else if (statusFilter === 'Warning') matchesStatus = pct >= 70 && pct < 90 && center.status.toLowerCase() !== 'closed';
+    else if (statusFilter === 'Available') matchesStatus = pct < 70 && center.status.toLowerCase() !== 'closed';
+    else if (statusFilter === 'Closed') matchesStatus = center.status.toLowerCase() === 'closed';
 
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusBadge = (occupancy: number, capacity: number) => {
+  const getStatusBadge = (occupancy: number, capacity: number, status: string) => {
+    if (status && status.toLowerCase() === 'closed') {
+      return (
+        <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1">
+          <AlertCircle className="w-3.5 h-3.5" /> Closed
+        </span>
+      );
+    }
     const pct = Math.round((occupancy / capacity) * 100);
     if (pct >= 90) {
       return (
@@ -170,7 +179,7 @@ export default function EvacuationCenterMonitoringPage() {
           <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
             <Filter className="w-4 h-4 text-slate-400 shrink-0" />
             <span className="text-xs font-bold text-slate-500 shrink-0 mr-1">Status:</span>
-            {['All', 'Available', 'Warning', 'Critical'].map((st) => (
+            {['All', 'Available', 'Warning', 'Critical', 'Closed'].map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
@@ -204,7 +213,7 @@ export default function EvacuationCenterMonitoringPage() {
                         </span>
                         <h3 className="font-bold text-slate-900 text-lg mt-1 leading-snug">{center.name}</h3>
                       </div>
-                      {getStatusBadge(center.currentOccupancy, center.capacity)}
+                      {getStatusBadge(center.currentOccupancy, center.capacity, center.status)}
                     </div>
 
                     {/* Occupancy Progress Bar */}
@@ -220,6 +229,12 @@ export default function EvacuationCenterMonitoringPage() {
                           }`}
                           style={{ width: `${Math.min(100, pct)}%` }}
                         />
+                      </div>
+                      <div className="flex justify-between items-center text-xs font-bold text-slate-700 mt-4 pt-3 border-t border-slate-100">
+                        <span>Operating Status</span>
+                        <span className={`px-2.5 py-1 rounded-md uppercase tracking-wide text-[10px] ${center.status.toLowerCase() === 'closed' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                          {center.status || 'Open'}
+                        </span>
                       </div>
                     </div>
                   </div>

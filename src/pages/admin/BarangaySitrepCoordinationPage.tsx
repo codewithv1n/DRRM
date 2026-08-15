@@ -1,23 +1,67 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  FileText, Building2, Users, AlertTriangle, Search, Filter, 
+  Building2, Users, AlertTriangle, Search, Filter, 
   CheckCircle2, Clock, Eye, Download, ShieldAlert, X, Send
 } from 'lucide-react';
-import { useMockData } from '../../data/MockDataContext';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 
 export default function BarangaySitrepCoordinationPage() {
-  const { barangaySitReps, addAuditLog } = useMockData();
+  const [barangaySitReps, setBarangaySitReps] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilter, setSeverityFilter] = useState<string>('All');
   const [selectedSitRep, setSelectedSitRep] = useState<any | null>(null);
-  const [acknowledgedIds, setAcknowledgedIds] = useState<string[]>([]);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  const fetchSitreps = () => {
+    fetch('http://localhost:3000/api/sitreps')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.data) {
+          const aggregated = Object.values(data.data.reduce((acc: any, item: any) => {
+            const barangay = item.barangay;
+            if (!acc[barangay]) {
+              acc[barangay] = {
+                id: item.id,
+                barangay: item.barangay,
+                generalSituation: item.general_situation,
+                evacueeCount: Number(item.evacuee_count) || 0,
+                casualties: Number(item.casualties) || 0,
+                householdCount: Number(item.household_count) || 0,
+                damageSeverity: item.damage_severity,
+                status: item.status,
+                lastUpdatedBy: item.last_updated_by,
+                timestamp: item.created_at
+              };
+            } else {
+              acc[barangay].evacueeCount += Number(item.evacuee_count) || 0;
+              acc[barangay].casualties += Number(item.casualties) || 0;
+              acc[barangay].householdCount += Number(item.household_count) || 0;
+              // Update with latest string/status fields based on timestamp
+              if (new Date(item.created_at) > new Date(acc[barangay].timestamp)) {
+                acc[barangay].id = item.id;
+                acc[barangay].generalSituation = item.general_situation;
+                acc[barangay].damageSeverity = item.damage_severity;
+                acc[barangay].status = item.status;
+                acc[barangay].lastUpdatedBy = item.last_updated_by;
+                acc[barangay].timestamp = item.created_at;
+              }
+            }
+            return acc;
+          }, {}));
+          
+          setBarangaySitReps(aggregated as any[]);
+        }
+      })
+      .catch(err => console.error("Error fetching sitreps:", err));
+  };
+
+  useEffect(() => {
+    fetchSitreps();
+  }, []);
 
   // Calculate Summary Metrics
   const totalReports = barangaySitReps.length;
   const totalEvacuees = barangaySitReps.reduce((sum, item) => sum + item.evacueeCount, 0);
-  const totalHouseholds = barangaySitReps.reduce((sum, item) => sum + item.householdCount, 0);
   const criticalCount = barangaySitReps.filter(item => item.damageSeverity === 'Critical' || item.damageSeverity === 'Severe').length;
 
   // Filtered SitReps
@@ -28,12 +72,16 @@ export default function BarangaySitrepCoordinationPage() {
     return matchesSearch && matchesSeverity;
   });
 
-  const handleAcknowledge = (id: string, barangay: string) => {
-    if (!acknowledgedIds.includes(id)) {
-      setAcknowledgedIds(prev => [...prev, id]);
-      addAuditLog('Acknowledge SitRep', 'EOC Admin', `Acknowledged Situation Report from Barangay ${barangay}`);
-      setActionSuccess(`SitRep from Barangay ${barangay} has been acknowledged.`);
-      setTimeout(() => setActionSuccess(null), 3500);
+  const handleAcknowledge = async (id: string, barangay: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/sitreps/${id}/acknowledge`, { method: 'PATCH' });
+      if (res.ok) {
+        setActionSuccess(`SitRep from Barangay ${barangay} has been acknowledged.`);
+        fetchSitreps();
+        setTimeout(() => setActionSuccess(null), 3500);
+      }
+    } catch (error) {
+      console.error("Error acknowledging sitrep:", error);
     }
   };
 
@@ -90,7 +138,7 @@ export default function BarangaySitrepCoordinationPage() {
         )}
 
         {/* Overview Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase text-slate-400 tracking-wider">Reports Received</p>
@@ -110,17 +158,6 @@ export default function BarangaySitrepCoordinationPage() {
             </div>
             <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <Users className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase text-slate-400 tracking-wider">Households Affected</p>
-              <h3 className="text-3xl font-extrabold text-slate-900 mt-1">{totalHouseholds.toLocaleString()}</h3>
-              <p className="text-[11px] text-slate-500 mt-1">Reported families</p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <FileText className="w-6 h-6" />
             </div>
           </div>
 
@@ -191,7 +228,7 @@ export default function BarangaySitrepCoordinationPage() {
               <tbody className="divide-y divide-slate-100 text-sm">
                 {filteredSitReps.length > 0 ? (
                   filteredSitReps.map((rep) => {
-                    const isAck = acknowledgedIds.includes(rep.id);
+                    const isAck = rep.status === 'Acknowledged';
                     return (
                       <tr key={rep.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-4 px-6 font-bold text-slate-900">
@@ -286,7 +323,7 @@ export default function BarangaySitrepCoordinationPage() {
                 <div>
                   <span className="text-xs font-bold text-slate-400 uppercase">Report Status</span>
                   <div className="mt-1 font-bold text-xs text-slate-700">
-                    {acknowledgedIds.includes(selectedSitRep.id) ? 'Acknowledged by EOC' : 'Pending EOC Review'}
+                    {selectedSitRep.status === 'Acknowledged' ? 'Acknowledged by EOC' : 'Pending EOC Review'}
                   </div>
                 </div>
               </div>

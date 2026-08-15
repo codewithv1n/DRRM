@@ -8,36 +8,31 @@ const ASSIGNED_BARANGAY = "Balingasa";
 function ReliefDistributionPanel() {
   const { broadcastAlert } = useMockData();
   const [broadcastMessage, setBroadcastMessage] = useState('');
-  const [selectedZone] = useState('All');
+  const [selectedBarangay] = useState('All');
   const [citizenId, setCitizenId] = useState('');
   
   // Custom Modal State
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'claimed'>('pending');
-  const [citizenToConfirm, setCitizenToConfirm] = useState<{id: string, name: string, zone: string, familySize: number, status: string, time: string} | null>(null);
+  const [citizenToConfirm, setCitizenToConfirm] = useState<{id: string, name: string, barangay: string, familySize: number, status: string, time: string} | null>(null);
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [claimSearchQuery, setClaimSearchQuery] = useState('');
 
-  // Mock local state for UI demonstration
-  const [mockClaims, setMockClaims] = useState([
-    { id: 'CID-10023', name: 'Maria Santos', zone: 'Purok 1', familySize: 4, status: 'Pending', time: '' },
-    { id: 'CID-10024', name: 'Juan Dela Cruz', zone: 'Purok 1', familySize: 2, status: 'Claimed', time: 'August 4, 2026, 10:30 AM' },
-    { id: 'CID-10025', name: 'Pedro Penduko', zone: 'Purok 2', familySize: 6, status: 'Pending', time: '' },
-  ]);
+  const [mockClaims, setMockClaims] = useState<any[]>([]);
 
   const pendingClaims = mockClaims.filter(c => c.status === 'Pending' && (
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     c.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.zone.toLowerCase().includes(searchQuery.toLowerCase())
+    c.barangay.toLowerCase().includes(searchQuery.toLowerCase())
   ));
 
   const claimedClaims = mockClaims.filter(c => c.status === 'Claimed' && (
     c.name.toLowerCase().includes(claimSearchQuery.toLowerCase()) || 
     c.id.toLowerCase().includes(claimSearchQuery.toLowerCase()) ||
-    c.zone.toLowerCase().includes(claimSearchQuery.toLowerCase())
+    c.barangay.toLowerCase().includes(claimSearchQuery.toLowerCase())
   ));
 
   const handleBroadcast = (e: React.FormEvent) => {
@@ -45,7 +40,7 @@ function ReliefDistributionPanel() {
     if (!broadcastMessage) return;
     
     // In a real app, this would target specific users based on their location
-    broadcastAlert('General Alert', `RELIEF DISTRIBUTION (${selectedZone}): ${broadcastMessage}`);
+    broadcastAlert('General Alert', `RELIEF DISTRIBUTION (${selectedBarangay}): ${broadcastMessage}`);
     setBroadcastMessage('');
     setShowBroadcastModal(false);
     alert('Announcement sent to citizens!');
@@ -145,7 +140,7 @@ function ReliefDistributionPanel() {
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                     <th className="px-6 py-3 font-semibold">Citizen Info</th>
-                    <th className="px-6 py-3 font-semibold">Zone</th>
+                    <th className="px-6 py-3 font-semibold">Barangay</th>
                     <th className="px-6 py-3 font-semibold">Family Size</th>
                     <th className="px-6 py-3 font-semibold text-right">Action</th>
                   </tr>
@@ -160,7 +155,7 @@ function ReliefDistributionPanel() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">
-                        {claim.zone}
+                        {claim.barangay}
                       </td>
                       <td className="px-6 py-4 text-sm font-bold text-slate-700">
                         {claim.familySize} Members
@@ -193,7 +188,7 @@ function ReliefDistributionPanel() {
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                     <th className="px-6 py-3 font-semibold">Citizen Info</th>
-                    <th className="px-6 py-3 font-semibold">Zone</th>
+                    <th className="px-6 py-3 font-semibold">Barangay</th>
                     <th className="px-6 py-3 font-semibold">Family Size</th>
                     <th className="px-6 py-3 font-semibold">Date Claimed</th>
                   </tr>
@@ -208,7 +203,7 @@ function ReliefDistributionPanel() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">
-                        {claim.zone}
+                        {claim.barangay}
                       </td>
                       <td className="px-6 py-4 text-sm font-bold text-slate-700">
                         {claim.familySize} Members
@@ -259,7 +254,7 @@ function ReliefDistributionPanel() {
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Target Area</label>
                 <select 
                   className="w-full bg-slate-100 border border-slate-200 text-slate-500 text-sm rounded-xl p-3.5 outline-none cursor-not-allowed"
-                  value={selectedZone}
+                  value={selectedBarangay}
                   disabled
                 >
                   <option value="All">All of {ASSIGNED_BARANGAY}</option>
