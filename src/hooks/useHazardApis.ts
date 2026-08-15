@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 export interface USGSEarthquake {
@@ -314,7 +317,7 @@ export function useHazardApis(): HazardApiData {
     });
 
     if (hazardsPayload.length > 0) {
-      fetch('http://localhost:3000/api/hazards/sync', {
+      fetch(`${API_URL}/api/hazards/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hazards: hazardsPayload })

@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Send, Radio, AlertTriangle, Route, BookOpen, Megaphone } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface DBAnnouncement {
   announcement_id: string;
   level: string;
@@ -19,10 +22,10 @@ export default function EarlyWarningPanel() {
 
   const fetchData = async () => {
     try {
-      const annRes = await fetch('http://localhost:3000/api/announcements');
+      const annRes = await fetch(`${API_URL}/api/announcements`);
       if (annRes.ok) setActiveAlerts(await annRes.json());
       
-      const incRes = await fetch('http://localhost:3000/api/incidents');
+      const incRes = await fetch(`${API_URL}/api/incidents`);
       if (incRes.ok) {
         const incidents = await incRes.json();
         setPendingCount(incidents.filter((i: any) => i.status === 'Pending').length);
@@ -48,7 +51,7 @@ export default function EarlyWarningPanel() {
   const handleBroadcast = async () => {
     if (!broadcastMessage.trim()) return;
     try {
-      await fetch('http://localhost:3000/api/announcements', {
+      await fetch(`${API_URL}/api/announcements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

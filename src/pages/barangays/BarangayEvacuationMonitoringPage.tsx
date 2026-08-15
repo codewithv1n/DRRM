@@ -5,6 +5,9 @@ import {
 } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 const ASSIGNED_BARANGAY = "Balingasa";
 
 function timeAgo(ts?: string) {
@@ -22,7 +25,7 @@ export default function BarangayEvacuationMonitoringPage() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
 
   const fetchCenters = () => {
-    fetch('http://localhost:3000/api/evacuation-centers')
+    fetch(`${API_URL}/api/evacuation-centers`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {
@@ -49,7 +52,7 @@ export default function BarangayEvacuationMonitoringPage() {
   const toggleStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'Open' ? 'Closed' : 'Open';
     try {
-      const res = await fetch(`http://localhost:3000/api/evacuation-centers/${id}/status`, {
+      const res = await fetch(`${API_URL}/api/evacuation-centers/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })

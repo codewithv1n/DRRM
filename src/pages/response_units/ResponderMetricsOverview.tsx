@@ -3,12 +3,15 @@ import { useMockData } from '../../data/MockDataContext';
 import { Activity, Clock, Users, Package } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function ResponderMetricsOverview({ }: { unitId: string }) {
   const { incidents, reliefDispatches } = useMockData();
   const [evacuationCenters, setEvacuationCenters] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/evacuation-centers')
+    fetch(`${API_URL}/api/evacuation-centers`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {

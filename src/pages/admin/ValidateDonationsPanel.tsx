@@ -3,6 +3,9 @@ import { Truck, CheckCircle, Clock, AlertTriangle, Image as ImageIcon, X, Search
 import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useMockData } from '../../data/MockDataContext';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function ValidateDonationsPanel() {
   const { incidents } = useMockData();
   const pendingCount = incidents.filter(i => i.status === 'Pending').length;
@@ -21,7 +24,7 @@ export default function ValidateDonationsPanel() {
 
   const fetchDonations = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/donations/pending');
+      const res = await fetch(`${API_URL}/api/donations/pending`);
       const data = await res.json();
       setDonations(data);
     } catch (error) {
@@ -31,7 +34,7 @@ export default function ValidateDonationsPanel() {
 
   const fetchLogs = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/donations/logs');
+      const res = await fetch(`${API_URL}/api/donations/logs`);
       const data = await res.json();
       setDonationLogs(data);
     } catch (error) {
@@ -41,7 +44,7 @@ export default function ValidateDonationsPanel() {
 
   const receiveDonation = async (id: string) => {
     try {
-      await fetch(`http://localhost:3000/api/donations/pending/${id}/receive`, {
+      await fetch(`${API_URL}/api/donations/pending/${id}/receive`, {
         method: 'PUT'
       });
       fetchDonations();
@@ -175,7 +178,7 @@ export default function ValidateDonationsPanel() {
                     <td className="p-4 text-sm">
                         {donation.photo_path ? (
                           <button 
-                            onClick={() => setViewPhotoUrl(`http://localhost:3000${donation.photo_path}`)}
+                            onClick={() => setViewPhotoUrl(`${API_URL}${donation.photo_path}`)}
                             className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold"
                           >
                             <ImageIcon className="w-4 h-4" /> View Pic

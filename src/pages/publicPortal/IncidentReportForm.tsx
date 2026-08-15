@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { EmergencyType } from '../../data/mockData';
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 import {
   AlertCircle,
   Camera,
@@ -94,7 +97,7 @@ export default function IncidentReportForm() {
     setOtpError(null);
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/send-otp', {
+      const res = await fetch(`${API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email }),
@@ -124,7 +127,7 @@ export default function IncidentReportForm() {
     setOtpError(null);
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/send-otp', {
+      const res = await fetch(`${API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email }),
@@ -193,7 +196,7 @@ export default function IncidentReportForm() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/incidents', {
+      const response = await fetch(`${API_URL}/api/incidents`, {
         method: 'POST',
         body: payload,
       });
@@ -235,7 +238,7 @@ export default function IncidentReportForm() {
     setOtpError(null);
 
     try {
-      const res = await fetch('http://localhost:3000/api/auth/verify-otp', {
+      const res = await fetch(`${API_URL}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, otp: fullOtp }),

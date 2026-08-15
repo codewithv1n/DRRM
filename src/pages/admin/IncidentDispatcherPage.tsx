@@ -4,6 +4,9 @@ import {
 } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface DBIncident {
   incident_id: string;
   reporter_name: string;
@@ -84,7 +87,7 @@ export default function IncidentDispatcherPanel() {
 
   const fetchIncidents = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/incidents');
+      const response = await fetch(`${API_URL}/api/incidents`);
       if (response.ok) {
         const data = await response.json();
         setIncidents(data);
@@ -112,7 +115,7 @@ export default function IncidentDispatcherPanel() {
   const handleAssign = async (incidentId: string, responderId: string) => {
     if (!responderId) return;
     try {
-      await fetch(`http://localhost:3000/api/incidents/${incidentId}/status`, {
+      await fetch(`${API_URL}/api/incidents/${incidentId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

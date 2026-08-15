@@ -3,6 +3,9 @@ import { Package, Clock, Plus, X, Search, Filter } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useMockData } from '../../data/MockDataContext';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function ReliefInventoryPanel() {
   const { incidents } = useMockData();
   const pendingCount = incidents.filter(i => i.status === 'Pending').length;
@@ -19,7 +22,7 @@ export default function ReliefInventoryPanel() {
 
   const fetchInventory = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/inventory');
+      const res = await fetch(`${API_URL}/api/inventory`);
       const data = await res.json();
       setInventory(data);
     } catch (error) {
@@ -38,7 +41,7 @@ export default function ReliefInventoryPanel() {
     if (newItem.quantity <= 0) return;
     
     try {
-      await fetch('http://localhost:3000/api/inventory', {
+      await fetch(`${API_URL}/api/inventory`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

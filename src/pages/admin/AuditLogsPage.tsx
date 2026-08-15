@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 import { Clock, Search, Filter, RefreshCw, Loader2 } from 'lucide-react';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface AuditLog {
   log_id: string;
   action: string;
@@ -25,7 +28,7 @@ export default function AuditLogsPage() {
     try {
       const params = new URLSearchParams();
       if (actionFilter) params.set('action', actionFilter);
-      const url = `http://localhost:3000/api/audit-logs${params.toString() ? '?' + params.toString() : ''}`;
+      const url = `${API_URL}/api/audit-logs${params.toString() ? '?' + params.toString() : ''}`;
       const res = await fetch(url);
       const data = await res.json();
       if (data.success) {

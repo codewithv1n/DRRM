@@ -5,6 +5,9 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface BarangayLayoutProps {
   children: React.ReactNode;
 }
@@ -52,7 +55,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
   const hasUnread = notifications.some(n => new Date(n.created_at || n.timestamp || Date.now()).getTime() > lastReadTime);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/announcements')
+    fetch(`${API_URL}/api/announcements`)
       .then(res => res.json())
       .then(data => {
         setNotifications(data.data || data || []);

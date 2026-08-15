@@ -7,6 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import { ASSIGNED_BARANGAY } from './BarangayDashboard';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface SitRepLogItem {
   id: string;
   reportNumber: string;
@@ -27,7 +30,7 @@ export default function SitrepLogsPage() {
   const [totalEvacuees, setTotalEvacuees] = useState(0);
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/sitreps')
+    fetch(`${API_URL}/api/sitreps`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {
@@ -49,7 +52,7 @@ export default function SitrepLogsPage() {
       })
       .catch(err => console.error("Error fetching sitreps:", err));
 
-    fetch('http://localhost:3000/api/evacuation-centers')
+    fetch(`${API_URL}/api/evacuation-centers`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {

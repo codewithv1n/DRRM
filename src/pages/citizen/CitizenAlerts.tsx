@@ -11,13 +11,16 @@ import {
 import { useEffect, useState } from 'react';
 import ResidentLayout from '../../components/layout/CitizenLayout';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function CitizenAlerts() {
   const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
   const [weather, setWeather] = useState<{ temp: number, humidity: number, precip: number, wind: number, code: number } | null>(null);
 
   useEffect(() => {
     // Fetch announcements
-    fetch('http://localhost:3000/api/announcements')
+    fetch(`${API_URL}/api/announcements`)
       .then(res => res.json())
       .then(data => setActiveAlerts(data))
       .catch(err => console.error('Error fetching announcements:', err));
@@ -47,7 +50,7 @@ export default function CitizenAlerts() {
           else if (yellowCodes.includes(currentCode)) { level = 'YELLOW'; msg = 'Flooding is possible in low-lying areas. Monitor the weather condition.'; }
 
           if (level) {
-            fetch('http://localhost:3000/api/weather-alerts', {
+            fetch(`${API_URL}/api/weather-alerts`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

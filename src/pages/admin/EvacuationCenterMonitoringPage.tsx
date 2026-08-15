@@ -6,6 +6,9 @@ import {
 import { useMockData } from '../../data/MockDataContext';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 function timeAgo(ts?: string) {
   if (!ts) return 'Just now';
   const mins = Math.max(0, Math.floor((Date.now() - new Date(ts).getTime()) / 60000));
@@ -22,7 +25,7 @@ export default function EvacuationCenterMonitoringPage() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/evacuation-centers')
+    fetch(`${API_URL}/api/evacuation-centers`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {

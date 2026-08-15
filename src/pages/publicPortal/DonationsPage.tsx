@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Package, MapPin, Mail, User, CheckCircle2, Info, Upload, X } from 'lucide-react';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function DonationsPage() {
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
@@ -46,7 +49,7 @@ export default function DonationsPage() {
         data.append('photo', photo);
       }
 
-      const response = await fetch('http://localhost:3000/api/donations/pending', {
+      const response = await fetch(`${API_URL}/api/donations/pending`, {
         method: 'POST',
         body: data,
       });

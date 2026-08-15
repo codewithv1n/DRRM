@@ -4,6 +4,9 @@ import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useMockData } from '../../data/MockDataContext';
 import BarangayOptions from '../../components/BarangayOptions';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface InventoryItem {
   relief_inventory_id: string;
   category: string;
@@ -39,7 +42,7 @@ export default function ReliefDispatchPanel() {
 
   const fetchData = async () => {
     try {
-      const invRes = await fetch('http://localhost:3000/api/inventory');
+      const invRes = await fetch(`${API_URL}/api/inventory`);
       const invData = await invRes.json();
       setInventory(invData);
     } catch (error) {
@@ -64,7 +67,7 @@ export default function ReliefDispatchPanel() {
 
     try {
       
-      await fetch('http://localhost:3000/api/inventory', {
+      await fetch(`${API_URL}/api/inventory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ category: form.type, quantity: -form.quantity })

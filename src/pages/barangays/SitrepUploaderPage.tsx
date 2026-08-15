@@ -6,6 +6,9 @@ import { useMockData } from '../../data/MockDataContext';
 import { ASSIGNED_BARANGAY } from './BarangayDashboard';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function SitrepPanel() {
   const navigate = useNavigate();
   const { addAuditLog } = useMockData();
@@ -20,7 +23,7 @@ export default function SitrepPanel() {
   const handleSitRepSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:3000/api/sitreps', {
+      const res = await fetch(`${API_URL}/api/sitreps`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

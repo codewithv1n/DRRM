@@ -5,6 +5,9 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface AdminLayoutProps {
   children: React.ReactNode;
   pendingCount?: number;
@@ -56,9 +59,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const fetchNotifs = async () => {
       try {
         const [incRes, donRes, alertRes] = await Promise.all([
-          fetch('http://localhost:3000/api/incidents'),
-          fetch('http://localhost:3000/api/donations/pending'),
-          fetch('http://localhost:3000/api/announcements')
+          fetch(`${API_URL}/api/incidents`),
+          fetch(`${API_URL}/api/donations/pending`),
+          fetch(`${API_URL}/api/announcements`)
         ]);
         
         const incData = incRes.ok ? await incRes.json() : [];

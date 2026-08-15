@@ -4,6 +4,9 @@ import DepartmentLayout from '../../components/layout/AdminLayout';
 import HazardMap from '../../components/HazardMap';
 import { useHazardApis } from '../../hooks/useHazardApis';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 function timeAgo(ts: string | number) {
   const timestamp = typeof ts === 'number' ? ts : new Date(ts).getTime();
   const mins = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
@@ -38,7 +41,7 @@ export default function HazardMapPanel() {
 
   const fetchDbHazards = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/hazards');
+      const res = await fetch(`${API_URL}/api/hazards`);
       if (res.ok) {
         const data = await res.json();
         setDbHazards(data.data || data || []);
@@ -57,7 +60,7 @@ export default function HazardMapPanel() {
   // Fetch incidents from DB for map markers
   const fetchDbIncidents = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/incidents');
+      const res = await fetch(`${API_URL}/api/incidents`);
       if (res.ok) {
         const data = await res.json();
         setDbIncidents(data || []);

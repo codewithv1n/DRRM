@@ -23,6 +23,9 @@ import ResidentLayout from '../../components/layout/CitizenLayout';
 
 
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function CitizenDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,7 +74,7 @@ export default function CitizenDashboard() {
   const fetchAndSetShelters = async (lat: number, lon: number) => {
     try {
       // 1. Fetch nearest evacuation centers from our database (sorted by distance)
-      const dbResponse = await fetch(`http://localhost:3000/api/evacuation-centers?lat=${lat}&lon=${lon}`);
+      const dbResponse = await fetch(`${API_URL}/api/evacuation-centers?lat=${lat}&lon=${lon}`);
       const dbData = await dbResponse.json();
       const nearbyCenters = (dbData.data || []).slice(0, 10);
       

@@ -5,6 +5,9 @@ import {
 } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function BarangaySitrepCoordinationPage() {
   const [barangaySitReps, setBarangaySitReps] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,7 +16,7 @@ export default function BarangaySitrepCoordinationPage() {
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   const fetchSitreps = () => {
-    fetch('http://localhost:3000/api/sitreps')
+    fetch(`${API_URL}/api/sitreps`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {
@@ -74,7 +77,7 @@ export default function BarangaySitrepCoordinationPage() {
 
   const handleAcknowledge = async (id: string, barangay: string) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/sitreps/${id}/acknowledge`, { method: 'PATCH' });
+      const res = await fetch(`${API_URL}/api/sitreps/${id}/acknowledge`, { method: 'PATCH' });
       if (res.ok) {
         setActionSuccess(`SitRep from Barangay ${barangay} has been acknowledged.`);
         fetchSitreps();
