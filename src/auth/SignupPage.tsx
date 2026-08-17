@@ -118,8 +118,7 @@ export default function SignupPage() {
         {/* Center Content - overlaid on seal */}
         <div className="w-full relative z-10 flex flex-col items-center text-center mx-auto mt-auto mb-auto" style={{ maxWidth: '500px' }}>
           <h1 className="text-[44px] font-extrabold mb-6 leading-[1.1] tracking-tight text-white">
-            Disaster Risk <br/>
-            Reduction & <br/>
+             Disaster and <br/>
             Emergency Response
           </h1>
           <p className="text-white/70 text-[14px] leading-relaxed mx-auto font-normal" style={{ maxWidth: '420px' }}>
