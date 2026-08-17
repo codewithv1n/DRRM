@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -29,6 +30,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
         const response = await fetch(`${API_URL}/api/auth/login`, {
@@ -45,6 +47,7 @@ export default function LoginPage() {
         if (!response.ok) {
             const errorData = await response.json();
             setError(errorData.error || 'Invalid credentials');
+            setIsLoading(false);
             return;
         }
 
@@ -63,10 +66,12 @@ export default function LoginPage() {
             navigate('/citizen', { replace: true, state: { loginSuccess: true } });
         } else {
             setError('Unrecognized user role');
+            setIsLoading(false);
         }
     } catch (err) {
         console.error('Login failed:', err);
         setError('Failed to connect to the server');
+        setIsLoading(false);
     }
   };
 
@@ -165,9 +170,18 @@ export default function LoginPage() {
               <div className="pt-3">
                 <button
                   type="submit"
-                  className="w-full bg-[#2563EB] hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 cursor-pointer shadow-sm text-sm"
+                  disabled={isLoading}
+                  className={`w-full bg-[#2563EB] hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 cursor-pointer shadow-sm text-sm flex justify-center items-center min-h-11 ${isLoading ? 'opacity-80 cursor-not-allowed!' : ''}`}
                 >
-                  Sign In 
+                  {isLoading ? (
+                    <div className="flex gap-1.5 justify-center items-center">
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  ) : (
+                    'Sign In'
+                  )}
                 </button>
               </div>
             </form>
