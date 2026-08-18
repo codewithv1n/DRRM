@@ -136,8 +136,8 @@ export default function BarangayOptions() {
         <option value="Pasong Putik Proper">Pasong Putik Proper</option>
         <option value="San Agustin">San Agustin</option>
         <option value="San Bartolome">San Bartolome</option>
-        <option value="Santa Lucia">Santa Lucia</option>
-        <option value="Santa Monica">Santa Monica</option>
+        <option value="Santa Lucia">Sta Lucia</option>
+        <option value="Santa Monica">Sta Monica</option>
       </optgroup>
       <optgroup label="District 6">
         <option value="Apolonio Samson">Apolonio Samson</option>
