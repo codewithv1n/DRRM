@@ -26,13 +26,16 @@ const createTransporter = () => {
         port: port || 587,
         secure: port === 465,
         auth: { user, pass },
-      });
+        family: 4,
+      } as any);
     } else {
-      
       return nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
         auth: { user, pass },
-      });
+        family: 4,
+      } as any);
     }
   }
 
@@ -65,7 +68,7 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
     const transporter = createTransporter();
 
     if (!transporter) {
-      console.error('❌ [OTP Service Error] EMAIL_USER or EMAIL_PASS not set in backend/.env');
+      console.error('[OTP Service Error] EMAIL_USER or EMAIL_PASS not set in backend/.env');
       res.status(500).json({
         error: 'Email service is not configured. Please add EMAIL_USER and EMAIL_PASS (Gmail App Password) to backend/.env',
       });
