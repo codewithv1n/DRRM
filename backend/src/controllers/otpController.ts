@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import nodemailer from 'nodemailer';
 import { logAction } from './auditLogController';
 
 interface StoredOtp {
@@ -9,49 +8,40 @@ interface StoredOtp {
   verified: boolean;
 }
 
+const otpStore: Map<string, StoredOtp> = new Map();
 
-const otpStore = new Map<string, StoredOtp>();
-
-
-const createTransporter = () => {
-  const user = process.env.EMAIL_USER || process.env.SMTP_USER || process.env.MAIL_USER;
-  const pass = process.env.EMAIL_PASS || process.env.SMTP_PASS || process.env.MAIL_PASS;
-  const host = process.env.SMTP_HOST;
-  const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : undefined;
-
-  if (user && pass) {
-    if (host) {
-      return nodemailer.createTransport({
-        host,
-        port: port || 587,
-        secure: port === 465,
-        auth: { user, pass },
-        family: 4,
-        connectionTimeout: 5000,
-        socketTimeout: 5000,
-        greetingTimeout: 10000,
-        pool: true,
-        maxConnections: 5,
-        tls: { rejectUnauthorized: false },
-      } as any);
-    } else {
-      return nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: { user, pass },
-        family: 4,
-        connectionTimeout: 5000,
-        socketTimeout: 5000,
-        greetingTimeout: 10000,
-        pool: true,
-        maxConnections: 5,
-        tls: { rejectUnauthorized: false },
-      } as any);
-    }
+const sendViaBrevo = async (to: string, subject: string, html: string) => {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) {
+    throw new Error('BREVO_API_KEY is not configured in environment variables.');
   }
 
-  return null;
+  const fromEmail = process.env.EMAIL_USER;
+  if (!fromEmail) {
+    throw new Error('EMAIL_USER is not configured in environment variables.');
+  }
+
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': apiKey,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      sender: { name: 'GovServe DRRM Helpline 122', email: fromEmail },
+      to: [{ email: to }],
+      subject: subject,
+      htmlContent: html,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(`Brevo API error: ${JSON.stringify(err)}`);
+  }
+
+  return true;
 };
 
 
@@ -66,33 +56,17 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
 
     const cleanEmail = email.trim().toLowerCase();
 
-  
     const existing = otpStore.get(cleanEmail);
     if (existing && existing.expiresAt - Date.now() > 9.5 * 60 * 1000) {
       res.status(429).json({ error: 'Please wait 30 seconds before requesting another code.' });
       return;
     }
 
-  
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 10 * 60 * 1000; 
+    const expiresAt = Date.now() + 10 * 60 * 1000;
 
-    const transporter = createTransporter();
-
-    if (!transporter) {
-      console.error('[OTP Service Error] EMAIL_USER or EMAIL_PASS not set in backend/.env');
-      res.status(500).json({
-        error: 'Email service is not configured. Please add EMAIL_USER and EMAIL_PASS (Gmail App Password) to backend/.env',
-      });
-      return;
-    }
-
-    
-    const mailOptions = {
-      from: `"GovServe DRRM Helpline 122" <${process.env.EMAIL_USER}>`,
-      to: cleanEmail,
-      subject: `${otpCode} is your GovServe DRRM Verification Code`,
-      html: `
+    const emailSubject = `${otpCode} is your GovServe DRRM Verification Code`;
+    const emailHtml = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08);">
           <div style="background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%); padding: 28px 24px; text-align: center; color: #ffffff;">
             <h1 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">GovServe DRRM</h1>
@@ -115,13 +89,11 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
             GovServe DRRM • Helpline 122
           </div>
         </div>
-      `,
-    };
+      `;
 
-    await transporter.sendMail(mailOptions);
-    console.log(`[Nodemailer] Real OTP email sent successfully to ${cleanEmail}`);
+    await sendViaBrevo(cleanEmail, emailSubject, emailHtml);
+    console.log(`[Brevo] OTP email sent successfully to ${cleanEmail}`);
 
-    
     otpStore.set(cleanEmail, {
       otp: otpCode,
       expiresAt,
@@ -133,12 +105,12 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
 
     res.status(200).json({
       success: true,
-      message: 'Verification code sent to your Gmail inbox',
+      message: 'Verification code sent to your email inbox',
     });
   } catch (error: any) {
-    console.error('❌ [Nodemailer Error]:', error);
+    console.error('[Email Send Error]:', error);
     res.status(500).json({
-      error: `Failed to deliver email: ${error.message || 'Please check Gmail credentials in backend/.env'}`,
+      error: `Failed to deliver email: ${error.message || 'Email service error'}`,
     });
   }
 };
@@ -181,7 +153,6 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    
     stored.verified = true;
 
     await logAction('Verify OTP', 'Public', `Email ${cleanEmail} successfully verified via OTP`, 'System');
