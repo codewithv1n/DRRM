@@ -27,6 +27,12 @@ const createTransporter = () => {
         secure: port === 465,
         auth: { user, pass },
         family: 4,
+        connectionTimeout: 5000,
+        socketTimeout: 5000,
+        greetingTimeout: 10000,
+        pool: true,
+        maxConnections: 5,
+        tls: { rejectUnauthorized: false },
       } as any);
     } else {
       return nodemailer.createTransport({
@@ -35,6 +41,12 @@ const createTransporter = () => {
         secure: false,
         auth: { user, pass },
         family: 4,
+        connectionTimeout: 5000,
+        socketTimeout: 5000,
+        greetingTimeout: 10000,
+        pool: true,
+        maxConnections: 5,
+        tls: { rejectUnauthorized: false },
       } as any);
     }
   }
