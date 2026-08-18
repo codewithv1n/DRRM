@@ -1,12 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutDashboard, Siren, Radio, Map,
+  LayoutDashboard, Siren, Radio, Map as MapIcon,
   ChevronRight, ChevronDown, Bell, Menu, Users, LogOut, Package, Shield, FileText, Home, Sun, Moon
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+const notifAddressCache: Map<string, string> = new Map();
+
+function parseCoordinates(text: string): { lat: number; lon: number } | null {
+ 
+  const dms = text.match(
+    /(\d+)[°]\s*(\d+)[''′]\s*([\d.]+)[""″]?\s*([NnSs])\s*(\d+)[°]\s*(\d+)[''′]\s*([\d.]+)[""″]?\s*([EeWw])/
+  );
+  if (dms) {
+    let lat = parseFloat(dms[1]) + parseFloat(dms[2]) / 60 + parseFloat(dms[3]) / 3600;
+    let lon = parseFloat(dms[5]) + parseFloat(dms[6]) / 60 + parseFloat(dms[7]) / 3600;
+    if (dms[4].toUpperCase() === 'S') lat = -lat;
+    if (dms[8].toUpperCase() === 'W') lon = -lon;
+    return { lat, lon };
+  }
+  
+  const dec = text.match(/([\d.-]+)\s*[Nn]?\s*,\s*([\d.-]+)\s*[Ee]?/);
+  if (dec) return { lat: parseFloat(dec[1]), lon: parseFloat(dec[2]) };
+  return null;
+}
+
+const NotifLocationText = ({ text }: { text: string }) => {
+  const [display, setDisplay] = useState(text);
+  useEffect(() => {
+    const coords = parseCoordinates(text);
+    if (!coords) return;
+    const key = `${coords.lat.toFixed(4)},${coords.lon.toFixed(4)}`;
+    if (notifAddressCache.has(key)) { setDisplay(notifAddressCache.get(key)!); return; }
+    const t = setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lon}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d?.display_name) {
+            const parts = d.display_name.split(', ');
+            const simplified = parts.length > 3 ? parts.slice(0, 3).join(', ') : d.display_name;
+            notifAddressCache.set(key, simplified);
+            setDisplay(simplified);
+          }
+        }).catch(() => {});
+    }, Math.random() * 1000);
+    return () => clearTimeout(t);
+  }, [text]);
+  return <>{display}</>;
+};
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -78,6 +122,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             id: i.incident_id || i.id, 
             type: 'Incident', 
             title: `New ${i.type} at ${i.location}`, 
+            prefix: `New ${i.type} at `,
+            location: i.location,
             time: i.timestamp || i.created_at || Date.now(), 
             icon: Siren, 
             color: 'text-red-500', 
@@ -225,7 +271,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </NavDropdown>
           
           <GroupLabel label="Monitoring" />
-          <NavItem icon={Map} label="Hazard Maps" path="/admin/hazard_map" />
+          <NavItem icon={MapIcon} label="Hazard Maps" path="/admin/hazard_map" />
           <NavItem icon={Home} label="Evacuation Centers" path="/admin/evacuation_centers" />
           
           <GroupLabel label="System" />
@@ -289,7 +335,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             <Icon className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-slate-800 line-clamp-2">{n.title}</p>
+                            <p className="text-sm font-semibold text-slate-800 line-clamp-2">{n.location ? <>{n.prefix}<NotifLocationText text={n.location} /></> : n.title}</p>
                             <p className="text-[10px] text-slate-500 mt-1">{new Date(n.time).toLocaleString()}</p>
                           </div>
                         </div>

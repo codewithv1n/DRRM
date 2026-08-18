@@ -37,31 +37,54 @@ const LocationDisplay = ({ text, className = "" }: { text: string, className?: s
   useEffect(() => {
     if (!text) return;
 
-    // Check if the text contains coordinates like "14.6760 N, 121.0437 E" or similar
-    const match = text.match(/([\d.-]+)\s*[Nn]?\s*,\s*([\d.-]+)\s*[Ee]?/);
+    let lat: number | null = null;
+    let lon: number | null = null;
+
     
-    if (match) {
-      const lat = parseFloat(match[1]);
-      const lon = parseFloat(match[2]);
-      
+    const dmsMatch = text.match(
+      /(\d+)[°]\s*(\d+)[''′]\s*([\d.]+)[""″]?\s*([NnSs])\s*(\d+)[°]\s*(\d+)[''′]\s*([\d.]+)[""″]?\s*([EeWw])/
+    );
+
+    if (dmsMatch) {
+      const latDeg = parseFloat(dmsMatch[1]);
+      const latMin = parseFloat(dmsMatch[2]);
+      const latSec = parseFloat(dmsMatch[3]);
+      const latDir = dmsMatch[4].toUpperCase();
+      const lonDeg = parseFloat(dmsMatch[5]);
+      const lonMin = parseFloat(dmsMatch[6]);
+      const lonSec = parseFloat(dmsMatch[7]);
+      const lonDir = dmsMatch[8].toUpperCase();
+
+      lat = latDeg + latMin / 60 + latSec / 3600;
+      lon = lonDeg + lonMin / 60 + lonSec / 3600;
+      if (latDir === 'S') lat = -lat;
+      if (lonDir === 'W') lon = -lon;
+    }
+
+    if (lat === null || lon === null) {
+      const decMatch = text.match(/([\d.-]+)\s*[Nn]?\s*,\s*([\d.-]+)\s*[Ee]?/);
+      if (decMatch) {
+        lat = parseFloat(decMatch[1]);
+        lon = parseFloat(decMatch[2]);
+      }
+    }
+
+    if (lat !== null && lon !== null && !isNaN(lat) && !isNaN(lon)) {
       const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
       if (addressCache.has(cacheKey)) {
         setDisplayAddress(addressCache.get(cacheKey)!);
         return;
       }
 
-      // Add slight delay to prevent rate limit issues when multiple load at once
       const delay = Math.random() * 1000;
       const timeoutId = setTimeout(() => {
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
           .then(res => res.json())
           .then(data => {
             if (data && data.display_name) {
-               // Get a simpler version of the address if possible, or use the full display name
                let simplified = data.display_name;
                const parts = data.display_name.split(', ');
                if (parts.length > 3) {
-                  // e.g. "building, street, suburb, city, state, country" -> "street, suburb, city"
                   simplified = parts.slice(0, 3).join(', ');
                }
                addressCache.set(cacheKey, simplified);
