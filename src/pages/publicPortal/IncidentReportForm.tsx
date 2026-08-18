@@ -100,7 +100,7 @@ export default function IncidentReportForm() {
       const res = await fetch(`${API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email }),
+        body: JSON.stringify({ email: formData.email, type: 'incident' }),
       });
 
       const data = await res.json();
@@ -130,7 +130,7 @@ export default function IncidentReportForm() {
       const res = await fetch(`${API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email }),
+        body: JSON.stringify({ email: formData.email, type: 'incident' }),
       });
       const data = await res.json();
       if (res.ok) {
