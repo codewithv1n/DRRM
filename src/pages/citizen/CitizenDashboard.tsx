@@ -1,7 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {  
-  Package, 
   CheckCircle2,
   X, 
   ArrowRight, 
@@ -11,14 +10,13 @@ import {
   CloudRain,
   CloudLightning,
   MapPin,
-  Clock,
   BookOpen,
   Navigation,
   Sparkles,
   LocateFixed,
   BellRing
 } from 'lucide-react';
-import { useMockData } from '../../data/MockDataContext';
+
 import ResidentLayout from '../../components/layout/CitizenLayout';
 
 
@@ -30,7 +28,7 @@ export default function CitizenDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showToast, setShowToast] = useState(false);
-  const { reliefClaims } = useMockData();
+
   const [isSyncing, setIsSyncing] = useState(false);
   const [shelters, setShelters] = useState<any[]>([]);
   const [userName, setUserName] = useState('Resident');
@@ -237,28 +235,8 @@ export default function CitizenDashboard() {
               </button>
             </div>
             
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.01)] overflow-hidden divide-y divide-slate-50">
-              {reliefClaims.map(claim => (
-                <div key={claim.id} className="p-4 sm:p-5 hover:bg-slate-50/50 transition-colors flex items-center gap-4">
-                  <div className={`p-2.5 rounded-xl shrink-0 ${claim.status === 'Claimed' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                    <Package className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <h4 className="font-bold text-slate-800 text-sm truncate">
-                        {claim.status === 'Claimed' ? 'Family Food Pack' : 'Family Hygiene Kit A'}
-                      </h4>
-                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${claim.status === 'Claimed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                        {claim.status}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 flex items-center gap-3">
-                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Hub Scanner</span>
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(claim.timestamp).toLocaleDateString()}</span>
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.01)] min-h-50 flex items-center justify-center">
+              <p className="text-slate-400 text-sm">No recent relief activities.</p>
             </div>
 
           </div>
