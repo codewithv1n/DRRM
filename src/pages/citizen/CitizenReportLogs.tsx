@@ -119,9 +119,9 @@ export default function CitizenReportLogs() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {incidents.map(incident => (
-                  <tr key={incident.citizen_report_logs_id} className="hover:bg-slate-50/50 transition-colors group">
+                  <tr key={incident.incident_id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="p-4 font-mono text-xs text-slate-400">
-                      {incident.citizen_report_logs_id}
+                      {incident.incident_id}
                     </td>
                     <td className="p-4 font-bold text-slate-800 flex items-center gap-2">
                       <ShieldAlert className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
