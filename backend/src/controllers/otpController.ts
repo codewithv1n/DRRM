@@ -57,13 +57,13 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
     const cleanEmail = email.trim().toLowerCase();
 
     const existing = otpStore.get(cleanEmail);
-    if (existing && existing.expiresAt - Date.now() > 9.5 * 60 * 1000) {
+    if (existing && existing.expiresAt - Date.now() > 1.5 * 60 * 1000) {
       res.status(429).json({ error: 'Please wait 30 seconds before requesting another code.' });
       return;
     }
 
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 10 * 60 * 1000;
+    const expiresAt = Date.now() + 2 * 60 * 1000;
 
     const emailSubject = `${otpCode} is your GovServe DRRM Verification Code`;
     
@@ -83,7 +83,7 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
             </p>
             <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 20px;">
               <span style="font-size: 34px; font-weight: 900; letter-spacing: 6px; color: #1d4ed8; font-family: monospace;">${otpCode}</span>
-              <div style="font-size: 11px; color: #64748b; margin-top: 6px; font-weight: 600;">Valid for 10 minutes</div>
+              <div style="font-size: 11px; color: #64748b; margin-top: 6px; font-weight: 600;">Valid for 2 minutes</div>
             </div>
             <p style="font-size: 12px; color: #94a3b8; line-height: 1.5; margin: 0;">
               ⚠️ If you did not attempt to log in, please secure your account immediately and ignore this email. Do not share this code with anyone.
@@ -108,7 +108,7 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
             </p>
             <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 20px;">
               <span style="font-size: 34px; font-weight: 900; letter-spacing: 6px; color: #1d4ed8; font-family: monospace;">${otpCode}</span>
-              <div style="font-size: 11px; color: #64748b; margin-top: 6px; font-weight: 600;">Valid for 10 minutes</div>
+              <div style="font-size: 11px; color: #64748b; margin-top: 6px; font-weight: 600;">Valid for 2 minutes</div>
             </div>
             <p style="font-size: 12px; color: #94a3b8; line-height: 1.5; margin: 0;">
               ⚠️ If you did not request this verification code, please ignore this email. Do not share this code with anyone.
