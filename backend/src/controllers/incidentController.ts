@@ -25,18 +25,6 @@ export const createIncident = async (req: Request, res: Response) => {
             ]
         );
 
-        // Check if the reporter exists in the auth table (has a citizen account)
-        if (reporterName && finalEmail) {
-            const authUser = await pool.query('SELECT auth_id FROM auth WHERE email = $1 AND name = $2', [finalEmail, reporterName]);
-            if (authUser.rows.length > 0) {
-                await pool.query(
-                    `INSERT INTO citizen_report_logs (type, location, reporter_name, reporter_email)
-                     VALUES ($1, $2, $3, $4)`,
-                    [type, location, reporterName, finalEmail]
-                );
-            }
-        }
-
         await logAction('Create Incident', 'Public', `Incident reported: ${type} at ${location} by ${reporterName} (${finalEmail || 'no email'})`, reporterName || 'Anonymous');
 
         res.status(201).json({

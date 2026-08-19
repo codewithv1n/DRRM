@@ -11,9 +11,9 @@ export const getCitizenReports = async (req: Request, res: Response) => {
 
         console.log(`Fetching reports for email: ${email}`);
 
-        // Query the newly created citizen_report_logs table case-insensitively
+        
         const result = await pool.query(
-            'SELECT * FROM citizen_report_logs WHERE LOWER(reporter_email) = LOWER($1) ORDER BY created_at DESC',
+            'SELECT * FROM incident_reports WHERE LOWER(reporter_email) = LOWER($1) ORDER BY created_at DESC',
             [email]
         );
         console.log(`Found ${result.rows.length} reports`);

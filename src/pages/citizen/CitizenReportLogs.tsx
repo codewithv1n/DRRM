@@ -13,7 +13,6 @@ const LocationDisplay = ({ locationStr }: { locationStr: string }) => {
       let lat = null;
       let lon = null;
 
-      // Check for Decimal Degrees format like "14.6497 N, 121.0022 E"
       const decimalRegex = /([0-9.]+)\s*N\s*,\s*([0-9.]+)\s*E/i;
       const decMatch = locationStr.match(decimalRegex);
       
@@ -21,7 +20,7 @@ const LocationDisplay = ({ locationStr }: { locationStr: string }) => {
         lat = Number(decMatch[1]);
         lon = Number(decMatch[2]);
       } else {
-        // Check for DMS format like "14°37'52.92"N 120°59'30.78"E"
+        
         const dmsRegex = /([0-9]+)°([0-9]+)'([0-9.]+)"([NS])\s*([0-9]+)°([0-9]+)'([0-9.]+)"([EW])/i;
         const dmsMatch = locationStr.match(dmsRegex);
         if (dmsMatch) {
@@ -38,7 +37,7 @@ const LocationDisplay = ({ locationStr }: { locationStr: string }) => {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
           const data = await res.json();
           if (data && data.display_name) {
-            // Simplify address to roughly 3-4 components (e.g. Barangay, City, Province)
+           
             const parts = data.display_name.split(', ');
             setAddress(parts.slice(0, 3).join(', '));
           }
