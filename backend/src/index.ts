@@ -15,6 +15,8 @@ import reliefRequestRoutes from './routes/reliefRequestRoutes';
 import weatherAlertRoutes from './routes/weatherAlertRoutes';
 import auditLogRoutes from './routes/auditLogRoutes';
 import otpRoutes from './routes/otpRoutes';
+import claimHistoryRoutes from './routes/claimHistoryRoutes';
+import citizenReportLogsRoutes from './routes/citizenReportLogsRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +42,8 @@ app.use('/api/sitreps', sitrepRoutes);
 app.use('/api/relief-requests', reliefRequestRoutes);
 app.use('/api/weather-alerts', weatherAlertRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
+app.use('/api/claim-history', claimHistoryRoutes);
+app.use('/api/citizen-report-logs', citizenReportLogsRoutes);
 
 app.get('/', (req: Request, res: Response) => {
     res.json({ message: "Server is Running" });

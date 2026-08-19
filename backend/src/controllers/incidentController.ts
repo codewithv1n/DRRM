@@ -4,14 +4,14 @@ import { logAction } from './auditLogController';
 
 export const createIncident = async (req: Request, res: Response) => {
     try {
-        const { reporterName, contactNumber, email, reporterEmail, location, type, isVerified, gpsLocation, deviceIp, spamScore } = req.body;
+        const { reporterName, contactNumber, email, reporterEmail, location, type, isVerified, deviceIp, spamScore } = req.body;
         const photo_path = req.file ? `/uploads/${req.file.filename}` : null;
         const finalEmail = (reporterEmail || email || null)?.trim().toLowerCase();
 
         const result = await pool.query(
             `INSERT INTO incident_reports 
-            (reporter_name, contact_number, reporter_email, location, type, photo_path, is_verified, gps_location, device_ip, spam_score) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+            (reporter_name, contact_number, reporter_email, location, type, photo_path, is_verified, device_ip, spam_score) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
             [
                 reporterName, 
                 contactNumber,
@@ -20,11 +20,22 @@ export const createIncident = async (req: Request, res: Response) => {
                 type, 
                 photo_path, 
                 isVerified === 'true' || isVerified === true,
-                gpsLocation || null,
                 deviceIp || null,
                 parseFloat(spamScore) || 0.0
             ]
         );
+
+        // Check if the reporter exists in the auth table (has a citizen account)
+        if (reporterName && finalEmail) {
+            const authUser = await pool.query('SELECT auth_id FROM auth WHERE email = $1 AND name = $2', [finalEmail, reporterName]);
+            if (authUser.rows.length > 0) {
+                await pool.query(
+                    `INSERT INTO citizen_report_logs (type, location, reporter_name, reporter_email)
+                     VALUES ($1, $2, $3, $4)`,
+                    [type, location, reporterName, finalEmail]
+                );
+            }
+        }
 
         await logAction('Create Incident', 'Public', `Incident reported: ${type} at ${location} by ${reporterName} (${finalEmail || 'no email'})`, reporterName || 'Anonymous');
 
