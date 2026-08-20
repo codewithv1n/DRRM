@@ -177,9 +177,7 @@ const QC_BARANGAY_COORDS: Record<string, [number, number]> = {
 
 const geocodeCache = new Map<string, [number, number] | null>();
 
-/**
- * Normalizes text to lookup in QC barangay dictionary
- */
+
 function normalizeBarangayName(name: string): string {
   return name
     .toLowerCase()
@@ -191,27 +189,20 @@ function normalizeBarangayName(name: string): string {
     .trim();
 }
 
-/**
- * Parses coordinates from text strings like:
- * - "14.6497 N, 121.0021 E (Auto-detected)"
- * - "14.6497, 121.0021"
- * - "121.0021, 14.6497"
- * Returns [lng, lat]
- */
+
 function parseCoordinates(location: string): [number, number] | null {
   if (!location) return null;
 
-  // Match "14.6497 N, 121.0021 E" format
+  
   const dmsMatch = location.match(/([\d.-]+)\s*[Nn]?\s*,\s*([\d.-]+)\s*[Ee]?/);
   if (dmsMatch) {
     const val1 = parseFloat(dmsMatch[1]);
     const val2 = parseFloat(dmsMatch[2]);
     if (!isNaN(val1) && !isNaN(val2)) {
-      // If val1 is latitude (~14 in QC) and val2 is longitude (~121)
       if (val1 >= 14 && val1 <= 15 && val2 >= 120 && val2 <= 122) {
-        return [val2, val1]; // return [lng, lat]
+        return [val2, val1]; 
       }
-      // If val1 is longitude (~121) and val2 is latitude (~14)
+      
       if (val1 >= 120 && val1 <= 122 && val2 >= 14 && val2 <= 15) {
         return [val1, val2];
       }
@@ -221,36 +212,34 @@ function parseCoordinates(location: string): [number, number] | null {
   return null;
 }
 
-/**
- * Resolves location string to [lng, lat] coordinates
- */
+
 async function resolveLocationCoords(locationStr: string, id: string): Promise<[number, number]> {
   if (!locationStr) return [121.0493, 14.6515];
 
-  // 1. Check direct coordinates
+  
   const parsed = parseCoordinates(locationStr);
   if (parsed) return parsed;
 
-  // 2. Check QC Barangay Dictionary
+ 
   const normalized = normalizeBarangayName(locationStr);
   if (QC_BARANGAY_COORDS[normalized]) {
     return QC_BARANGAY_COORDS[normalized];
   }
 
-  // Check partial key matches
+  
   for (const [key, coords] of Object.entries(QC_BARANGAY_COORDS)) {
     if (normalized.includes(key) || key.includes(normalized)) {
       return coords;
     }
   }
 
-  // 3. Check cache
+
   const cacheKey = locationStr.trim().toLowerCase();
   if (geocodeCache.has(cacheKey) && geocodeCache.get(cacheKey)) {
     return geocodeCache.get(cacheKey)!;
   }
 
-  // 4. Fallback geocoding via OpenStreetMap
+  
   try {
     const searchQuery = locationStr.toLowerCase().includes('quezon')
       ? locationStr
@@ -269,7 +258,7 @@ async function resolveLocationCoords(locationStr: string, id: string): Promise<[
     console.warn('Geocoding error:', err);
   }
 
-  // 5. Deterministic fallback spread around QC center so no pin is dropped
+  
   let hash = 0;
   for (let i = 0; i < (id || locationStr).length; i++) {
     hash = ((hash << 5) - hash) + (id || locationStr).charCodeAt(i);
@@ -282,10 +271,10 @@ async function resolveLocationCoords(locationStr: string, id: string): Promise<[
 
 function getIncidentColor(type: string): string {
   const t = type?.toLowerCase() || '';
-  if (t.includes('fire')) return '#ef4444'; // Red
-  if (t.includes('flood')) return '#3b82f6'; // Blue
-  if (t.includes('earthquake')) return '#a855f7'; // Purple
-  if (t.includes('medical')) return '#10b981'; // Emerald Green
+  if (t.includes('fire')) return '#ef4444'; 
+  if (t.includes('flood')) return '#3b82f6'; 
+  if (t.includes('earthquake')) return '#a855f7'; 
+  if (t.includes('medical')) return '#10b981'; 
   if (t.includes('road') || t.includes('vehicular') || t.includes('obstruction') || t.includes('accident')) return '#f97316'; // Orange
   return '#eab308'; // Amber
 }
@@ -304,14 +293,14 @@ export default function HazardMap({ incidents = [], weather, height = '380px' }:
   const animationRef = useRef<number | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
 
-  // Initialize Map
+  
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
     const m = new maplibregl.Map({
       container: mapContainer.current,
       style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-      center: [121.0493, 14.6515], // QC center
+      center: [121.0493, 14.6515], 
       zoom: 12,
       minZoom: 11,
       maxZoom: 19,
@@ -441,7 +430,7 @@ export default function HazardMap({ incidents = [], weather, height = '380px' }:
         });
       }
 
-      // Earthquake Fault line
+      
       if (!m.getSource('hazard-quake')) {
         m.addSource('hazard-quake', {
           type: 'geojson',
@@ -473,7 +462,7 @@ export default function HazardMap({ incidents = [], weather, height = '380px' }:
         });
       }
 
-      // Pulsing hazard zones animation
+      
       let startTime = 0;
       function animateHazards(timestamp: number) {
         if (!startTime) startTime = timestamp;
@@ -505,14 +494,14 @@ export default function HazardMap({ incidents = [], weather, height = '380px' }:
     };
   }, []);
 
-  // Update & Render Incident Pins on Map
+  
   useEffect(() => {
     if (!incidents) return;
 
     let isCancelled = false;
 
     const renderMarkers = async () => {
-      // 1. Resolve coordinates for all incidents
+      
       const resolvedList: Array<{ incident: IncidentMarker; coords: [number, number] }> = [];
 
       for (const incident of incidents) {
@@ -524,7 +513,7 @@ export default function HazardMap({ incidents = [], weather, height = '380px' }:
 
       if (isCancelled) return;
 
-      // 2. Wait until map instance is ready
+     
       const checkAndAdd = () => {
         if (!map.current) {
           setTimeout(checkAndAdd, 100);
@@ -533,14 +522,14 @@ export default function HazardMap({ incidents = [], weather, height = '380px' }:
 
         const m = map.current;
 
-        // Clear existing markers
+        
         markersRef.current.forEach((marker) => marker.remove());
         markersRef.current = [];
 
         resolvedList.forEach(({ incident, coords }) => {
           const color = getIncidentColor(incident.type);
 
-          // Create DOM marker element
+          
           const rootEl = document.createElement('div');
           rootEl.className = 'incident-marker-root';
 
@@ -550,9 +539,8 @@ export default function HazardMap({ incidents = [], weather, height = '380px' }:
               <div class="incident-wave-ring incident-wave-ring-delay" style="border-color: ${color};"></div>
               <svg class="incident-pin-svg" viewBox="0 0 36 52" xmlns="http://www.w3.org/2000/svg">
                 <path d="M18 0C8.06 0 0 8.06 0 18c0 12.6 18 34 18 34s18-21.4 18-34C36 8.06 27.94 0 18 0z" 
-                      fill="${color}" stroke="#ffffff" stroke-width="2.5" />
-                <circle cx="18" cy="17" r="6.5" fill="#ffffff" />
-                <circle cx="18" cy="17" r="3.5" fill="${color}" />
+                      fill="${color}" />
+                <circle cx="18" cy="17" r="8" fill="#ffffff" />
               </svg>
             </div>
           `;
@@ -603,7 +591,7 @@ export default function HazardMap({ incidents = [], weather, height = '380px' }:
     };
   }, [incidents]);
 
-  // Weather color updates
+  
   useEffect(() => {
     if (!map.current || !weather) return;
 

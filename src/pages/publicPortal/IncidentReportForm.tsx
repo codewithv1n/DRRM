@@ -352,7 +352,6 @@ export default function IncidentReportForm() {
               </div>
             </div>
 
-            {/* Row 2: Email Address (For OTP Verification) */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
