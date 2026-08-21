@@ -132,7 +132,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           ...pDonations.map((d: any) => ({ 
             id: d.donation_id || d.id, 
             type: 'Donation', 
-            title: `Pending donation from ${d.donor_name || d.donorName || 'Unknown'}`, 
+            title: `Pending donation from ${d.full_name || d.donor_name || d.donorName || 'Unknown'}`, 
             time: d.eta || d.created_at || Date.now(), 
             icon: Package, 
             color: 'text-emerald-500', 
