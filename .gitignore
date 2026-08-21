@@ -13,6 +13,7 @@ lerna-debug.log*
 dist
 dist-ssr
 *.local
+DRRM_GROUP_6_MOBILE/
 
 # Editor directories and files
 .vscode/*
