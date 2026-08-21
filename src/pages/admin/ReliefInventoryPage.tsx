@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Clock, Plus, X, Search, Filter } from 'lucide-react';
+import { Package, Clock, Plus, X, Search, Filter, CheckCircle2 } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useMockData } from '../../data/MockDataContext';
 
@@ -15,6 +15,8 @@ export default function ReliefInventoryPanel() {
   const [newItem, setNewItem] = useState({ category: 'Food & Water', quantity: '' as any });
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
+  const [showToast, setShowToast] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchInventory();
@@ -40,6 +42,7 @@ export default function ReliefInventoryPanel() {
     e.preventDefault();
     if (newItem.quantity <= 0) return;
     
+    setIsSubmitting(true);
     try {
       await fetch(`${API_URL}/api/inventory`, {
         method: 'POST',
@@ -48,11 +51,18 @@ export default function ReliefInventoryPanel() {
         },
         body: JSON.stringify({ ...newItem, name: newItem.category })
       });
+      
+      await new Promise(resolve => setTimeout(resolve, 600));
+      
       fetchInventory();
       setShowAddModal(false);
-      setNewItem({ category: 'Food & Water', quantity: 0 });
+      setNewItem({ category: 'Food & Water', quantity: '' as any });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4000);
     } catch (error) {
       console.error("Error adding inventory item:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -188,12 +198,40 @@ export default function ReliefInventoryPanel() {
                 />
               </div>
               <div className="pt-4">
-                <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md">
-                  Add Quantity
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="w-full bg-blue-500 hover:bg-blue-600 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md flex items-center justify-center min-h-13"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                    </div>
+                  ) : (
+                    "Add Quantity"
+                  )}
                 </button>
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Success Toast */}
+      {showToast && (
+        <div className="fixed top-6 right-6 bg-emerald-500 border border-emerald-400 shadow-[0_10px_40px_rgba(16,185,129,0.3)] rounded-2xl p-4 flex items-center gap-4 z-50 animate-fade-in">
+          <div className="bg-emerald-400/50 text-white p-2 rounded-xl">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-bold text-white text-sm">Successfully Added Item</h4>
+            <p className="text-xs text-emerald-50">The relief inventory has been updated.</p>
+          </div>
+          <button onClick={() => setShowToast(false)} className="ml-2 text-emerald-200 hover:text-white transition-colors cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
     </DepartmentLayout>
