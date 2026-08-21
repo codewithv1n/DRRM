@@ -8,7 +8,6 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SignupPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'account' | 'family'>('account');
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
   const [form, setForm] = useState({
@@ -19,8 +18,7 @@ export default function SignupPage() {
     contactNumber: '',
     purok: '',
     email: '',
-    password: '',
-    familyMembers: [] as { firstName: string, lastName: string, relation: string, age: string, gender: string, medicalInfo: string }[]
+    password: ''
   });
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -28,25 +26,6 @@ export default function SignupPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleAddFamilyMember = () => {
-    setForm(prev => ({
-      ...prev,
-      familyMembers: [...prev.familyMembers, { firstName: '', lastName: '', relation: '', age: '', gender: '', medicalInfo: '' }]
-    }));
-  };
-
-  const handleUpdateFamilyMember = (index: number, field: string, value: string) => {
-    const updated = [...form.familyMembers];
-    updated[index] = { ...updated[index], [field]: value } as any;
-    setForm(prev => ({ ...prev, familyMembers: updated }));
-  };
-
-  const handleRemoveFamilyMember = (index: number) => {
-    setForm(prev => ({
-      ...prev,
-      familyMembers: prev.familyMembers.filter((_, i) => i !== index)
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,8 +47,7 @@ export default function SignupPage() {
           email: form.email,
           password: form.password,
           contactNumber: form.contactNumber,
-          purok: form.purok,
-          familyMembers: form.familyMembers
+          purok: form.purok
         }),
       });
 
@@ -130,7 +108,7 @@ export default function SignupPage() {
       </div>
 
       {/* Right Panel - Signup Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center bg-[#FAFAFA] relative py-20 px-4 h-full overflow-y-auto">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center bg-[#FAFAFA] relative py-28 px-4 h-full overflow-y-auto">
         
         {/* Toast Notification */}
         <div 
@@ -170,29 +148,7 @@ export default function SignupPage() {
           Create Citizen Account
         </h3>
 
-        <div className="flex border-b border-slate-200 mb-6">
-          <button
-            type="button"
-            onClick={() => setActiveTab('account')}
-            className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors outline-none cursor-pointer ${
-              activeTab === 'account' ? 'border-[#2563EB] text-[#2563EB]' : 'border-transparent text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            Account Info
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('family')}
-            className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors outline-none cursor-pointer ${
-              activeTab === 'family' ? 'border-[#2563EB] text-[#2563EB]' : 'border-transparent text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            Family Members
-          </button>
-        </div>
-        
         <form onSubmit={handleSubmit} className="space-y-4">
-          {activeTab === 'account' && (
             <div className="space-y-4 animate-fade-in">
               <div>
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Barangay</label>
@@ -286,94 +242,6 @@ export default function SignupPage() {
                 </div>
               </div>
             </div>
-          )}
-
-          {activeTab === 'family' && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Household Members</label>
-                <button 
-                  type="button" 
-                  onClick={handleAddFamilyMember} 
-                  className="text-xs font-bold text-[#2563EB] hover:text-blue-700 transition-colors cursor-pointer"
-                >
-                  + Add Member
-                </button>
-              </div>
-              {form.familyMembers.length === 0 ? (
-                <div className="text-center p-8 bg-slate-50 border border-slate-200 rounded-xl text-slate-400 text-sm">
-                  No family members added.
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-80 overflow-y-auto p-1 pr-2">
-                  {form.familyMembers.map((member, idx) => (
-                    <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 relative shadow-sm">
-                      <button 
-                        type="button" 
-                        onClick={() => handleRemoveFamilyMember(idx)} 
-                        className="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <input 
-                          type="text" 
-                          placeholder="First Name" 
-                          required
-                          value={member.firstName}
-                          onChange={(e) => handleUpdateFamilyMember(idx, 'firstName', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2563EB]/20 outline-none"
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="Last Name" 
-                          required
-                          value={member.lastName}
-                          onChange={(e) => handleUpdateFamilyMember(idx, 'lastName', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2563EB]/20 outline-none"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <input 
-                          type="text" 
-                          placeholder="Relation" 
-                          required
-                          value={member.relation}
-                          onChange={(e) => handleUpdateFamilyMember(idx, 'relation', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2563EB]/20 outline-none"
-                        />
-                        <input 
-                          type="number" 
-                          placeholder="Age" 
-                          required
-                          value={member.age}
-                          onChange={(e) => handleUpdateFamilyMember(idx, 'age', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2563EB]/20 outline-none"
-                        />
-                        <select 
-                          required
-                          value={member.gender}
-                          onChange={(e) => handleUpdateFamilyMember(idx, 'gender', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2563EB]/20 outline-none text-slate-500"
-                        >
-                          <option value="" disabled>Gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                        </select>
-                        <input 
-                          type="text" 
-                          placeholder="Medical Info (Optional)" 
-                          value={member.medicalInfo}
-                          onChange={(e) => handleUpdateFamilyMember(idx, 'medicalInfo', e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2563EB]/20 outline-none"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
 
               <button type="submit" className="w-full bg-[#2563EB] hover:bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-6 shadow-sm hover:shadow-md cursor-pointer">
                 <UserPlus className="w-4 h-4" />
