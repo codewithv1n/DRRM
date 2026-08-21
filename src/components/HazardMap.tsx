@@ -176,6 +176,7 @@ const QC_BARANGAY_COORDS: Record<string, [number, number]> = {
 };
 
 const geocodeCache = new Map<string, [number, number] | null>();
+const reverseGeocodeCache = new Map<string, string>();
 
 
 function normalizeBarangayName(name: string): string {
@@ -561,7 +562,7 @@ export default function HazardMap({ incidents = [], weather, height = '380px' }:
                 ${getStatusBadgeHtml(incident.status, color)}
               </div>
               <div style="font-size: 11px; color: #475569; margin-bottom: 4px; line-height: 1.4;">
-                <strong>📍 Location:</strong> ${incident.location || 'Quezon City'}
+                <strong>📍 Location:</strong> <span id="loc-${incident.incident_id}">${incident.location || 'Quezon City'}</span>
               </div>
               ${incident.reporter_name ? `<div style="font-size: 11px; color: #64748b; margin-bottom: 2px;"><strong>👤 Reporter:</strong> ${incident.reporter_name}</div>` : ''}
               ${incident.contact_number ? `<div style="font-size: 11px; color: #64748b; margin-bottom: 2px;"><strong>📞 Contact:</strong> ${incident.contact_number}</div>` : ''}
@@ -576,6 +577,39 @@ export default function HazardMap({ incidents = [], weather, height = '380px' }:
             .setLngLat(coords)
             .setPopup(popup)
             .addTo(m);
+
+          popup.on('open', () => {
+            const locStr = incident.location || incident.gps_location || '';
+            if (locStr.includes('Auto-detected') || locStr.includes('N,') || locStr.includes('E')) {
+               const cacheKey = `${coords[1]},${coords[0]}`;
+               const el = document.getElementById(`loc-${incident.incident_id}`);
+               if (!el) return;
+               
+               if (reverseGeocodeCache.has(cacheKey)) {
+                   el.innerText = reverseGeocodeCache.get(cacheKey)!;
+                   return;
+               }
+               
+               el.innerText = 'Translating location...';
+               
+               fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords[1]}&lon=${coords[0]}`)
+                 .then(r => r.json())
+                 .then(d => {
+                    if (d?.display_name) {
+                       const parts = d.display_name.split(', ');
+                       const simplified = parts.length > 3 ? parts.slice(0, 3).join(', ') : d.display_name;
+                       reverseGeocodeCache.set(cacheKey, simplified);
+                       const elUpdate = document.getElementById(`loc-${incident.incident_id}`);
+                       if (elUpdate) elUpdate.innerText = simplified;
+                    } else {
+                       el.innerText = locStr;
+                    }
+                 })
+                 .catch(() => {
+                    if (el) el.innerText = locStr;
+                 });
+            }
+          });
 
           markersRef.current.push(marker);
         });
