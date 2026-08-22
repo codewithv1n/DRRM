@@ -1,12 +1,9 @@
 import { useState } from 'react';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 import { Siren, CheckCircle, MapPin, Phone, User, Navigation, AlertTriangle, ListChecks, FileText, Truck, Hand, Camera, AlertCircle, ArrowDown } from 'lucide-react';
 import ResponseUnitLayout from '../../components/layout/ResponseUnitLayout';
 import type { Incident, Resource } from '../../data/mockData';
 
-// Fixed Team Leader identity — one account = one unit
-const UNIT_ID = 'RES-01';
-const TEAM_LEADER_LABEL = `${UNIT_ID} — Team Leader Juan Dela Cruz`;
 
 interface IncidentCardProps {
   incident: Incident;
@@ -273,10 +270,16 @@ function ActiveTasksQueue({ incidents, assignedResources, teamLeaderLabel, onUpd
 }
 
 export default function IncidentResponsePage() {
-  const { incidents, resources, updateIncidentStatus, addAuditLog } = useMockData();
+  const { incidents, resources, updateIncidentStatus, addAuditLog } = useAppData();
+
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const responderName = user?.name || 'Task Force 1';
+  const UNIT_ID = user?.id ? `RES-${String(user.id).substring(0, 4)}` : 'RES-01';
+  const TEAM_LEADER_LABEL = `${UNIT_ID} — Team Leader ${responderName}`;
 
   const activeIncidents = incidents.filter(i => 
-    i.status !== 'Resolved' && i.assignedResponder === 'Task Force 1'
+    i.status !== 'Resolved' && i.assignedResponder === responderName
   );
 
   const handleUpdateStatus = (id: string, newStatus: Incident['status'], debrief?: any) => {
@@ -299,7 +302,6 @@ export default function IncidentResponsePage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <Siren className="w-6 h-6 text-red-500" />
               Incident Emergency Response
             </h2>
             <p className="text-sm text-slate-500 mt-1">Manage and respond to incidents assigned to {UNIT_ID}.</p>
@@ -321,3 +323,4 @@ export default function IncidentResponsePage() {
     </ResponseUnitLayout>
   );
 }
+

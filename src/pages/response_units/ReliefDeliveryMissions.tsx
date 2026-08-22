@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMockData, type ReliefDispatch } from '../../data/MockDataContext';
+import { useAppData, type ReliefDispatch } from '../../data/AppDataContext';
 import { Package, Shield, MapPin, Clock, CheckCircle, Truck, Navigation, FileCheck, Camera, PenTool } from 'lucide-react';
 import ResponseUnitLayout from '../../components/layout/ResponseUnitLayout';
 
@@ -154,15 +154,19 @@ function DeliveryCard({ delivery, teamLeaderLabel, onUpdateStatus, onMarkDeliver
   );
 }
 
-// Fixed Team Leader identity
-const UNIT_ID = 'RES-01';
-const TEAM_LEADER_LABEL = `${UNIT_ID} — Team Leader Juan Dela Cruz`;
+
 
 export default function ReliefDeliveryMissions() {
-  const { incidents, reliefDispatches, updateReliefDispatchStatus, addAuditLog } = useMockData();
-  
+  const { incidents, reliefDispatches, updateReliefDispatchStatus, addAuditLog } = useAppData();
+
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const responderName = user?.name || 'Task Force 1';
+  const UNIT_ID = user?.id ? `RES-${String(user.id).substring(0, 4)}` : 'RES-01';
+  const TEAM_LEADER_LABEL = `${UNIT_ID} — Team Leader ${responderName}`;
+
   const activeIncidentsCount = incidents.filter(i => 
-    i.status !== 'Resolved' && i.assignedResponder === 'Task Force 1'
+    i.status !== 'Resolved' && i.assignedResponder === responderName
   ).length;
 
   // Show all non-delivered dispatches as active deliveries for this unit
@@ -187,7 +191,6 @@ export default function ReliefDeliveryMissions() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <Package className="w-6 h-6 text-emerald-600" />
               Relief Delivery Missions
             </h2>
             <p className="text-sm text-slate-500 mt-1">Manage and track relief goods delivery to affected barangays.</p>
@@ -198,7 +201,7 @@ export default function ReliefDeliveryMissions() {
             </div>
             <div>
               <div className="text-xs font-bold text-indigo-600">{UNIT_ID}</div>
-              <div className="text-xs font-medium text-slate-500">TL Juan Dela Cruz</div>
+              <div className="text-xs font-medium text-slate-500">TL {responderName}</div>
             </div>
           </div>
         </div>
@@ -253,3 +256,4 @@ export default function ReliefDeliveryMissions() {
     </ResponseUnitLayout>
   );
 }
+
