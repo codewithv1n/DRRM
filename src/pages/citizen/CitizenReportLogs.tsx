@@ -1,6 +1,7 @@
 import { FileText, MapPin, Clock, ShieldAlert, CheckCircle, Clock3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import CitizenLayout from '../../components/layout/CitizenLayout';
+import { useAppData } from '../../data/AppDataContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -55,6 +56,7 @@ const LocationDisplay = ({ locationStr }: { locationStr: string }) => {
 }
 
 export default function CitizenReportLogs() {
+  const { language } = useAppData();
   const [incidents, setIncidents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -92,29 +94,29 @@ export default function CitizenReportLogs() {
     <CitizenLayout>
       <div className="animate-fade-in space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 font-display">My Incident Reports</h2>
-          <p className="text-slate-500 text-sm mt-1">Track the status of emergencies and hazards you've reported.</p>
+          <h2 className="text-2xl font-bold text-slate-900 font-display">{language === 'en' ? 'My Incident Reports' : 'Aking Mga Report ng Insidente'}</h2>
+          <p className="text-slate-500 text-sm mt-1">{language === 'en' ? "Track the status of emergencies and hazards you've reported." : 'Subaybayan ang katayuan ng mga emergency at panganib na naiulat mo.'}</p>
         </div>
 
         <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.01)] overflow-hidden overflow-x-auto">
           <div className="p-6 border-b border-slate-50 bg-slate-50/50">
-            <h3 className="font-bold text-slate-800">Report History</h3>
+            <h3 className="font-bold text-slate-800">{language === 'en' ? 'Report History' : 'Kasaysayan ng mga Report'}</h3>
           </div>
           
           {isLoading ? (
-             <div className="p-12 text-center text-slate-500">
-               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-               <p>Loading reports...</p>
-             </div>
+              <div className="p-12 text-center text-slate-500">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p>{language === 'en' ? 'Loading reports...' : 'Naglo-load ng mga report...'}</p>
+              </div>
           ) : incidents.length > 0 ? (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wider">
-                  <th className="p-4 font-semibold whitespace-nowrap">Report Logs ID</th>
-                  <th className="p-4 font-semibold">Incident Type</th>
-                  <th className="p-4 font-semibold">Location</th>
-                  <th className="p-4 font-semibold">Date Reported</th>
-                  <th className="p-4 font-semibold">Status</th>
+                  <th className="p-4 font-semibold whitespace-nowrap">{language === 'en' ? 'Report Logs ID' : 'ID ng Report'}</th>
+                  <th className="p-4 font-semibold">{language === 'en' ? 'Incident Type' : 'Uri ng Insidente'}</th>
+                  <th className="p-4 font-semibold">{language === 'en' ? 'Location' : 'Lokasyon'}</th>
+                  <th className="p-4 font-semibold">{language === 'en' ? 'Date Reported' : 'Petsang Naiulat'}</th>
+                  <th className="p-4 font-semibold">{language === 'en' ? 'Status' : 'Katayuan'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -139,17 +141,17 @@ export default function CitizenReportLogs() {
                     <td className="p-4">
                       {incident.status === 'Pending' && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-100 whitespace-nowrap">
-                          <Clock3 className="w-3 h-3" /> Pending Review
+                          <Clock3 className="w-3 h-3" /> {language === 'en' ? 'Pending Review' : 'Kasakuluyang Sinusuri'}
                         </span>
                       )}
                       {incident.status === 'Responding' && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100 whitespace-nowrap">
-                          <Clock3 className="w-3 h-3" /> Responding
+                          <Clock3 className="w-3 h-3" /> {language === 'en' ? 'Responding' : 'Tinitugunan'}
                         </span>
                       )}
                       {incident.status === 'Resolved' && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 whitespace-nowrap">
-                          <CheckCircle className="w-3 h-3" /> Resolved
+                          <CheckCircle className="w-3 h-3" /> {language === 'en' ? 'Resolved' : 'Naayos na'}
                         </span>
                       )}
                     </td>
@@ -160,7 +162,7 @@ export default function CitizenReportLogs() {
           ) : (
             <div className="p-12 text-center text-slate-500">
               <FileText className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-              <p>You haven't reported any incidents yet.</p>
+              <p>{language === 'en' ? "You haven't reported any incidents yet." : 'Wala ka pang naiuulat na insidente.'}</p>
             </div>
           )}
         </div>

@@ -24,12 +24,10 @@ export default function BarangaySitrepCoordinationPage() {
             const barangay = item.barangay;
             if (!acc[barangay]) {
               acc[barangay] = {
-                id: item.id,
+                id: item.sitreps_id,
                 barangay: item.barangay,
                 generalSituation: item.general_situation,
                 evacueeCount: Number(item.evacuee_count) || 0,
-                casualties: Number(item.casualties) || 0,
-                householdCount: Number(item.household_count) || 0,
                 damageSeverity: item.damage_severity,
                 status: item.status,
                 lastUpdatedBy: item.last_updated_by,
@@ -37,11 +35,9 @@ export default function BarangaySitrepCoordinationPage() {
               };
             } else {
               acc[barangay].evacueeCount += Number(item.evacuee_count) || 0;
-              acc[barangay].casualties += Number(item.casualties) || 0;
-              acc[barangay].householdCount += Number(item.household_count) || 0;
               // Update with latest string/status fields based on timestamp
               if (new Date(item.created_at) > new Date(acc[barangay].timestamp)) {
-                acc[barangay].id = item.id;
+                acc[barangay].id = item.sitreps_id;
                 acc[barangay].generalSituation = item.general_situation;
                 acc[barangay].damageSeverity = item.damage_severity;
                 acc[barangay].status = item.status;
@@ -222,7 +218,6 @@ export default function BarangaySitrepCoordinationPage() {
                   <th className="py-4 px-6">Barangay</th>
                   <th className="py-4 px-6">Damage Level</th>
                   <th className="py-4 px-6">Evacuee Count</th>
-                  <th className="py-4 px-6">Households</th>
                   <th className="py-4 px-6">Last Updated By</th>
                   <th className="py-4 px-6">Timestamp</th>
                   <th className="py-4 px-6 text-right">Actions</th>
@@ -245,9 +240,6 @@ export default function BarangaySitrepCoordinationPage() {
                         </td>
                         <td className="py-4 px-6 font-semibold text-slate-800">
                           {rep.evacueeCount.toLocaleString()} pax
-                        </td>
-                        <td className="py-4 px-6 text-slate-600">
-                          {rep.householdCount.toLocaleString()} families
                         </td>
                         <td className="py-4 px-6 text-slate-600 text-xs">
                           {rep.lastUpdatedBy}
@@ -332,14 +324,10 @@ export default function BarangaySitrepCoordinationPage() {
               </div>
 
               {/* Key Metrics */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="p-4 rounded-xl border border-slate-100 bg-white">
                   <span className="text-xs font-bold text-slate-400 uppercase">Evacuees Registered</span>
                   <p className="text-2xl font-extrabold text-blue-600 mt-1">{selectedSitRep.evacueeCount.toLocaleString()} pax</p>
-                </div>
-                <div className="p-4 rounded-xl border border-slate-100 bg-white">
-                  <span className="text-xs font-bold text-slate-400 uppercase">Affected Households</span>
-                  <p className="text-2xl font-extrabold text-slate-900 mt-1">{selectedSitRep.householdCount.toLocaleString()} families</p>
                 </div>
               </div>
 
@@ -366,10 +354,15 @@ export default function BarangaySitrepCoordinationPage() {
                     handleAcknowledge(selectedSitRep.id, selectedSitRep.barangay);
                     setSelectedSitRep(null);
                   }}
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md transition-colors cursor-pointer flex items-center gap-1.5"
+                  disabled={selectedSitRep.status === 'Acknowledged'}
+                  className={`px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition-colors flex items-center gap-1.5 ${
+                    selectedSitRep.status === 'Acknowledged'
+                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                  }`}
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  Acknowledge & Confirm
+                  {selectedSitRep.status === 'Acknowledged' ? 'Acknowledged' : 'Acknowledge & Confirm'}
                 </button>
               </div>
             </div>

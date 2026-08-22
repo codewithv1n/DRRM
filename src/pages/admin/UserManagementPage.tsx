@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 import { UserPlus, Shield, Mail, Key, IdCard, X } from 'lucide-react';
 import BarangayOptions from '../../components/BarangayOptions';
 
@@ -8,7 +8,7 @@ import BarangayOptions from '../../components/BarangayOptions';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function UserManagement() {
-  const { incidents } = useMockData();
+  const { incidents } = useAppData();
   const pendingCount = incidents ? incidents.filter(i => i.status === 'Pending').length : 0;
 
 
@@ -41,19 +41,24 @@ export default function UserManagement() {
   const [form, setForm] = useState({
     role: 'Barangay Admin',
     barangay: '',
+    taskForce: '',
     firstName: '',
     lastName: '',
     email: '',
+    contactNumber: '',
     password: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.firstName || !form.lastName || !form.email || !form.password) return;
+    if (form.role !== 'Responder' && (!form.firstName || !form.lastName)) return;
+    if (form.role === 'Responder' && !form.taskForce) return;
+    if (!form.email || !form.password || !form.contactNumber) return;
+
     const requiresBarangay = form.role === 'Barangay Admin';
     if (requiresBarangay && !form.barangay) return;
 
-    const fullName = `${form.firstName} ${form.lastName}`.trim();
+    const fullName = form.role === 'Responder' ? form.taskForce : `${form.firstName} ${form.lastName}`.trim();
 
     try {
       const response = await fetch(`${API_URL}/api/auth/admin/create-account`, {
@@ -66,6 +71,7 @@ export default function UserManagement() {
           barangay: requiresBarangay ? form.barangay : undefined,
           name: fullName,
           email: form.email,
+          contactNumber: form.contactNumber,
           password: form.password
         }),
       });
@@ -82,7 +88,7 @@ export default function UserManagement() {
 
       fetchUsers();
 
-      setForm({ role: 'Barangay Admin', barangay: '', firstName: '', lastName: '', email: '', password: '' });
+      setForm({ role: 'Barangay Admin', barangay: '', taskForce: '', firstName: '', lastName: '', email: '', contactNumber: '', password: '' });
       setShowModal(false);
     } catch (error) {
       console.error("Failed to create account:", error);
@@ -183,27 +189,46 @@ export default function UserManagement() {
                       </div>
                     )}
 
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Full Name</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <input 
-                          type="text"
+                    {form.role === 'Responder' && (
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Response Unit (Task Force)</label>
+                        <select 
                           required
-                          placeholder="First Name"
-                          value={form.firstName}
-                          onChange={e => setForm({...form, firstName: e.target.value})}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                        />
-                        <input 
-                          type="text"
-                          required
-                          placeholder="Last Name"
-                          value={form.lastName}
-                          onChange={e => setForm({...form, lastName: e.target.value})}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                        />
+                          value={form.taskForce}
+                          onChange={e => setForm({...form, taskForce: e.target.value})}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                        >
+                          <option value="" disabled>Select a Task Force</option>
+                          {[1, 2, 3, 4, 5].map(num => (
+                            <option key={num} value={`Task Force ${num}`}>Task Force {num}</option>
+                          ))}
+                        </select>
                       </div>
-                    </div>
+                    )}
+
+                    {form.role !== 'Responder' && (
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Full Name</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <input 
+                            type="text"
+                            required
+                            placeholder="First Name"
+                            value={form.firstName}
+                            onChange={e => setForm({...form, firstName: e.target.value})}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                          />
+                          <input 
+                            type="text"
+                            required
+                            placeholder="Last Name"
+                            value={form.lastName}
+                            onChange={e => setForm({...form, lastName: e.target.value})}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+                    )}
 
 
                     <div>
@@ -218,6 +243,23 @@ export default function UserManagement() {
                           placeholder="user@example.com"
                           value={form.email}
                           onChange={e => setForm({...form, email: e.target.value})}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Contact Number</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <span className="text-slate-400 font-bold text-xs">+63</span>
+                        </div>
+                        <input 
+                          type="tel"
+                          required
+                          placeholder="912 345 6789"
+                          value={form.contactNumber}
+                          onChange={e => setForm({...form, contactNumber: e.target.value})}
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                         />
                       </div>
@@ -331,3 +373,4 @@ export default function UserManagement() {
     </DepartmentLayout>
   );
 }
+

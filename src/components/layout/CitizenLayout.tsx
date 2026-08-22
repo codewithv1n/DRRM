@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, History, LayoutDashboard, Megaphone, Menu, Bell, BellRing, FileText, Sun, Moon, ChevronDown, Siren, Radio } from 'lucide-react';
+import { LogOut, History, LayoutDashboard, Megaphone, Menu, Bell, BellRing, FileText, Sun, Moon, ChevronDown, Siren, Radio, Globe } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAppData } from '../../data/AppDataContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -53,6 +54,7 @@ interface CitizenLayoutProps {
 export default function CitizenLayout({ children }: CitizenLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { language, setLanguage } = useAppData();
 
   useEffect(() => {
     if (!localStorage.getItem('user')) {
@@ -152,11 +154,19 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
   // Derive title from path
   const getPageTitle = () => {
     const path = location.pathname;
-    if (path.includes('alerts')) return 'Alerts & Advisories';
-    if (path.includes('report_logs')) return 'My Report Logs';
-    if (path.includes('announcements')) return 'Relief Announcements';
-    if (path.includes('claim_history')) return 'Claim History';
-    return 'Dashboard';
+    if (language === 'ph') {
+      if (path.includes('alerts')) return 'Mga Alerto at Abiso';
+      if (path.includes('report_logs')) return 'Aking Mga Report';
+      if (path.includes('announcements')) return 'Mga Anunsyo ng Relief';
+      if (path.includes('claim_history')) return 'Kasaysayan ng Pag-claim';
+      return 'Dashboard';
+    } else {
+      if (path.includes('alerts')) return 'Alerts & Advisories';
+      if (path.includes('report_logs')) return 'My Report Logs';
+      if (path.includes('announcements')) return 'Relief Announcements';
+      if (path.includes('claim_history')) return 'Claim History';
+      return 'Dashboard';
+    }
   };
 
   const isActive = (path: string) => {
@@ -214,13 +224,13 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto py-2 space-y-1 scrollbar-thin">
-          <GroupLabel label="Modules" />
+          <GroupLabel label={language === 'en' ? "Modules" : "Mga Modyul"} />
           <NavItem icon={LayoutDashboard} label="Dashboard" path="/citizen" />
-          <GroupLabel label="Services" />
-          <NavItem icon={BellRing} label="Alerts & Advisories" path="/citizen/alerts" />
-          <NavItem icon={FileText} label="My Report Logs" path="/citizen/report_logs" />
-          <NavItem icon={Megaphone} label="Relief Announcements" path="/citizen/announcements" />
-          <NavItem icon={History} label="Claim History" path="/citizen/claim_history" />
+          <GroupLabel label={language === 'en' ? "Services" : "Mga Serbisyo"} />
+          <NavItem icon={BellRing} label={language === 'en' ? "Alerts & Advisories" : "Mga Alerto at Abiso"} path="/citizen/alerts" />
+          <NavItem icon={FileText} label={language === 'en' ? "My Report Logs" : "Aking Mga Report"} path="/citizen/report_logs" />
+          <NavItem icon={Megaphone} label={language === 'en' ? "Relief Announcements" : "Mga Anunsyo ng Relief"} path="/citizen/announcements" />
+          <NavItem icon={History} label={language === 'en' ? "Claim History" : "Kasaysayan ng Pag-claim"} path="/citizen/claim_history" />
         </div>
 
 
@@ -241,6 +251,15 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
           
           <div className="flex items-center gap-4 lg:gap-6">
             <div className="flex items-center gap-2 relative">
+              <button
+                onClick={() => setLanguage(language === 'en' ? 'ph' : 'en')}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer mr-1"
+                title="Toggle Language"
+              >
+                <Globe className="w-4 h-4 text-blue-500" />
+                <span>{language === 'en' ? 'EN' : 'PH'}</span>
+              </button>
+
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer mr-1"

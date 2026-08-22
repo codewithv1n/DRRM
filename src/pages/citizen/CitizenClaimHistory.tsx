@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Package, Clock, CheckCircle, Search, XCircle } from 'lucide-react';
 import ResidentLayout from '../../components/layout/CitizenLayout';
+import { useAppData } from '../../data/AppDataContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -18,6 +19,7 @@ interface ClaimRecord {
 }
 
 export default function ResidentClaimHistory() {
+  const { language } = useAppData();
   const [claims, setClaims] = useState<ClaimRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -73,18 +75,18 @@ export default function ResidentClaimHistory() {
     <ResidentLayout>
       <div className="animate-fade-in">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-slate-900 font-display">Claim History</h2>
-          <p className="text-slate-500 mt-1">Track your past and pending relief goods claims.</p>
+          <h2 className="text-2xl font-bold text-slate-900 font-display">{language === 'en' ? 'Claim History' : 'Kasaysayan ng Pag-claim'}</h2>
+          <p className="text-slate-500 mt-1">{language === 'en' ? 'Track your past and pending relief goods claims.' : 'Subaybayan ang iyong mga nakaraan at kasalukuyang na-claim na relief goods.'}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <h3 className="font-semibold text-slate-800">Recent Claims</h3>
+            <h3 className="font-semibold text-slate-800">{language === 'en' ? 'Recent Claims' : 'Mga Kamakailang Claim'}</h3>
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
                 type="text" 
-                placeholder="Search history..." 
+                placeholder={language === 'en' ? "Search history..." : "Maghanap sa kasaysayan..."} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-48"
@@ -96,7 +98,7 @@ export default function ResidentClaimHistory() {
             {loading ? (
               <div className="p-12 text-center">
                 <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
-                <p className="text-sm text-slate-400">Loading claim history...</p>
+                <p className="text-sm text-slate-400">{language === 'en' ? 'Loading claim history...' : 'Naglo-load ng kasaysayan...'}</p>
               </div>
             ) : filteredClaims.length > 0 ? (
               filteredClaims.map(claim => {
@@ -112,11 +114,11 @@ export default function ResidentClaimHistory() {
                           {claim.item_name} {claim.quantity > 1 ? `(x${claim.quantity})` : ''}
                         </h4>
                         <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${style.badge}`}>
-                          {claim.status}
+                          {claim.status === 'Claimed' ? (language === 'en' ? 'Claimed' : 'Na-claim') : claim.status === 'Cancelled' ? (language === 'en' ? 'Cancelled' : 'Kinansela') : (language === 'en' ? 'Pending' : 'Pending')}
                         </span>
                       </div>
                       {claim.distribution_site && (
-                        <p className="text-sm text-slate-500 mb-1">Site: {claim.distribution_site}</p>
+                        <p className="text-sm text-slate-500 mb-1">{language === 'en' ? 'Site' : 'Lugar'}: {claim.distribution_site}</p>
                       )}
                       {claim.remarks && (
                         <p className="text-sm text-slate-500 mb-1">{claim.remarks}</p>
@@ -129,8 +131,8 @@ export default function ResidentClaimHistory() {
             ) : (
               <div className="p-12 text-center">
                 <Package className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                <h4 className="text-slate-500 font-medium">No claims history found</h4>
-                <p className="text-sm text-slate-400 mt-1">Your relief goods claims will appear here.</p>
+                <h4 className="text-slate-500 font-medium">{language === 'en' ? 'No claims history found' : 'Walang nahanap na kasaysayan'}</h4>
+                <p className="text-sm text-slate-400 mt-1">{language === 'en' ? 'Your relief goods claims will appear here.' : 'Dito lalabas ang iyong mga na-claim na relief goods.'}</p>
               </div>
             )}
           </div>

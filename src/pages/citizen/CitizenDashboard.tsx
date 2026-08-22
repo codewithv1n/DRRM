@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import ResidentLayout from '../../components/layout/CitizenLayout';
+import { useAppData } from '../../data/AppDataContext';
 
 
 
@@ -25,6 +26,7 @@ import ResidentLayout from '../../components/layout/CitizenLayout';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CitizenDashboard() {
+  const { language } = useAppData();
   const navigate = useNavigate();
   const location = useLocation();
   const [showToast, setShowToast] = useState(false);
@@ -193,9 +195,9 @@ export default function CitizenDashboard() {
         {/* Welcome Section with Weather Info */}
         <div className="bg-white rounded-3xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
-            <span className="text-xs font-extrabold text-primary uppercase tracking-widest block mb-1">Citizen Portal</span>
-            <h2 className="text-3xl font-bold text-slate-900 font-display mb-1">Welcome back, {userName}!</h2>
-            <p className="text-slate-500 text-sm">Access your digital resident card, track distributions, and check local shelter status.</p>
+            <span className="text-xs font-extrabold text-primary uppercase tracking-widest block mb-1">{language === 'en' ? 'Citizen Portal' : 'Portal ng Mamamayan'}</span>
+            <h2 className="text-3xl font-bold text-slate-900 font-display mb-1">{language === 'en' ? `Welcome back, ${userName}!` : `Maligayang pagbabalik, ${userName}!`}</h2>
+            <p className="text-slate-500 text-sm">{language === 'en' ? 'Access your digital resident card, track distributions, and check local shelter status.' : 'Tingnan ang iyong digital resident card, subaybayan ang mga relief goods, at suriin ang mga shelter.'}</p>
           </div>
           
           {/* Quick Weather Badge */}
@@ -226,24 +228,24 @@ export default function CitizenDashboard() {
           {/* Recent Claims Section */}
           <div className="lg:col-span-7 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-800 font-display">Recent Relief Activities</h3>
+              <h3 className="text-lg font-bold text-slate-800 font-display">{language === 'en' ? 'Recent Relief Activities' : 'Mga Kamakailang Aktibidad'}</h3>
               <button 
                 onClick={() => navigate('/citizen/claim_history')}
                 className="text-xs font-bold text-primary hover:text-orange-600 flex items-center gap-1"
               >
-                View History <ArrowRight className="w-3.5 h-3.5" />
+                {language === 'en' ? 'View History' : 'Tingnan ang Kasaysayan'} <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
             
             <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.01)] min-h-50 flex items-center justify-center">
-              <p className="text-slate-400 text-sm">No recent relief activities.</p>
+              <p className="text-slate-400 text-sm">{language === 'en' ? 'No recent relief activities.' : 'Walang kamakailang aktibidad sa relief.'}</p>
             </div>
 
           </div>
 
           {/* Quick Actions Grid */}
           <div className="lg:col-span-5 space-y-4">
-            <h3 className="text-lg font-bold text-slate-800 font-display">Resident Actions</h3>
+            <h3 className="text-lg font-bold text-slate-800 font-display">{language === 'en' ? 'Resident Actions' : 'Mga Aksyon ng Residente'}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
               <button 
@@ -255,9 +257,9 @@ export default function CitizenDashboard() {
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-800 text-sm mb-0.5 group-hover:text-primary transition-colors flex items-center gap-1">
-                    Alerts & Advisories <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {language === 'en' ? 'Alerts & Advisories' : 'Mga Alerto at Abiso'} <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </h4>
-                  <p className="text-[11px] text-slate-400">View active city warnings.</p>
+                  <p className="text-[11px] text-slate-400">{language === 'en' ? 'View active city warnings.' : 'Tingnan ang mga babala sa lungsod.'}</p>
                 </div>
               </button>
 
@@ -270,9 +272,9 @@ export default function CitizenDashboard() {
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-800 text-sm mb-0.5 group-hover:text-indigo-600 transition-colors flex items-center gap-1">
-                    Survival Guides <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {language === 'en' ? 'Survival Guides' : 'Mga Gabay sa Pag-survive'} <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </h4>
-                  <p className="text-[11px] text-slate-400">View disaster guides.</p>
+                  <p className="text-[11px] text-slate-400">{language === 'en' ? 'View disaster guides.' : 'Tingnan ang mga gabay sa sakuna.'}</p>
                 </div>
               </button>
 
@@ -283,7 +285,7 @@ export default function CitizenDashboard() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-slate-800 font-display flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-indigo-600" />
-                  AI Suggested Shelters
+                  {language === 'en' ? 'AI Suggested Shelters' : 'Mga Mungkahing Shelter ng AI'}
                 </h3>
                 <button 
                   onClick={handleSyncLocation}
@@ -291,7 +293,7 @@ export default function CitizenDashboard() {
                   className="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full flex items-center gap-1.5 hover:bg-indigo-100 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {isSyncing ? <div className="w-3.5 h-3.5 border-2 border-indigo-700 border-t-transparent rounded-full animate-spin" /> : <LocateFixed className="w-3.5 h-3.5" />}
-                  {isSyncing ? 'Syncing...' : 'Sync Location'}
+                  {isSyncing ? (language === 'en' ? 'Syncing...' : 'Nag-sync...') : (language === 'en' ? 'Sync Location' : 'I-sync ang Lokasyon')}
                 </button>
               </div>
               
@@ -301,9 +303,9 @@ export default function CitizenDashboard() {
                     <div className="bg-indigo-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
                       <MapPin className="w-6 h-6 text-indigo-500" />
                     </div>
-                    <h4 className="font-bold text-slate-800 text-sm mb-1">Please Sync Your Location</h4>
+                    <h4 className="font-bold text-slate-800 text-sm mb-1">{language === 'en' ? 'Please Sync Your Location' : 'Pakisync ang Iyong Lokasyon'}</h4>
                     <p className="text-xs text-slate-500 max-w-62.5 mx-auto">
-                      Click the "Sync Location" button above to find the nearest and safest evacuation centers.
+                      {language === 'en' ? 'Click the "Sync Location" button above to find the nearest and safest evacuation centers.' : 'I-click ang pindutan na "I-sync ang Lokasyon" sa itaas upang mahanap ang pinakamalapit at pinakaligtas na evacuation center.'}
                     </p>
                   </div>
                 ) : (

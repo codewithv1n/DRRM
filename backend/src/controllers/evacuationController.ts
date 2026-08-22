@@ -103,3 +103,24 @@ export const updateEvacuationCenterStatus = async (req: Request, res: Response):
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+
+export const resetEvacuationCenterOccupancy = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    
+    try {
+        const result = await pool.query(
+            'UPDATE evacuation_centers SET current_occupants = 0 WHERE evacuation_center_id = $1 RETURNING *',
+            [id]
+        );
+        if (result.rowCount === 0) {
+            res.status(404).json({ error: 'Evacuation center not found' });
+            return;
+        }
+        res.status(200).json({ data: result.rows[0] });
+
+        await logAction('Reset Evacuation Center', 'Barangay Admin', `Evacuation center #${id} occupancy reset to 0`, 'Barangay Admin');
+    } catch (error) {
+        console.error('Error resetting evacuation center occupancy:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};

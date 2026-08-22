@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import { MockDataProvider } from './data/MockDataContext';
+import { AppDataProvider } from './data/AppDataContext';
 
 function DarkModeManager() {
   const location = useLocation();
@@ -59,7 +59,7 @@ import EvacuationCenterMonitoringPage from './pages/admin/EvacuationCenterMonito
 import ResponderDashboard from './pages/response_units/ResponderDashboard';
 import ReliefDeliveryMissions from './pages/response_units/ReliefDeliveryMissions';
 import IncidentResponsePage from './pages/response_units/IncidentResponsePage';
-import ResponderUnitStatusPage from './pages/response_units/ResponderUnitStatusPage';
+import ResponderHazardMapPage from './pages/response_units/ResponderHazardMapPage';
 
 // Citizen Section
 import CitizenAnnouncements from './pages/citizen/CitizenReliefAnnouncements';
@@ -70,7 +70,7 @@ import CitizenReportLogs from './pages/citizen/CitizenReportLogs';
 
 function App() {
   return (
-    <MockDataProvider>
+    <AppDataProvider>
       <DarkModeManager />
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -86,9 +86,9 @@ function App() {
         <Route path="/survival_guides" element={<SurvivalGuide />} />
       
         <Route path="/responders" element={<ResponderDashboard />} />
-        <Route path="/responders/status" element={<ResponderUnitStatusPage />} />
         <Route path="/responders/incidents" element={<IncidentResponsePage />} />
         <Route path="/responders/deliveries" element={<ReliefDeliveryMissions />} />
+        <Route path="/responders/hazards" element={<ResponderHazardMapPage />} />
 
         <Route path="/admin" element={<DepartmentDashboard />} />
         <Route path="/admin/incidents" element={<IncidentDispatcherPanel />} />
@@ -120,9 +120,10 @@ function App() {
         {/* Fallback - redirect to landing page */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </MockDataProvider>
+    </AppDataProvider>
   );
 }
 
 export default App;
+
 

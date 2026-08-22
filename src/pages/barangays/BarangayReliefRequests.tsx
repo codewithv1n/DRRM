@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Clock, CheckCircle, Truck, Plus, X, List, Search } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 
 export default function BarangayReliefRequests() {
-  const { reliefDispatches, requestRelief } = useMockData();
+  const { reliefDispatches, requestRelief } = useAppData();
   const currentBarangay = 'Balingasa';
 
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -39,6 +39,7 @@ export default function BarangayReliefRequests() {
 
   return (
     <BarangayLayout>
+      <div className="animate-fade-in pb-12">
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Relief Requests</h1>
@@ -170,6 +171,8 @@ export default function BarangayReliefRequests() {
           </div>
         </div>
       )}
+      </div>
     </BarangayLayout>
   );
 }
+

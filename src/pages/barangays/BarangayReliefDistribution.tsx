@@ -1,27 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Megaphone, Package, AlertCircle, AlertTriangle, Send, Search, X } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 
 const ASSIGNED_BARANGAY = "Balingasa";
 
 function ReliefDistributionPanel() {
-  const { broadcastAlert } = useMockData();
+  const { broadcastAlert } = useAppData();
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [selectedBarangay] = useState('All');
   const [citizenId, setCitizenId] = useState('');
   
-  // Custom Modal State
+  
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'claimed'>('pending');
   const [citizenToConfirm, setCitizenToConfirm] = useState<{id: string, name: string, barangay: string, familySize: number, status: string, time: string} | null>(null);
   
-  // Search state
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [claimSearchQuery, setClaimSearchQuery] = useState('');
+  const [validUntil, setValidUntil] = useState('');
 
   const [mockClaims, setMockClaims] = useState<any[]>([]);
+
+  const fetchClaims = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/claim-history?barangay=${ASSIGNED_BARANGAY}`);
+      if (res.ok) {
+        const data = await res.json();
+        const mapped = data.map((c: any) => ({
+          id: c.citizen_relief_history_id,
+          name: c.citizen_name,
+          email: c.citizen_email,
+          barangay: ASSIGNED_BARANGAY,
+          familySize: c.quantity || 1,
+          status: c.status,
+          time: new Date(c.claimed_at || c.created_at).toLocaleString()
+        }));
+        setMockClaims(mapped);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchClaims();
+  }, []);
 
   const pendingClaims = mockClaims.filter(c => c.status === 'Pending' && (
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -35,15 +61,40 @@ function ReliefDistributionPanel() {
     c.barangay.toLowerCase().includes(claimSearchQuery.toLowerCase())
   ));
 
-  const handleBroadcast = (e: React.FormEvent) => {
+  const handleBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!broadcastMessage) return;
     
-    // In a real app, this would target specific users based on their location
-    broadcastAlert('General Alert', `RELIEF DISTRIBUTION (${selectedBarangay}): ${broadcastMessage}`);
+    // Broadcast the alert
+    const messageWithDate = validUntil ? `${broadcastMessage} (Valid until: ${validUntil})` : broadcastMessage;
+    broadcastAlert('General Alert', `RELIEF DISTRIBUTION (${selectedBarangay}): ${messageWithDate}`);
+    
+    // Call batch API to generate pending claims
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/claim-history/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          barangay: ASSIGNED_BARANGAY,
+          item_name: 'Relief Pack',
+          quantity: 1,
+          valid_until: validUntil
+        })
+      });
+      if (res.ok) {
+        alert('Announcement sent and pending claims generated for citizens!');
+        fetchClaims(); // Refresh list to show new pending claims
+      } else {
+        alert('Announcement sent, but failed to generate pending claims.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Announcement sent, but an error occurred while generating claims.');
+    }
+
     setBroadcastMessage('');
+    setValidUntil('');
     setShowBroadcastModal(false);
-    alert('Announcement sent to citizens!');
   };
 
   const handleMarkClaimed = (idToClaim?: string) => {
@@ -64,16 +115,25 @@ function ReliefDistributionPanel() {
     }
   };
 
-  const confirmClaim = () => {
+  const confirmClaim = async () => {
     if (!citizenToConfirm) return;
     
-    setMockClaims(prev => prev.map(c => 
-      c.id === citizenToConfirm.id ? { 
-        ...c, 
-        status: 'Claimed', 
-        time: new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) 
-      } : c
-    ));
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/claim-history/${citizenToConfirm.id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Claimed' })
+      });
+      
+      if (res.ok) {
+        fetchClaims();
+      } else {
+        alert('Failed to update claim status in database.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error updating claim status.');
+    }
     
     setCitizenId('');
     setShowConfirmModal(false);
@@ -97,7 +157,7 @@ function ReliefDistributionPanel() {
       </div>
 
       <div className="w-full">
-        {/* Tabs Row */}
+        
         <div className="flex gap-8 mb-6 border-b border-slate-100 px-2">
           <button
             type="button"
@@ -261,6 +321,15 @@ function ReliefDistributionPanel() {
                 </select>
               </div>
               <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Valid Until</label>
+                <input 
+                  type="date"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all p-3.5 outline-none"
+                  value={validUntil}
+                  onChange={(e) => setValidUntil(e.target.value)}
+                />
+              </div>
+              <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Message</label>
                 <textarea 
                   rows={4}
@@ -328,3 +397,4 @@ export default function BarangayReliefDistribution() {
     </BarangayLayout>
   );
 }
+

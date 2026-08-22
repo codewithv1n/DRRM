@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Box, Search } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 
 export default function BarangayReliefInventory() {
-  const { reliefDispatches } = useMockData();
+  const { reliefDispatches } = useAppData();
   const currentBarangay = 'Balingasa';
 
   // Derived Local Inventory
@@ -32,6 +32,7 @@ export default function BarangayReliefInventory() {
 
   return (
     <BarangayLayout>
+      <div className="animate-fade-in pb-12">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Relief Inventory</h1>
         <p className="text-slate-500 mt-1">Monitor local inventory of relief goods delivered from the EOC.</p>
@@ -87,6 +88,8 @@ export default function BarangayReliefInventory() {
           </div>
         </div>
       </div>
+      </div>
     </BarangayLayout>
   );
 }
+

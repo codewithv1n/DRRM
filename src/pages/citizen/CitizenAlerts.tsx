@@ -10,11 +10,13 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import ResidentLayout from '../../components/layout/CitizenLayout';
+import { useAppData } from '../../data/AppDataContext';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CitizenAlerts() {
+  const { language } = useAppData();
   const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
   const [weather, setWeather] = useState<{ temp: number, humidity: number, precip: number, wind: number, code: number } | null>(null);
 
@@ -88,8 +90,8 @@ export default function CitizenAlerts() {
         
         {/* Page Title */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-slate-900 font-display">Early Warning & Advisories</h2>
-          <p className="text-slate-500 mt-1">Real-time alerts and weather updates for Quezon City residents.</p>
+          <h2 className="text-2xl font-bold text-slate-900 font-display">{language === 'en' ? 'Early Warning & Advisories' : 'Mga Maagang Babala at Abiso'}</h2>
+          <p className="text-slate-500 mt-1">{language === 'en' ? 'Real-time alerts and weather updates for Quezon City residents.' : 'Real-time na alerto at update sa panahon para sa mga residente ng Quezon City.'}</p>
         </div>
 
         {/* Current Warning Banner */}
@@ -106,9 +108,9 @@ export default function CitizenAlerts() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className={`${warning.badge} border ${warning.border} text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest backdrop-blur-sm shadow-sm`}>
-                    {weather?.code && weather.code >= 51 ? 'Active Warning' : 'Status Update'}
+                    {weather?.code && weather.code >= 51 ? (language === 'en' ? 'Active Warning' : 'Aktibong Babala') : (language === 'en' ? 'Status Update' : 'Update sa Katayuan')}
                   </span>
-                  <span className={`${warning.text} text-xs font-medium flex items-center gap-1`}><Clock className="w-3 h-3" /> Live Updates</span>
+                  <span className={`${warning.text} text-xs font-medium flex items-center gap-1`}><Clock className="w-3 h-3" /> {language === 'en' ? 'Live Updates' : 'Live na Update'}</span>
                 </div>
                 <h3 className="text-2xl md:text-3xl font-black font-display tracking-wide mb-2">{warning.title}</h3>
                 <p className={`${warning.textDark} font-medium md:text-lg leading-relaxed max-w-2xl`}>
@@ -125,7 +127,7 @@ export default function CitizenAlerts() {
           <div className="lg:col-span-2 space-y-6">
             <h3 className="text-xl font-bold text-slate-800 font-display flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-rose-500" />
-              City Advisories
+              {language === 'en' ? 'City Advisories' : 'Mga Abiso ng Lungsod'}
             </h3>
             
             <div className="space-y-4">
@@ -146,14 +148,14 @@ export default function CitizenAlerts() {
                       {alert.message}
                     </p>
                     <div className="flex items-center gap-4 mt-3">
-                      <span className="flex items-center gap-1 text-xs font-semibold text-slate-600"><ShieldAlert className="w-3.5 h-3.5" /> {alert.channel || 'System Alert'}</span>
-                      <span className="text-xs text-slate-400">Issued {new Date(alert.created_at || alert.timestamp || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="flex items-center gap-1 text-xs font-semibold text-slate-600"><ShieldAlert className="w-3.5 h-3.5" /> {alert.channel || (language === 'en' ? 'System Alert' : 'Alerto ng Sistema')}</span>
+                      <span className="text-xs text-slate-400">{language === 'en' ? 'Issued' : 'Inilabas'} {new Date(alert.created_at || alert.timestamp || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   </div>
                 </div>
               )) : (
                 <div className="text-center p-8 text-slate-500 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                   No active city advisories at the moment.
+                   {language === 'en' ? 'No active city advisories at the moment.' : 'Walang aktibong abiso ang lungsod sa ngayon.'}
                 </div>
               )}
             </div>
@@ -163,7 +165,7 @@ export default function CitizenAlerts() {
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-slate-800 font-display flex items-center gap-2">
               <Thermometer className="w-5 h-5 text-indigo-500" />
-              Local Weather
+              {language === 'en' ? 'Local Weather' : 'Lokal na Panahon'}
             </h3>
             
             <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
@@ -179,22 +181,22 @@ export default function CitizenAlerts() {
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-slate-500 text-sm flex items-center gap-2"><CloudRain className="w-4 h-4 text-blue-400" /> Precipitation</span>
+                  <span className="text-slate-500 text-sm flex items-center gap-2"><CloudRain className="w-4 h-4 text-blue-400" /> {language === 'en' ? 'Precipitation' : 'Pag-ulan'}</span>
                   <span className="font-bold text-slate-800">{weather ? `${weather.precip} mm` : '--'}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-slate-500 text-sm flex items-center gap-2"><Wind className="w-4 h-4 text-emerald-400" /> Wind Speed</span>
+                  <span className="text-slate-500 text-sm flex items-center gap-2"><Wind className="w-4 h-4 text-emerald-400" /> {language === 'en' ? 'Wind Speed' : 'Bilis ng Hangin'}</span>
                   <span className="font-bold text-slate-800">{weather ? `${weather.wind} km/h` : '--'}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-slate-500 text-sm flex items-center gap-2"><Waves className="w-4 h-4 text-cyan-400" /> Humidity</span>
+                  <span className="text-slate-500 text-sm flex items-center gap-2"><Waves className="w-4 h-4 text-cyan-400" /> {language === 'en' ? 'Humidity' : 'Halumigmig'}</span>
                   <span className="font-bold text-slate-800">{weather ? `${weather.humidity}%` : '--'}</span>
                 </div>
               </div>
               
               <div className="mt-6 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
                  <p className="text-xs text-indigo-800 font-medium leading-relaxed text-center">
-                   {weather && weather.code >= 51 ? 'Rainy conditions detected. Keep umbrellas and rain gear ready.' : 'Conditions are relatively clear. Stay hydrated and aware of any rapid changes.'}
+                   {weather && weather.code >= 51 ? (language === 'en' ? 'Rainy conditions detected. Keep umbrellas and rain gear ready.' : 'May napansing pag-ulan. Ihanda ang inyong mga payong at panangga sa ulan.') : (language === 'en' ? 'Conditions are relatively clear. Stay hydrated and aware of any rapid changes.' : 'Maaliwalas ang panahon. Manatiling hydrated at maging alerto sa anumang pagbabago.')}
                  </p>
               </div>
             </div>

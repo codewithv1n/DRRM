@@ -16,9 +16,9 @@ interface SitRepLogItem {
   submittedAt: string;
   generalSituation: string;
   evacueesCount: number;
-  casualtiesCount: number;
-  damagedHousesCount: number;
-  status: 'Submitted' | 'Acknowledged by EOC';
+  damageSeverity: string;
+  eocName: string;
+  status: string;
   submittedBy: string;
 }
 
@@ -37,13 +37,13 @@ export default function SitrepLogsPage() {
           const mapped: SitRepLogItem[] = data.data
             .filter((item: any) => item.barangay === ASSIGNED_BARANGAY)
             .map((item: any) => ({
-              id: item.id,
-              reportNumber: 'SitRep-' + item.id.substring(0,6).toUpperCase(),
+              id: item.sitreps_id,
+              reportNumber: 'SitRep-' + (item.sitreps_id || 'XXXXXX').substring(0,6).toUpperCase(),
               submittedAt: item.created_at,
               generalSituation: item.general_situation,
               evacueesCount: item.evacuee_count,
-              casualtiesCount: item.casualties,
-              damagedHousesCount: item.household_count,
+              damageSeverity: item.damage_severity,
+              eocName: item.eoc_name,
               status: item.status,
               submittedBy: item.last_updated_by
             }));
@@ -158,9 +158,9 @@ export default function SitrepLogsPage() {
                 <tr className="bg-slate-50 text-[11px] font-extrabold uppercase tracking-wider text-slate-500 border-b border-slate-100">
                   <th className="py-4 px-6">Report ID</th>
                   <th className="py-4 px-6">Timestamp</th>
+                  <th className="py-4 px-6">Evacuation Center</th>
                   <th className="py-4 px-6">Evacuees</th>
-                  <th className="py-4 px-6">Casualties</th>
-                  <th className="py-4 px-6">Damaged Houses</th>
+                  <th className="py-4 px-6">Damage Severity</th>
                   <th className="py-4 px-6">Status</th>
                   <th className="py-4 px-6 text-right">Action</th>
                 </tr>
@@ -179,13 +179,13 @@ export default function SitrepLogsPage() {
                         {new Date(log.submittedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                       </td>
                       <td className="py-4 px-6 font-semibold text-slate-800">
+                        {log.eocName || 'N/A'}
+                      </td>
+                      <td className="py-4 px-6 text-slate-600">
                         {log.evacueesCount} pax
                       </td>
                       <td className="py-4 px-6 text-slate-600">
-                        {log.casualtiesCount}
-                      </td>
-                      <td className="py-4 px-6 text-slate-600">
-                        {log.damagedHousesCount}
+                        {log.damageSeverity}
                       </td>
                       <td className="py-4 px-6">
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
@@ -244,12 +244,12 @@ export default function SitrepLogsPage() {
                   <p className="font-bold text-slate-800 text-lg">{selectedLog.evacueesCount}</p>
                 </div>
                 <div>
-                  <span className="text-[11px] font-semibold text-slate-400 uppercase">Casualties</span>
-                  <p className="font-bold text-slate-800 text-lg">{selectedLog.casualtiesCount}</p>
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase">Damage</span>
+                  <p className="font-bold text-slate-800 text-lg">{selectedLog.damageSeverity}</p>
                 </div>
                 <div>
-                  <span className="text-[11px] font-semibold text-slate-400 uppercase">Damaged</span>
-                  <p className="font-bold text-slate-800 text-lg">{selectedLog.damagedHousesCount}</p>
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase">EOC Name</span>
+                  <p className="font-bold text-slate-800 text-sm mt-1 truncate px-1" title={selectedLog.eocName || 'N/A'}>{selectedLog.eocName || 'N/A'}</p>
                 </div>
               </div>
 

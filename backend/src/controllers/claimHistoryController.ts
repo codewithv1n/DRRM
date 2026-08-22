@@ -5,13 +5,22 @@ import { logAction } from './auditLogController';
 
 export const getClaimHistory = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { email } = req.query;
+        const { email, barangay } = req.query;
 
         let result;
         if (email) {
             result = await pool.query(
                 `SELECT * FROM citizen_relief_history WHERE citizen_email = $1 ORDER BY claimed_at DESC`,
                 [(email as string).trim().toLowerCase()]
+            );
+        } else if (barangay) {
+            
+            result = await pool.query(
+                `SELECT c.* FROM citizen_relief_history c
+                 JOIN auth a ON c.citizen_email = a.email
+                 WHERE a.barangay = $1
+                 ORDER BY c.claimed_at DESC`,
+                [barangay]
             );
         } else {
             result = await pool.query(
@@ -88,6 +97,63 @@ export const updateClaimStatus = async (req: Request, res: Response): Promise<vo
         });
     } catch (error) {
         console.error('Error updating claim status:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const createBatchClaimsForBarangay = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { barangay, item_name, quantity, remarks, valid_until } = req.body;
+
+        if (!barangay || !item_name) {
+            res.status(400).json({ message: 'barangay and item_name are required.' });
+            return;
+        }
+
+        
+        const citizensResult = await pool.query(
+            `SELECT name, email, family_members FROM auth WHERE barangay = $1 AND role = 'Citizen'`,
+            [barangay]
+        );
+
+        const citizens = citizensResult.rows;
+
+        if (citizens.length === 0) {
+            res.status(404).json({ message: 'No citizens found in this barangay.' });
+            return;
+        }
+
+       
+        let insertedCount = 0;
+        for (const citizen of citizens) {
+            const familyMembers = citizen.family_members ? JSON.parse(citizen.family_members) : [];
+            const familySize = 1 + familyMembers.length; 
+            const remarkText = valid_until ? `Valid until: ${valid_until}` : (remarks || `For family of ${familySize}`);
+
+            await pool.query(
+                `INSERT INTO citizen_relief_history 
+                (citizen_email, citizen_name, item_name, quantity, status, remarks) 
+                VALUES ($1, $2, $3, $4, $5, $6)`,
+                [
+                    citizen.email.trim().toLowerCase(),
+                    citizen.name,
+                    item_name,
+                    parseInt(quantity) || 1,
+                    'Pending',
+                    remarkText
+                ]
+            );
+            insertedCount++;
+        }
+
+        await logAction('Batch Relief Claim', 'Barangay Admin', `Created ${insertedCount} pending claims for ${barangay}: ${item_name}`, 'Admin');
+
+        res.status(201).json({
+            message: `Successfully created ${insertedCount} pending claims for ${barangay}.`,
+            count: insertedCount
+        });
+    } catch (error) {
+        console.error('Error creating batch claim records:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Package, Clock, Plus, X, Search, Filter, CheckCircle2 } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ReliefInventoryPanel() {
-  const { incidents } = useMockData();
+  const { incidents } = useAppData();
   const pendingCount = incidents.filter(i => i.status === 'Pending').length;
 
   const [inventory, setInventory] = useState<any[]>([]);
@@ -237,3 +237,4 @@ export default function ReliefInventoryPanel() {
     </DepartmentLayout>
   );
 }
+

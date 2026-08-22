@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Package, MapPin, Send, Clock, Plus, X, Truck } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 import BarangayOptions from '../../components/BarangayOptions';
 
 
@@ -25,7 +25,7 @@ interface DispatchLog {
 
 
 export default function ReliefDispatchPanel() {
-  const { reliefDispatches: mockDispatches, updateReliefDispatchStatus } = useMockData();
+  const { reliefDispatches: mockDispatches, updateReliefDispatchStatus } = useAppData();
   const pendingRequests = mockDispatches.filter(d => d.status === 'Pending');
   
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -333,3 +333,4 @@ export default function ReliefDispatchPanel() {
     </DepartmentLayout>
   );
 }
+

@@ -1,9 +1,9 @@
-import { Package, Calendar, Clock, Bell, Info, CreditCard, CheckCircle2 } from 'lucide-react';
+import { Package, Calendar, Clock, Bell, Info, CreditCard, Users } from 'lucide-react';
 import CitizenLayout from '../../components/layout/CitizenLayout';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 
 export default function CitizenAnnouncements() {
-  const { activeAlerts } = useMockData();
+  const { activeAlerts, language } = useAppData();
   
   const reliefAnnouncements = activeAlerts.filter(alert => 
     alert.message.includes('RELIEF DISTRIBUTION') || alert.message.toLowerCase().includes('relief')
@@ -14,10 +14,10 @@ export default function CitizenAnnouncements() {
       <div className="animate-fade-in">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-slate-900 font-display flex items-center gap-3">
-            Relief Announcements
+            {language === 'en' ? 'Relief Announcements' : 'Mga Anunsyo ng Relief'}
           </h2>
           <p className="text-slate-500 mt-1">
-            Stay updated on the latest relief goods distribution in your barangay.
+            {language === 'en' ? 'Stay updated on the latest relief goods distribution in your barangay.' : 'Manatiling updated sa pinakabagong pamamahagi ng relief goods sa inyong barangay.'}
           </p>
         </div>
 
@@ -66,9 +66,9 @@ export default function CitizenAnnouncements() {
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                   <Bell className="w-8 h-8 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-800 mb-1">No Announcements Yet</h3>
+                <h3 className="text-lg font-bold text-slate-800 mb-1">{language === 'en' ? 'No Announcements Yet' : 'Wala Pang Anunsyo'}</h3>
                 <p className="text-slate-500 max-w-md">
-                  There are currently no relief distribution announcements. We will notify you once a schedule is set.
+                  {language === 'en' ? 'There are currently no relief distribution announcements. We will notify you once a schedule is set.' : 'Kasalukuyang walang anunsyo sa pamamahagi ng relief. Aabisuhan ka namin kapag may nakatakda nang iskedyul.'}
                 </p>
               </div>
             )}
@@ -78,7 +78,7 @@ export default function CitizenAnnouncements() {
             <div className="bg-white rounded-3xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-slate-100 sticky top-8">
               <div className="flex items-center gap-2 mb-5 border-b border-slate-100 pb-3">
                 <Info className="w-5 h-5 text-indigo-600" />
-                <h3 className="text-lg font-bold text-slate-800 font-display">Claiming Guidelines</h3>
+                <h3 className="text-lg font-bold text-slate-800 font-display">{language === 'en' ? 'Claiming Guidelines' : 'Mga Alituntunin sa Pag-claim'}</h3>
               </div>
 
               <div className="space-y-4">
@@ -87,24 +87,24 @@ export default function CitizenAnnouncements() {
                     <CreditCard className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-orange-900 text-sm mb-1">Bring Valid ID</h4>
+                    <h4 className="font-bold text-orange-900 text-sm mb-1">{language === 'en' ? 'Bring Valid ID' : 'Magdala ng Valid ID'}</h4>
                     <p className="text-xs text-orange-800 leading-relaxed">
-                      Please bring your physical ID (or a photocopy) to present at the distribution center for verification.
+                      {language === 'en' ? 'Please bring your physical ID (or a photocopy) to present at the distribution center for verification.' : 'Mangyaring dalhin ang iyong pisikal na ID (o photocopy) upang ipakita sa distribution center para sa beripikasyon.'}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3.5">
+                  <div className="bg-blue-100 p-2 rounded-xl text-blue-600 shrink-0">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-700 text-sm mb-1">{language === 'en' ? 'Fall in Line Properly' : 'Pumila Nang Maayos'}</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      {language === 'en' ? 'Please wait for your name or assigned room/tent to be called before falling in line to avoid overcrowding.' : 'Mangyaring maghintay na tawagin ang inyong pangalan o room/tent bago pumila upang maiwasan ang siksikan.'}
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-start gap-3.5">
-                  <div className="bg-white p-2 border border-slate-100 rounded-xl text-emerald-600 shrink-0">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-700 text-sm mb-1">One per Household</h4>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      Only one representative per household is allowed to claim the relief goods to maintain order.
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -113,3 +113,4 @@ export default function CitizenAnnouncements() {
     </CitizenLayout>
   );
 }
+

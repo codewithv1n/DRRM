@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, KeyRound, AlertCircle, Loader2, ArrowLeft, ShieldCheck, RefreshCw } from 'lucide-react';
-
+import ForgotPasswordForm from './ForgotPasswordForm';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<'LOGIN' | 'OTP_VERIFICATION'>('LOGIN');
+  const [step, setStep] = useState<'LOGIN' | 'OTP_VERIFICATION' | 'FORGOT_PASSWORD'>('LOGIN');
 
   // Login State
   const [username, setUsername] = useState('');
@@ -240,7 +240,7 @@ export default function LoginPage() {
 
       {/* Right Panel - Login/OTP Form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center bg-[#FAFAFA] relative">
-        {step === 'OTP_VERIFICATION' && (
+        {(step === 'OTP_VERIFICATION' || step === 'FORGOT_PASSWORD') && (
           <button
             onClick={() => setStep('LOGIN')}
             className="absolute left-8 top-8 p-2.5 bg-white shadow-sm border border-slate-200 text-slate-500 hover:text-slate-700 rounded-full transition-colors cursor-pointer flex items-center justify-center z-10"
@@ -288,7 +288,7 @@ export default function LoginPage() {
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center">
                       <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Password</label>
-                      <a href="#" className="text-[10px] font-semibold text-[#2563EB] hover:text-blue-700">Forgot password?</a>
+                      <button type="button" onClick={() => setStep('FORGOT_PASSWORD')} className="text-[10px] font-semibold text-[#2563EB] hover:text-blue-700 cursor-pointer">Forgot password?</button>
                     </div>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -333,6 +333,8 @@ export default function LoginPage() {
                   </button>
                 </div>
               </>
+            ) : step === 'FORGOT_PASSWORD' ? (
+              <ForgotPasswordForm onBack={() => setStep('LOGIN')} />
             ) : (
               /* OTP VERIFICATION VIEW */
               <div className="animate-fade-in text-center">

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
 import { logAction } from './auditLogController';
+import { sendDonationThankYouEmail } from './otpController';
 
 export const createDonation = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -13,6 +14,13 @@ export const createDonation = async (req: Request, res: Response): Promise<void>
             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
             [full_name, email, donation_type, parseInt(quantity) || 1, photo_path]
         );
+
+        // Send Thank You Email asynchronously
+        if (email) {
+            sendDonationThankYouEmail(email, full_name, donation_type, parseInt(quantity) || 1).catch(err => {
+                console.error("Failed to send thank you email:", err);
+            });
+        }
 
         res.status(201).json({
             message: "Donation submitted successfully",

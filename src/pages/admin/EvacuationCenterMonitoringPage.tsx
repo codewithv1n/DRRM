@@ -3,7 +3,7 @@ import {
   Building2, Users, Search, Filter, 
   AlertCircle, CheckCircle2, Clock, ShieldAlert, Home
 } from 'lucide-react';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 
 
@@ -19,7 +19,7 @@ function timeAgo(ts?: string) {
 }
 
 export default function EvacuationCenterMonitoringPage() {
-  const { incidents } = useMockData();
+  const { incidents } = useAppData();
   const [evacuationCenters, setEvacuationCenters] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
@@ -51,7 +51,6 @@ export default function EvacuationCenterMonitoringPage() {
   const totalCenters = evacuationCenters.length;
   const totalOccupancy = evacuationCenters.reduce((sum, c) => sum + c.currentOccupancy, 0);
   const totalCapacity = evacuationCenters.reduce((sum, c) => sum + c.capacity, 0);
-  const overallOccupancyPercent = totalCapacity > 0 ? Math.round((totalOccupancy / totalCapacity) * 100) : 0;
 
   const filteredCenters = evacuationCenters.filter(center => {
     const matchesSearch = center.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -112,7 +111,7 @@ export default function EvacuationCenterMonitoringPage() {
         </div>
 
         {/* Summary Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase text-slate-400 tracking-wider">Active Evacuation Centers</p>
@@ -143,25 +142,6 @@ export default function EvacuationCenterMonitoringPage() {
             </div>
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <Building2 className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase text-slate-400 tracking-wider">Citywide Occupancy Rate</p>
-              <h3 className={`text-3xl font-extrabold mt-1 ${
-                overallOccupancyPercent >= 90 ? 'text-rose-600' :
-                overallOccupancyPercent >= 70 ? 'text-amber-600' : 'text-emerald-600'
-              }`}>
-                {overallOccupancyPercent}%
-              </h3>
-              <p className="text-[11px] text-slate-500 mt-1">Overall capacity used</p>
-            </div>
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-              overallOccupancyPercent >= 90 ? 'bg-rose-50 text-rose-600' :
-              overallOccupancyPercent >= 70 ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
-            }`}>
-              <ShieldAlert className="w-6 h-6" />
             </div>
           </div>
         </div>
@@ -261,3 +241,4 @@ export default function EvacuationCenterMonitoringPage() {
     </DepartmentLayout>
   );
 }
+

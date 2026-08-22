@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Truck, CheckCircle, Clock, AlertTriangle, Image as ImageIcon, X, Search, Filter } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ValidateDonationsPanel() {
-  const { incidents } = useMockData();
+  const { incidents } = useAppData();
   const pendingCount = incidents.filter(i => i.status === 'Pending').length;
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [donations, setDonations] = useState<any[]>([]);
@@ -271,3 +271,4 @@ export default function ValidateDonationsPanel() {
     </DepartmentLayout>
   );
 }
+

@@ -61,11 +61,36 @@ export const updateIncidentStatus = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Incident report not found' });
         }
 
+        const incident = result.rows[0];
+
+        if (status === 'Responding' && (assigned_responder || incident.assigned_responder)) {
+            try {
+                await pool.query(
+                    `INSERT INTO deployed_incidents 
+                     (incident_id, taskforce_name, reporter_name, contact_number, location, type, status, created_at)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                    [
+                        incident.incident_id,
+                        assigned_responder || incident.assigned_responder,
+                        incident.reporter_name,
+                        incident.contact_number,
+                        incident.location,
+                        incident.type,
+                        incident.status,
+                        incident.created_at
+                    ]
+                );
+            } catch (err) {
+                console.error('Failed to log deployment to deployed_incidents:', err);
+                // Do not throw, allow the status update to succeed
+            }
+        }
+
         await logAction('Update Incident Status', 'Admin', `Incident #${id} status changed to ${status}${assigned_responder ? `, assigned to ${assigned_responder}` : ''}`, 'Admin');
 
         res.status(200).json({
             message: 'Incident status updated successfully',
-            incident: result.rows[0]
+            incident: incident
         });
     } catch (error) {
         console.error('Error updating incident status:', error);

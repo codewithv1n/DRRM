@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   LogOut, LayoutDashboard, ChevronDown,
-  Menu, Bell, Package, Siren, Sun, Moon, Shield
+  Menu, Bell, Package, Siren, Sun, Moon, Map 
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -91,9 +91,9 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
         <div className="flex-1 overflow-y-auto py-2 space-y-1 scrollbar-thin">
           <div className="px-5 pt-6 pb-2 text-[11px] uppercase font-semibold tracking-widest text-sidebar-foreground/50">Modules</div>
           <NavItem icon={LayoutDashboard} label="Dashboard" path="/responders" />
-          <NavItem icon={Shield} label="Unit Status" path="/responders/status" />
           <NavItem icon={Siren} label="Incident Response" path="/responders/incidents" badgeCount={activeIncidentsCount} />
           <NavItem icon={Package} label="Relief Deliveries" path="/responders/deliveries" />
+          <NavItem icon={Map} label="Hazard Map" path="/responders/hazards" />
         </div>
 
 

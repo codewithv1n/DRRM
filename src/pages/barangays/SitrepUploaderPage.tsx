@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { FileText, Send, AlertCircle, Info, History } from 'lucide-react';
+import { FileText, Send, AlertCircle, Info, History, CheckCircle2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useMockData } from '../../data/MockDataContext';
+import { useAppData } from '../../data/AppDataContext';
 import { ASSIGNED_BARANGAY } from './BarangayDashboard';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
@@ -11,17 +11,30 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SitrepPanel() {
   const navigate = useNavigate();
-  const { addAuditLog } = useMockData();
+  const { addAuditLog } = useAppData();
   const [showToast, setShowToast] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [generalSituation, setGeneralSituation] = useState('');
   const [evacuees, setEvacuees] = useState<number | string>('');
-  const [casualties, setCasualties] = useState<number | string>('');
-  const [households, setHouseholds] = useState<number | string>('');
   const [damageSeverity, setDamageSeverity] = useState('Minor');
+  const [evacuationCenters, setEvacuationCenters] = useState<any[]>([]);
+  const [selectedEvacuationCenter, setSelectedEvacuationCenter] = useState('');
 
+  useEffect(() => {
+    fetch(`${API_URL}/api/evacuation-centers`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.data) {
+          const barangayCenters = data.data.filter((c: any) => c.barangay === ASSIGNED_BARANGAY);
+          setEvacuationCenters(barangayCenters);
+        }
+      })
+      .catch(err => console.error("Failed to fetch evacuation centers:", err));
+  }, []);
   const handleSitRepSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       const res = await fetch(`${API_URL}/api/sitreps`, {
         method: 'POST',
@@ -30,25 +43,28 @@ export default function SitrepPanel() {
           barangay: ASSIGNED_BARANGAY,
           general_situation: generalSituation,
           evacuee_count: Number(evacuees) || 0,
-          casualties: Number(casualties) || 0,
-          household_count: Number(households) || 0,
           damage_severity: damageSeverity,
+          evacuation_center: selectedEvacuationCenter,
           last_updated_by: `Brgy. Admin (${ASSIGNED_BARANGAY})`
         })
       });
+
+      // Artificial delay for animation
+      await new Promise(resolve => setTimeout(resolve, 600));
 
       if (res.ok) {
         setShowToast(true);
         addAuditLog('Submit SitRep', `Barangay Admin (${ASSIGNED_BARANGAY})`, 'Submitted daily situation report.');
         setGeneralSituation('');
         setEvacuees('');
-        setCasualties('');
-        setHouseholds('');
         setDamageSeverity('Minor');
-        setTimeout(() => setShowToast(false), 3000);
+        setSelectedEvacuationCenter('');
+        setTimeout(() => setShowToast(false), 4000);
       }
     } catch (error) {
       console.error('Error submitting sitrep:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -68,11 +84,6 @@ export default function SitrepPanel() {
           <h3 className="font-bold text-slate-800">Situation Report (SitRep)</h3>
         </div>
         <form onSubmit={handleSitRepSubmit} className="p-6 space-y-5">
-          {showToast && (
-            <div className="bg-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2 animate-fade-in-down">
-               <Send className="w-4 h-4" /> SitRep Submitted Successfully!
-            </div>
-          )}
           
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">General Situation</label>
@@ -86,18 +97,19 @@ export default function SitrepPanel() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Evacuation Center</label>
+              <select value={selectedEvacuationCenter} onChange={(e) => setSelectedEvacuationCenter(e.target.value)} className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <option value="">Select Evacuation Center</option>
+                {evacuationCenters.map(center => (
+                  <option key={center.evacuation_center_id || center.id} value={center.name}>{center.name}</option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Number of Evacuees</label>
               <input type="number" min="0" value={evacuees} onChange={(e) => setEvacuees(e.target.value === '' ? '' : parseInt(e.target.value))} className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Casualties</label>
-              <input type="number" min="0" value={casualties} onChange={(e) => setCasualties(e.target.value === '' ? '' : parseInt(e.target.value))} className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Damaged Houses</label>
-              <input type="number" min="0" value={households} onChange={(e) => setHouseholds(e.target.value === '' ? '' : parseInt(e.target.value))} className="w-full border border-slate-300 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Damage Severity</label>
@@ -119,10 +131,21 @@ export default function SitrepPanel() {
 
           <button 
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer mt-4"
+            disabled={isSubmitting}
+            className="w-full bg-blue-500 hover:bg-blue-600 active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md flex items-center justify-center min-h-13 mt-4"
           >
-            <Send className="w-5 h-5" />
-            Submit
+            {isSubmitting ? (
+              <div className="flex items-center justify-center gap-1.5">
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+              </div>
+            ) : (
+              <>
+                <Send className="w-5 h-5 mr-2" />
+                Submit SitRep
+              </>
+            )}
           </button>
         </form>
       </div>
@@ -138,7 +161,7 @@ export default function SitrepPanel() {
           </h3>
           <ul className="text-sm text-blue-800 space-y-2 list-disc pl-4">
             <li>Be concise and factual in the General Situation.</li>
-            <li>Ensure all evacuee and casualty numbers are officially verified by BDRRMC.</li>
+            <li>Ensure all evacuee numbers are officially verified by BDRRMC.</li>
             <li>Update EOC immediately for critical lifeline status (water, power).</li>
             <li>Keep a physical backup copy of all reports.</li>
           </ul>
@@ -169,6 +192,23 @@ export default function SitrepPanel() {
       </div>
     </div>
     </div>
+
+      {/* Success Toast */}
+      {showToast && (
+        <div className="fixed top-6 right-6 bg-emerald-500 border border-emerald-400 shadow-[0_10px_40px_rgba(16,185,129,0.3)] rounded-2xl p-4 flex items-center gap-4 z-50 animate-fade-in">
+          <div className="bg-emerald-400/50 text-white p-2 rounded-xl">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-bold text-white text-sm">Successfully Submitted</h4>
+            <p className="text-xs text-emerald-50">Situation Report has been sent to QC EOC.</p>
+          </div>
+          <button onClick={() => setShowToast(false)} className="ml-2 text-emerald-200 hover:text-white transition-colors cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </BarangayLayout>
   );
 }
+

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
   Building2, Users, Search, Filter, 
-  AlertCircle, CheckCircle2, Clock, ShieldAlert, Home
+  AlertCircle, CheckCircle2, Clock, ShieldAlert, Home,
+  AlertTriangle, X
 } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
@@ -23,6 +24,7 @@ export default function BarangayEvacuationMonitoringPage() {
   const [evacuationCenters, setEvacuationCenters] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [showResetConfirm, setShowResetConfirm] = useState<string | null>(null);
 
   const fetchCenters = () => {
     fetch(`${API_URL}/api/evacuation-centers`)
@@ -65,14 +67,27 @@ export default function BarangayEvacuationMonitoringPage() {
     }
   };
 
+  const confirmReset = async () => {
+    if (!showResetConfirm) return;
+    try {
+      const res = await fetch(`${API_URL}/api/evacuation-centers/${showResetConfirm}/reset`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) {
+        fetchCenters(); // Refresh
+        setShowResetConfirm(null);
+      }
+    } catch (error) {
+      console.error('Failed to reset occupancy:', error);
+    }
+  };
 
-  // Calculate Metrics for the specific barangay
+
   const barangayCenters = evacuationCenters.filter(c => c.barangay === ASSIGNED_BARANGAY);
-  
   const totalCenters = barangayCenters.length;
   const totalOccupancy = barangayCenters.reduce((sum, c) => sum + c.currentOccupancy, 0);
   const totalCapacity = barangayCenters.reduce((sum, c) => sum + c.capacity, 0);
-  const overallOccupancyPercent = totalCapacity > 0 ? Math.round((totalOccupancy / totalCapacity) * 100) : 0;
 
   const filteredCenters = barangayCenters.filter(center => {
     const matchesSearch = center.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -125,7 +140,7 @@ export default function BarangayEvacuationMonitoringPage() {
         </div>
 
         {/* Summary Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase text-slate-400 tracking-wider">Active Centers</p>
@@ -156,25 +171,6 @@ export default function BarangayEvacuationMonitoringPage() {
             </div>
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <Building2 className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase text-slate-400 tracking-wider">Occupancy Rate</p>
-              <h3 className={`text-3xl font-extrabold mt-1 ${
-                overallOccupancyPercent >= 90 ? 'text-rose-600' :
-                overallOccupancyPercent >= 70 ? 'text-amber-600' : 'text-emerald-600'
-              }`}>
-                {overallOccupancyPercent}%
-              </h3>
-              <p className="text-[11px] text-slate-500 mt-1">Overall capacity used</p>
-            </div>
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-              overallOccupancyPercent >= 90 ? 'bg-rose-50 text-rose-600' :
-              overallOccupancyPercent >= 70 ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
-            }`}>
-              <ShieldAlert className="w-6 h-6" />
             </div>
           </div>
         </div>
@@ -250,21 +246,31 @@ export default function BarangayEvacuationMonitoringPage() {
                   </div>
 
                   {/* Card Footer Info */}
-                  <div className="pt-4 border-t border-slate-100 mt-2 flex items-center justify-between">
-                    <span className="text-xs text-slate-500 flex items-center gap-1">
+                  <div className="pt-4 border-t border-slate-100 mt-2 flex items-center justify-between gap-2">
+                    <span className="text-xs text-slate-500 flex items-center gap-1 flex-1">
                       <Clock className="w-3.5 h-3.5" /> Updated {timeAgo(center.lastUpdatedAt)}
                     </span>
                     
-                    <button
-                      onClick={() => toggleStatus(center.id, center.status)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border ${
-                        center.status === 'Open'
-                          ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
-                          : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
-                      }`}
-                    >
-                      {center.status === 'Open' ? 'Close Center' : 'Open Center'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowResetConfirm(center.id)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 cursor-pointer"
+                        title="Reset occupancy to 0"
+                      >
+                        Reset
+                      </button>
+                      
+                      <button
+                        onClick={() => toggleStatus(center.id, center.status)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border cursor-pointer ${
+                          center.status === 'Open'
+                            ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                            : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                        }`}
+                      >
+                        {center.status === 'Open' ? 'Close' : 'Open'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -276,6 +282,48 @@ export default function BarangayEvacuationMonitoringPage() {
           )}
         </div>
       </div>
+
+      {/* Custom Reset Confirmation Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-start justify-between">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <button 
+                onClick={() => setShowResetConfirm(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="mt-4">
+              <h3 className="text-lg font-bold text-slate-900">Reset Occupancy?</h3>
+              <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+                This will set the current occupancy to zero. This action cannot be undone. Are you sure you want to proceed?
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3 mt-6">
+              <button
+                onClick={() => setShowResetConfirm(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReset}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer shadow-sm hover:shadow"
+              >
+                Yes, Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </BarangayLayout>
   );
 }
+  
