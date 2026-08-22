@@ -49,6 +49,19 @@ app.get('/', (req: Request, res: Response) => {
     res.json({ message: "Server is Running" });
 });
 
-app.listen(Number(PORT), '0.0.0.0', () => {
+const server = app.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`Server is running at http://0.0.0.0:${PORT}`);
+});
+
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully...');
+    server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1);
 });
