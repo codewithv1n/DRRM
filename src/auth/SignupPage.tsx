@@ -47,7 +47,7 @@ export default function SignupPage() {
           email: form.email,
           password: form.password,
           contactNumber: form.contactNumber,
-          purok: form.purok
+          address: form.purok
         }),
       });
 
