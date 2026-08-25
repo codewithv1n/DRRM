@@ -7,7 +7,7 @@ const SALT_ROUNDS = 10;
 
 export const adminCreateAccount = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { role, barangay, name, email, password, contactNumber, address, familyMembers } = req.body;
+        const { role, barangay, name, email, password, contactNumber, address, taskforceName, currentMission } = req.body;
 
         if (!name || !email || !password || !role) {
             res.status(400).json({ error: 'Missing required fields' });
@@ -26,13 +26,12 @@ export const adminCreateAccount = async (req: Request, res: Response): Promise<v
 
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
         const responderStatus = role === 'Responder' ? 'available' : null;
-        const familyMembersJson = familyMembers ? JSON.stringify(familyMembers) : null;
 
         const result = await pool.query(
-            `INSERT INTO auth (name, username, email, password, role, barangay, contact_number, address, family_members, responder_status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            `INSERT INTO auth (name, username, email, password, role, barangay, contact_number, address, taskforce_name, responder_status, current_mission)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
              RETURNING auth_id AS id, name, email, role, created_at`,
-            [name.trim(), cleanEmail, cleanEmail, hashedPassword, role, barangay || null, contactNumber || null, address || null, familyMembersJson, responderStatus]
+            [name.trim(), cleanEmail, cleanEmail, hashedPassword, role, barangay || null, contactNumber || null, address || null, taskforceName || null, responderStatus, currentMission || null]
         );
         
         const newUser = result.rows[0];
@@ -88,7 +87,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Return user data without password
+        
         const { password: _, ...userData } = user;
         
         await logAction('User Login', userData.role || 'User', `${userData.name} logged in (${userData.email})`, userData.name);

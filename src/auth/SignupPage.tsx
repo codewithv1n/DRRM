@@ -9,6 +9,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 export default function SignupPage() {
   const navigate = useNavigate();
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [otp, setOtp] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const [form, setForm] = useState({
     role: 'Citizen',
@@ -26,15 +29,60 @@ export default function SignupPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.firstName || !form.lastName || !form.email || !form.password) return;
-    if (!form.barangay) return;
+    if (!form.firstName || !form.lastName || !form.email || !form.password || !form.barangay) {
+      showToast("Please fill all required fields", "error");
+      return;
+    }
 
-    const fullName = `${form.firstName} ${form.lastName}`.trim();
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/otp/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, type: 'signup' }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        showToast(data.error || 'Failed to send OTP', 'error');
+        setIsLoading(false);
+        return;
+      }
+
+      showToast("OTP sent to your email!", 'success');
+      setStep(2);
+    } catch (error) {
+      console.error("Failed to send OTP:", error);
+      showToast("Failed to connect to the server.", 'error');
+    }
+    setIsLoading(false);
+  };
+
+
+  const handleVerifyAndSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp) return;
+    setIsLoading(true);
 
     try {
+      // 1. Verify OTP
+      const verifyRes = await fetch(`${API_URL}/api/otp/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, otp }),
+      });
+
+      const verifyData = await verifyRes.json();
+      if (!verifyRes.ok) {
+        showToast(verifyData.error || 'Invalid OTP', 'error');
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Create Account
+      const fullName = `${form.firstName} ${form.lastName}`.trim();
       const response = await fetch(`${API_URL}/api/auth/admin/create-account`, {
         method: 'POST',
         headers: {
@@ -51,9 +99,10 @@ export default function SignupPage() {
         }),
       });
 
+      const errorData = await response.json();
       if (!response.ok) {
-        const errorData = await response.json();
         showToast(`Error: ${errorData.error || 'Unknown error'}`, 'error');
+        setIsLoading(false);
         return;
       }
 
@@ -66,6 +115,7 @@ export default function SignupPage() {
     } catch (error) {
       console.error("Failed to create account:", error);
       showToast("Failed to connect to the server.", 'error');
+      setIsLoading(false);
     }
   };
 
@@ -148,7 +198,8 @@ export default function SignupPage() {
           Create Citizen Account
         </h3>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {step === 1 ? (
+        <form onSubmit={handleSendOtp} className="space-y-4">
             <div className="space-y-4 animate-fade-in">
               <div>
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Barangay</label>
@@ -243,11 +294,52 @@ export default function SignupPage() {
               </div>
             </div>
 
-              <button type="submit" className="w-full bg-[#2563EB] hover:bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-6 shadow-sm hover:shadow-md cursor-pointer">
+              <button type="submit" disabled={isLoading} className="w-full bg-[#2563EB] hover:bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-6 shadow-sm hover:shadow-md cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">
                 <UserPlus className="w-4 h-4" />
-                Create Account
+                {isLoading ? 'Sending OTP...' : 'Next: Verify Email'}
               </button>
             </form>
+        ) : (
+          <form onSubmit={handleVerifyAndSignup} className="space-y-4 animate-fade-in">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Mail className="w-8 h-8 text-blue-600" />
+              </div>
+              <h4 className="text-lg font-bold text-slate-800">Check your email</h4>
+              <p className="text-sm text-slate-500 mt-2">
+                We sent a 6-digit verification code to<br/>
+                <span className="font-semibold text-slate-700">{form.email}</span>
+              </p>
+            </div>
+            
+            <div>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2 text-center">Verification Code</label>
+              <input 
+                type="text"
+                required
+                maxLength={6}
+                placeholder="000000"
+                value={otp}
+                onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                className="w-full text-center tracking-[0.5em] text-2xl font-mono bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] outline-none transition-all"
+              />
+            </div>
+
+            <button type="submit" disabled={isLoading || otp.length !== 6} className="w-full bg-[#2563EB] hover:bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-6 shadow-sm hover:shadow-md cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">
+              {isLoading ? 'Verifying...' : 'Create Account'}
+            </button>
+            
+            <div className="text-center mt-6">
+              <button 
+                type="button" 
+                onClick={() => { setStep(1); setOtp(''); }}
+                className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              >
+                Change email or edit details
+              </button>
+            </div>
+          </form>
+        )}
           </div>
         </div>
       </div>
