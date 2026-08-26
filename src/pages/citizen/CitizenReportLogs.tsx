@@ -1,7 +1,7 @@
 import { FileText, MapPin, Clock, ShieldAlert, CheckCircle, Clock3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import CitizenLayout from '../../components/layout/CitizenLayout';
-import { useAppData } from '../../data/AppDataContext';
+import { useLanguage } from '../../data/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -56,7 +56,7 @@ const LocationDisplay = ({ locationStr }: { locationStr: string }) => {
 }
 
 export default function CitizenReportLogs() {
-  const { language } = useAppData();
+  const { language } = useLanguage();
   const [incidents, setIncidents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

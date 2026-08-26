@@ -15,7 +15,7 @@ export const createDonation = async (req: Request, res: Response): Promise<void>
             [full_name, email, donation_type, parseInt(quantity) || 1, photo_path]
         );
 
-        // Send Thank You Email asynchronously
+     
         if (email) {
             sendDonationThankYouEmail(email, full_name, donation_type, parseInt(quantity) || 1).catch(err => {
                 console.error("Failed to send thank you email:", err);
@@ -68,10 +68,10 @@ export const markDonationReceived = async (req: Request, res: Response): Promise
         const quantity = donation.quantity || 1;
 
         await pool.query(
-            `INSERT INTO relief_inventory (category, quantity) 
+            `INSERT INTO admin_relief_inventory (category, quantity) 
              VALUES ($1, $2)
              ON CONFLICT (category) DO UPDATE 
-             SET quantity = relief_inventory.quantity + EXCLUDED.quantity, last_updated = CURRENT_TIMESTAMP`,
+             SET quantity = admin_relief_inventory.quantity + EXCLUDED.quantity, last_updated = CURRENT_TIMESTAMP`,
             [category, quantity]
         );
 

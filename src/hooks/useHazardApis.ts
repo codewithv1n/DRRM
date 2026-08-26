@@ -72,7 +72,7 @@ export function getWeatherDescription(code: number): string {
   return descriptions[code] || `Weather code ${code}`;
 }
 
-// ─── Severity Helpers ────────────────────────────────────────────────
+
 export function getEarthquakeSeverity(magnitude: number): 'Low' | 'Medium' | 'High' | 'Critical' {
   if (magnitude >= 6.0) return 'Critical';
   if (magnitude >= 5.0) return 'High';

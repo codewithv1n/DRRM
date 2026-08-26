@@ -3,7 +3,7 @@ import {
   Building2, Users, Search, Filter, 
   AlertCircle, CheckCircle2, Clock, ShieldAlert, Home
 } from 'lucide-react';
-import { useAppData } from '../../data/AppDataContext';
+import { useIncidentsCount } from '../../hooks/useSystemHooks';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 
 
@@ -19,7 +19,7 @@ function timeAgo(ts?: string) {
 }
 
 export default function EvacuationCenterMonitoringPage() {
-  const { incidents } = useAppData();
+  const { pendingCount } = useIncidentsCount();
   const [evacuationCenters, setEvacuationCenters] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
@@ -45,7 +45,7 @@ export default function EvacuationCenterMonitoringPage() {
       .catch(err => console.error("Failed to fetch evacuation centers:", err));
   }, []);
 
-  const pendingCount = incidents ? incidents.filter(i => i.status === 'Pending').length : 0;
+
 
   // Calculate Metrics
   const totalCenters = evacuationCenters.length;

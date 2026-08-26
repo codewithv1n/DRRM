@@ -1,11 +1,13 @@
 import { Package, Calendar, Clock, Bell, Info, CreditCard, Users } from 'lucide-react';
 import CitizenLayout from '../../components/layout/CitizenLayout';
-import { useAppData } from '../../data/AppDataContext';
+import { useAlerts } from '../../hooks/useSystemHooks';
+import { useLanguage } from '../../data/LanguageContext';
 
 export default function CitizenAnnouncements() {
-  const { activeAlerts, language } = useAppData();
+  const { language } = useLanguage();
+  const { alerts: activeAlerts } = useAlerts();
   
-  const reliefAnnouncements = activeAlerts.filter(alert => 
+  const reliefAnnouncements = activeAlerts.filter((alert: any) => 
     alert.message.includes('RELIEF DISTRIBUTION') || alert.message.toLowerCase().includes('relief')
   );
 
@@ -93,7 +95,7 @@ export default function CitizenAnnouncements() {
                     </p>
                   </div>
                 </div>
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3.5">
+                <div className="bg-orange-50/50 border border-orange-100/60 rounded-2xl p-4 flex items-start gap-3.5">
                   <div className="bg-blue-100 p-2 rounded-xl text-blue-600 shrink-0">
                     <Users className="w-5 h-5" />
                   </div>

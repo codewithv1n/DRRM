@@ -3,36 +3,43 @@ import pool from '../config/db';
 import { logAction } from './auditLogController';
 
 
-function parseDMS(dmsStr: string): { lat: number, lon: number } | null {
-    if (!dmsStr) return null;
+function parseCoordinates(coordStr: string): { lat: number, lon: number } | null {
+    if (!coordStr) return null;
     
-    
-    const regex = /(\d+)[°\s]+(\d+)['\s]+([\d.]+)["\s]+([NS])[\s,]+(\d+)[°\s]+(\d+)['\s]+([\d.]+)["\s]+([EW])/i;
-    const match = dmsStr.match(regex);
-    if (!match) return null;
+    const dmsRegex = /(\d+)[°\s]+(\d+)['′\s]+([\d.]+)["″\s]*([NS])[\s,]+(\d+)[°\s]+(\d+)['′\s]+([\d.]+)["″\s]*([EW])/i;
+    const dmsMatch = coordStr.match(dmsRegex);
+    if (dmsMatch) {
+        const latDeg = parseInt(dmsMatch[1]!);
+        const latMin = parseInt(dmsMatch[2]!);
+        const latSec = parseFloat(dmsMatch[3]!);
+        const latDir = dmsMatch[4]!.toUpperCase();
 
-    const latDeg = parseInt(match[1]!);
-    const latMin = parseInt(match[2]!);
-    const latSec = parseFloat(match[3]!);
-    const latDir = match[4]!.toUpperCase();
+        const lonDeg = parseInt(dmsMatch[5]!);
+        const lonMin = parseInt(dmsMatch[6]!);
+        const lonSec = parseFloat(dmsMatch[7]!);
+        const lonDir = dmsMatch[8]!.toUpperCase();
 
-    const lonDeg = parseInt(match[5]!);
-    const lonMin = parseInt(match[6]!);
-    const lonSec = parseFloat(match[7]!);
-    const lonDir = match[8]!.toUpperCase();
+        let lat = latDeg + latMin / 60 + latSec / 3600;
+        if (latDir === 'S') lat = -lat;
 
-    let lat = latDeg + latMin / 60 + latSec / 3600;
-    if (latDir === 'S') lat = -lat;
+        let lon = lonDeg + lonMin / 60 + lonSec / 3600;
+        if (lonDir === 'W') lon = -lon;
 
-    let lon = lonDeg + lonMin / 60 + lonSec / 3600;
-    if (lonDir === 'W') lon = -lon;
+        return { lat, lon };
+    }
 
-    return { lat, lon };
+    const decRegex = /([-]?[\d.]+)\s*[NnSs]?\s*,\s*([-]?[\d.]+)\s*[EeWw]?/;
+    const decMatch = coordStr.match(decRegex);
+    if (decMatch) {
+        return { lat: parseFloat(decMatch[1]!), lon: parseFloat(decMatch[2]!) };
+    }
+
+    return null;
 }
 
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Earth's radius in km
+    const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -50,13 +57,13 @@ export const getEvacuationCenters = async (req: Request, res: Response) => {
         const result = await pool.query(query);
         let centers = result.rows;
 
-        // If lat and lon are provided, calculate distance and sort
+        
         if (lat && lon) {
             const userLat = parseFloat(lat as string);
             const userLon = parseFloat(lon as string);
 
             centers = centers.map(center => {
-                const parsedCoords = parseDMS(center.coordinates);
+                const parsedCoords = parseCoordinates(center.coordinates);
                 if (parsedCoords) {
                     const distance = calculateDistance(userLat, userLon, parsedCoords.lat, parsedCoords.lon);
                     return { ...center, distance, parsed_lat: parsedCoords.lat, parsed_lon: parsedCoords.lon };
@@ -64,7 +71,7 @@ export const getEvacuationCenters = async (req: Request, res: Response) => {
                 return { ...center, distance: null };
             });
 
-            // Filter out centers with invalid coordinates and sort by distance nearest to farthest
+           
             centers = centers
                 .filter(c => c.distance !== null)
                 .sort((a, b) => a.distance - b.distance);

@@ -1,15 +1,19 @@
 import React, { useState, useMemo } from 'react';
-import { Clock, CheckCircle, Truck, Plus, X, List, Search } from 'lucide-react';
+import { Clock, CheckCircle, Truck, Plus, X, Search } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
-import { useAppData } from '../../data/AppDataContext';
+import { useReliefDispatches } from '../../hooks/useSystemHooks';
 
 export default function BarangayReliefRequests() {
-  const { reliefDispatches, requestRelief } = useAppData();
-  const currentBarangay = 'Balingasa';
+  const { reliefDispatches, deliveredLogs, requestRelief } = useReliefDispatches();
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const currentBarangay = user?.barangay || user?.location || 'Balingasa';
+  
+  const [activeTab, setActiveTab] = useState<'active' | 'delivered'>('active');
 
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestData, setRequestData] = useState({
-    type: 'Family Food Pack',
+    type: 'Food & Water',
     quantity: 100,
   });
 
@@ -17,6 +21,10 @@ export default function BarangayReliefRequests() {
   const myRequests = useMemo(() => {
     return reliefDispatches.filter(d => d.barangay === currentBarangay).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [reliefDispatches, currentBarangay]);
+
+  const myDeliveredLogs = useMemo(() => {
+    return deliveredLogs.filter(log => log.barangay === currentBarangay).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }, [deliveredLogs, currentBarangay]);
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -34,7 +42,7 @@ export default function BarangayReliefRequests() {
       quantity: requestData.quantity,
     });
     setShowRequestModal(false);
-    setRequestData({ type: 'Family Food Pack', quantity: 100 });
+    setRequestData({ type: 'Food & Water', quantity: 100 });
   };
 
   return (
@@ -55,11 +63,25 @@ export default function BarangayReliefRequests() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
         <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
-              <List className="w-5 h-5" />
-            </div>
-            <h2 className="text-lg font-bold text-slate-800">All Requests</h2>
+          <div className="flex items-center gap-6">
+              <button 
+                onClick={() => setActiveTab('active')}
+                className={`text-sm font-bold pb-1 border-b-2 transition-colors cursor-pointer ${activeTab === 'active' ? 'border-blue-600 text-slate-800' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+              >
+                Active Requests
+                <span className="ml-2 bg-slate-200 text-slate-600 py-0.5 px-2 rounded-full text-[10px] font-black">
+                  {myRequests.length}
+                </span>
+              </button>
+              <button 
+                onClick={() => setActiveTab('delivered')}
+                className={`text-sm font-bold pb-1 border-b-2 transition-colors cursor-pointer ${activeTab === 'delivered' ? 'border-blue-600 text-slate-800' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+              >
+                Delivered Logs
+                <span className="ml-2 bg-emerald-100 text-emerald-700 py-0.5 px-2 rounded-full text-[10px] font-black">
+                  {myDeliveredLogs.length}
+                </span>
+              </button>
           </div>
           <div className="w-full sm:w-64 relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -73,48 +95,84 @@ export default function BarangayReliefRequests() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100 text-sm text-slate-500 bg-slate-50/50">
-                <th className="p-4 font-semibold">ID</th>
-                <th className="p-4 font-semibold">Item</th>
-                <th className="p-4 font-semibold text-center">Qty</th>
-                <th className="p-4 font-semibold">Requested On</th>
-                <th className="p-4 font-semibold text-center">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredRequests.map((req) => (
-                <tr key={req.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="p-4">
-                    <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-1 rounded-md">{req.id}</span>
-                  </td>
-                  <td className="p-4 font-medium text-slate-800">{req.type}</td>
-                  <td className="p-4 text-center font-bold text-slate-700">{req.quantity}</td>
-                  <td className="p-4 text-sm text-slate-500">{new Date(req.timestamp).toLocaleDateString()} {new Date(req.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
-                  <td className="p-4 text-center">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                      req.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' :
-                      req.status === 'En Route' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' :
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                      {req.status === 'Delivered' && <CheckCircle className="w-3.5 h-3.5" />}
-                      {req.status === 'En Route' && <Truck className="w-4 h-4" />}
-                      {req.status === 'Pending' && <Clock className="w-3.5 h-3.5" />}
-                      {req.status}
-                    </span>
-                  </td>
+          {activeTab === 'active' ? (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 text-sm text-slate-500 bg-slate-50/50">
+                  <th className="p-4 font-semibold">ID</th>
+                  <th className="p-4 font-semibold">Item</th>
+                  <th className="p-4 font-semibold text-center">Qty</th>
+                  <th className="p-4 font-semibold">Requested On</th>
+                  <th className="p-4 font-semibold text-center">Status</th>
                 </tr>
-              ))}
-              {filteredRequests.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="p-12 text-center text-slate-400 text-sm">
-                    {searchQuery ? 'No relief requests match your search.' : 'No relief requests found.'}
-                  </td>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredRequests.map((req) => (
+                  <tr key={req.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-4">
+                      <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-1 rounded-md">{req.id}</span>
+                    </td>
+                    <td className="p-4 font-medium text-slate-800">{req.type}</td>
+                    <td className="p-4 text-center font-bold text-slate-700">{req.quantity}</td>
+                    <td className="p-4 text-sm text-slate-500">{new Date(req.timestamp).toLocaleDateString()} {new Date(req.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td className="p-4 text-center">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                        req.status === 'Delivered' ? 'bg-emerald-100 text-emerald-700' :
+                        req.status === 'En Route' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>
+                        {req.status === 'Delivered' && <CheckCircle className="w-3.5 h-3.5" />}
+                        {req.status === 'En Route' && <Truck className="w-4 h-4" />}
+                        {req.status === 'Pending' && <Clock className="w-3.5 h-3.5" />}
+                        {req.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {filteredRequests.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="p-12 text-center text-slate-400 text-sm">
+                      {searchQuery ? 'No relief requests match your search.' : 'No active relief requests found.'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 text-sm text-slate-500 bg-slate-50/50">
+                  <th className="p-4 font-semibold">ID</th>
+                  <th className="p-4 font-semibold">Item</th>
+                  <th className="p-4 font-semibold text-center">Qty</th>
+                  <th className="p-4 font-semibold">Delivered On</th>
+                  <th className="p-4 font-semibold text-center">Handled By</th>
+                  <th className="p-4 font-semibold text-center">Signatory</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {myDeliveredLogs.map((log) => (
+                  <tr key={log.delivered_logs_id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-4">
+                      <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-1 rounded-md">{log.mission_id}</span>
+                    </td>
+                    <td className="p-4 font-medium text-slate-800">{log.type}</td>
+                    <td className="p-4 text-center font-bold text-slate-700">{log.quantity}</td>
+                    <td className="p-4 text-sm text-slate-500">{new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td className="p-4 text-center text-sm font-medium text-slate-700">{log.taskforce_assigned}</td>
+                    <td className="p-4 text-center text-sm font-bold text-emerald-700">{log.signatory_name}</td>
+                  </tr>
+                ))}
+                {myDeliveredLogs.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-12 text-center text-slate-400 text-sm">
+                      No relief deliveries logged yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
@@ -138,11 +196,11 @@ export default function BarangayReliefRequests() {
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700 bg-slate-50"
                   required
                 >
-                  <option value="Family Food Pack">Family Food Pack</option>
-                  <option value="Hygiene Kit A">Hygiene Kit A</option>
-                  <option value="Sleeping Kit">Sleeping Kit</option>
-                  <option value="Bottled Water (Box)">Bottled Water (Box)</option>
-                  <option value="Medical First Aid Kit">Medical First Aid Kit</option>
+                  <option value="Food & Water">Food & Water</option>
+                  <option value="Clothes & Blankets">Clothes & Blankets</option>
+                  <option value="Medical Supplies">Medical Supplies</option>
+                  <option value="Hygiene Kits">Hygiene Kits</option>
+                  <option value="Others">Others</option>
                 </select>
               </div>
 

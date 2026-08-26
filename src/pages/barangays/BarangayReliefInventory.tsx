@@ -1,28 +1,34 @@
-import { useMemo, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Search } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
-import { useAppData } from '../../data/AppDataContext';
 
 export default function BarangayReliefInventory() {
-  const { reliefDispatches } = useAppData();
-  const currentBarangay = 'Balingasa';
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const currentBarangay = user?.barangay || user?.location || 'Balingasa';
 
-  // Derived Local Inventory
-  const localInventory = useMemo(() => {
-    const inventoryMap = new Map<string, number>();
+  const [localInventory, setLocalInventory] = useState<{type: string, quantity: number}[]>([]);
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/inventory/barangay?barangay=${currentBarangay}`);
+        if (res.ok) {
+          const data = await res.json();
+          setLocalInventory(data.map((item: any) => ({
+            type: item.type,
+            quantity: Number(item.quantity) || 0
+          })));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchInventory();
     
-    reliefDispatches
-      .filter(d => d.barangay === currentBarangay && d.status === 'Delivered')
-      .forEach(d => {
-        const currentQty = inventoryMap.get(d.type) || 0;
-        inventoryMap.set(d.type, currentQty + d.quantity);
-      });
-
-    return Array.from(inventoryMap.entries()).map(([type, quantity]) => ({
-      type,
-      quantity,
-    }));
-  }, [reliefDispatches, currentBarangay]);
+    const interval = setInterval(fetchInventory, 5000);
+    return () => clearInterval(interval);
+  }, [currentBarangay]);
 
   const [searchQuery, setSearchQuery] = useState('');
 

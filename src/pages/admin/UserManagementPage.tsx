@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
-import { useAppData } from '../../data/AppDataContext';
+import { useIncidentsCount } from '../../hooks/useSystemHooks';
 import { UserPlus, Shield, Mail, Key, IdCard, X } from 'lucide-react';
 import BarangayOptions from '../../components/BarangayOptions';
 
@@ -8,8 +8,7 @@ import BarangayOptions from '../../components/BarangayOptions';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function UserManagement() {
-  const { incidents } = useAppData();
-  const pendingCount = incidents ? incidents.filter(i => i.status === 'Pending').length : 0;
+  const { pendingCount } = useIncidentsCount();
 
 
   const [userListTab, setUserListTab] = useState('All');

@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import { AppDataProvider } from './data/AppDataContext';
+import { LanguageProvider } from './data/LanguageContext';
 
 function DarkModeManager() {
   const location = useLocation();
@@ -67,10 +67,11 @@ import CitizenClaimHistory from './pages/citizen/CitizenClaimHistory';
 import CitizenAlerts from './pages/citizen/CitizenAlerts';
 import CitizenDashboard from './pages/citizen/CitizenDashboard';
 import CitizenReportLogs from './pages/citizen/CitizenReportLogs';
+import CitizenDonationLogs from './pages/citizen/CitizenDonationLogs';
 
 function App() {
   return (
-    <AppDataProvider>
+    <LanguageProvider>
       <DarkModeManager />
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -116,11 +117,12 @@ function App() {
         <Route path="/citizen/claim_history" element={<CitizenClaimHistory />} />
         <Route path="/citizen/alerts" element={<CitizenAlerts />} />
         <Route path="/citizen/report_logs" element={<CitizenReportLogs />} />
+        <Route path="/citizen/donation_logs" element={<CitizenDonationLogs />} />
         
-        {/* Fallback - redirect to landing page */}
+        
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </AppDataProvider>
+    </LanguageProvider>
   );
 }
 

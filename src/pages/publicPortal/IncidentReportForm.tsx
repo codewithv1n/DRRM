@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { EmergencyType } from '../../data/mockData';
+import type { EmergencyType } from '../../data/types';
 
 const API_URL = import.meta.env.VITE_API_URL;
 

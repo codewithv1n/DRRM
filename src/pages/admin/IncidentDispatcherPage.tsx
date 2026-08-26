@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
-  Activity,  CheckCircle, Siren, Filter
+  Activity,  CheckCircle, Siren, Filter, FileText, X, AlertCircle
 } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
+import { useAuditLogs } from '../../hooks/useSystemHooks';
+import { generateReportHTML } from '../../data/reportTemplate';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -107,6 +109,8 @@ const LocationDisplay = ({ text, className = "" }: { text: string, className?: s
 export default function IncidentDispatcherPanel() {
   const [incidents, setIncidents] = useState<DBIncident[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('All');
+  const { addAuditLog } = useAuditLogs();
+  const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
 
   const fetchIncidents = async () => {
     try {
@@ -122,32 +126,86 @@ export default function IncidentDispatcherPanel() {
 
   useEffect(() => {
     fetchIncidents();
-    // Refresh every 10 seconds
-    const interval = setInterval(fetchIncidents, 10000);
+    const interval = setInterval(fetchIncidents, 5000);
     return () => clearInterval(interval);
   }, []);
 
+  const activeStatuses = ['Responding', 'Acknowledged', 'En Route', 'On Scene', 'Requesting Backup'];
+
   const filteredIncidents = filterStatus === 'All' 
     ? incidents 
-    : incidents.filter(i => i.status === filterStatus);
+    : filterStatus === 'Active'
+      ? incidents.filter(i => activeStatuses.includes(i.status))
+      : incidents.filter(i => i.status === filterStatus);
 
   const pendingCount = incidents.filter(i => i.status === 'Pending').length;
-  const respondingCount = incidents.filter(i => i.status === 'Responding').length;
+  const activeCount = incidents.filter(i => activeStatuses.includes(i.status)).length;
   const resolvedCount = incidents.filter(i => i.status === 'Resolved').length;
 
-  const handleAssign = async (incidentId: string, responderId: string) => {
+  const downloadReport = async (incident: DBIncident) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write('<html><head><title>Loading Report...</title></head><body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f1f5f9; color: #64748b;"><h2>Preparing Official Report...</h2></body></html>');
+    
+    let resolvedLocation = incident.location;
+    if (resolvedLocation.includes('N,') && resolvedLocation.includes('E')) {
+      try {
+         const latMatch = resolvedLocation.match(/([\d.]+)\s*N/);
+         const lonMatch = resolvedLocation.match(/([\d.]+)\s*E/);
+         if (latMatch && lonMatch) {
+            const lat = latMatch[1];
+            const lon = lonMatch[1];
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.display_name) {
+                   resolvedLocation = data.display_name;
+                }
+            }
+         }
+      } catch (e) {
+         console.error("Geocoding failed", e);
+      }
+    }
+
+    const htmlContent = generateReportHTML({ ...incident, location: resolvedLocation } as any);
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  const handleAssign = async (incidentId: string, responderId: string, isBackup = false, currentAssigned = '') => {
     if (!responderId) return;
+
+    if (currentAssigned.includes(responderId)) {
+        setToast({ show: true, message: `${responderId} is already assigned to this incident!`, type: 'error' });
+        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+        return;
+    }
+
+    const newAssigned = isBackup && currentAssigned ? `${currentAssigned}, ${responderId}` : responderId;
+
     try {
-      await fetch(`${API_URL}/api/incidents/${incidentId}/status`, {
+      const response = await fetch(`${API_URL}/api/incidents/${incidentId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status: 'Responding', assigned_responder: responderId }),
+        body: JSON.stringify({ status: 'Responding', assigned_responder: newAssigned }),
       });
-      fetchIncidents();
+      
+      if (response.ok) {
+        fetchIncidents();
+        addAuditLog(isBackup ? 'Dispatch Backup Unit' : 'Dispatch Unit', 'Department Admin', `Assigned ${responderId} to incident ${incidentId}`);
+        setToast({ show: true, message: `${responderId} has been successfully dispatched to Incident ${incidentId}!`, type: 'success' });
+        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+      } else {
+        alert('Failed to dispatch unit. Please try again.');
+      }
     } catch (error) {
       console.error('Error assigning responder:', error);
+      alert('Network error. Failed to dispatch unit.');
     }
   };
 
@@ -156,11 +214,16 @@ export default function IncidentDispatcherPanel() {
       case 'Pending':
         return <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase">Pending</span>;
       case 'Responding':
-        return <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase"><Activity className="w-3 h-3" /> Responding</span>;
+      case 'Acknowledged':
+      case 'En Route':
+      case 'On Scene':
+        return <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase"><Activity className="w-3 h-3" /> {status}</span>;
+      case 'Requesting Backup':
+        return <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase"><Siren className="w-3 h-3 animate-pulse" /> Backup Needed</span>;
       case 'Resolved':
         return <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase"><CheckCircle className="w-3 h-3" /> Resolved</span>;
       default:
-        return null;
+        return <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase">{status}</span>;
     }
   };
 
@@ -193,8 +256,8 @@ export default function IncidentDispatcherPanel() {
             <div className="text-xs font-semibold text-amber-600 uppercase mt-1">Pending</div>
           </div>
           <div className="bg-blue-50 rounded-xl p-5 border border-blue-100 flex flex-col items-center justify-center">
-            <div className="text-3xl font-black text-blue-600">{respondingCount}</div>
-            <div className="text-xs font-semibold text-blue-600 uppercase mt-1">Responding</div>
+            <div className="text-3xl font-black text-blue-600">{activeCount}</div>
+            <div className="text-xs font-semibold text-blue-600 uppercase mt-1">Active / Deployed</div>
           </div>
           <div className="bg-emerald-50 rounded-xl p-5 border border-emerald-100 flex flex-col items-center justify-center">
             <div className="text-3xl font-black text-emerald-600">{resolvedCount}</div>
@@ -208,7 +271,7 @@ export default function IncidentDispatcherPanel() {
               <Filter className="w-4 h-4 text-slate-400" /> Filter by Status:
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-              {['All', 'Pending', 'Responding', 'Resolved'].map(status => (
+              {['All', 'Pending', 'Active', 'Resolved'].map(status => (
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status)}
@@ -274,7 +337,7 @@ export default function IncidentDispatcherPanel() {
                           <select 
                             className="text-xs border border-primary/30 rounded-lg px-2 py-1.5 bg-primary/5 text-primary font-bold focus:outline-none focus:border-primary shadow-sm cursor-pointer"
                             onChange={(e) => handleAssign(incident.incident_id, e.target.value)}
-                            value=""
+                            defaultValue=""
                           >
                             <option value="" disabled>Select Responder</option>
                             {RESPONSE_UNITS.map(unit => (
@@ -282,13 +345,46 @@ export default function IncidentDispatcherPanel() {
                             ))}
                           </select>
                         </div>
-                      ) : incident.status === 'Responding' && incident.assigned_responder ? (
+                      ) : incident.status === 'Requesting Backup' ? (
+                        <div className="flex flex-col items-end gap-2">
+                           <div className="flex flex-col items-end gap-1 mb-1">
+                             <span className="text-[10px] text-slate-400">Current Unit(s):</span>
+                             <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">
+                               {incident.assigned_responder}
+                             </span>
+                           </div>
+                           <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider animate-pulse">Dispatch Backup</span>
+                           <select 
+                             className="text-xs border border-red-300 rounded-lg px-2 py-1.5 bg-red-50 text-red-700 font-bold focus:outline-none focus:border-red-500 shadow-sm cursor-pointer"
+                             onChange={(e) => {
+                                handleAssign(incident.incident_id, e.target.value, true, incident.assigned_responder || '');
+                                e.target.value = "";
+                             }}
+                             defaultValue=""
+                           >
+                             <option value="" disabled>Select Backup Unit</option>
+                             {RESPONSE_UNITS.map(unit => (
+                               <option key={unit} value={unit}>{unit}</option>
+                             ))}
+                           </select>
+                        </div>
+                      ) : activeStatuses.includes(incident.status) && incident.assigned_responder ? (
                         <div className="flex flex-col items-end gap-1">
                           <span className="text-[10px] text-slate-400">Assigned To:</span>
                           <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">
                             {incident.assigned_responder}
                           </span>
                         </div>
+                      ) : incident.status === 'Resolved' ? (
+                         <div className="flex flex-col items-end gap-2">
+                           <span className="text-[10px] text-slate-400 font-medium">Mission Complete</span>
+                           <button 
+                              onClick={() => downloadReport(incident)}
+                              className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm cursor-pointer"
+                           >
+                              <FileText className="w-3.5 h-3.5" /> View PDF Report
+                           </button>
+                         </div>
                       ) : (
                         <span className="text-[10px] text-slate-400 font-medium">No actions available</span>
                       )}
@@ -307,6 +403,22 @@ export default function IncidentDispatcherPanel() {
           </div>
         </div>
       </div>
+      
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`fixed top-6 right-6 border shadow-[0_10px_40px_rgba(0,0,0,0.1)] rounded-2xl p-4 flex items-center gap-4 z-50 animate-fade-in ${toast.type === 'success' ? 'bg-emerald-500 border-emerald-400' : 'bg-red-500 border-red-400'}`}>
+          <div className={`p-2 rounded-xl text-white ${toast.type === 'success' ? 'bg-emerald-400/50' : 'bg-red-400/50'}`}>
+            {toast.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          </div>
+          <div>
+            <h4 className="font-bold text-white text-sm">{toast.type === 'success' ? 'Dispatch Successful' : 'Dispatch Failed'}</h4>
+            <p className="text-xs text-white/90">{toast.message}</p>
+          </div>
+          <button onClick={() => setToast(prev => ({ ...prev, show: false }))} className="ml-2 text-white/70 hover:text-white transition-colors cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </DepartmentLayout>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { FileText, Send, AlertCircle, Info, History, CheckCircle2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAppData } from '../../data/AppDataContext';
+import { useAuditLogs } from '../../hooks/useSystemHooks';
 import { ASSIGNED_BARANGAY } from './BarangayDashboard';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
@@ -11,7 +11,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SitrepPanel() {
   const navigate = useNavigate();
-  const { addAuditLog } = useAppData();
+  const { addAuditLog } = useAuditLogs();
   const [showToast, setShowToast] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   

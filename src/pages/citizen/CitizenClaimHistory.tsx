@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Package, Clock, CheckCircle, Search, XCircle } from 'lucide-react';
 import ResidentLayout from '../../components/layout/CitizenLayout';
-import { useAppData } from '../../data/AppDataContext';
+import { useLanguage } from '../../data/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -19,7 +19,7 @@ interface ClaimRecord {
 }
 
 export default function ResidentClaimHistory() {
-  const { language } = useAppData();
+  const { language } = useLanguage();
   const [claims, setClaims] = useState<ClaimRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);

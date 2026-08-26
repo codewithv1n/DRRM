@@ -10,13 +10,13 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import ResidentLayout from '../../components/layout/CitizenLayout';
-import { useAppData } from '../../data/AppDataContext';
+import { useLanguage } from '../../data/LanguageContext';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CitizenAlerts() {
-  const { language } = useAppData();
+  const { language } = useLanguage();
   const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
   const [weather, setWeather] = useState<{ temp: number, humidity: number, precip: number, wind: number, code: number } | null>(null);
 

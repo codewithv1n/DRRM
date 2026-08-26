@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Package, Clock, Plus, X, Search, Filter, CheckCircle2 } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
-import { useAppData } from '../../data/AppDataContext';
+import { useIncidentsCount } from '../../hooks/useSystemHooks';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ReliefInventoryPanel() {
-  const { incidents } = useAppData();
-  const pendingCount = incidents.filter(i => i.status === 'Pending').length;
+  const { pendingCount } = useIncidentsCount();
 
   const [inventory, setInventory] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -122,7 +121,7 @@ export default function ReliefInventoryPanel() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {filteredInventory.map(item => (
-                  <tr key={item.relief_inventory_id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr key={item.admin_relief_inventory_id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg shrink-0 bg-blue-50 text-blue-600">

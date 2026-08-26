@@ -1,16 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import {
   LogOut, LayoutDashboard, ChevronDown,
-  Menu, Bell, Package, Siren, Sun, Moon, Map 
+  Menu, Bell, Package, Siren, Sun, Moon, Map as MapIcon, Radio
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+const notifAddressCache: Map<string, string> = new Map();
+
+function parseCoordinates(text: string): { lat: number; lon: number } | null {
+  const dms = text.match(
+    /(\d+)[°]\s*(\d+)[''′]\s*([\d.]+)[""″]?\s*([NnSs])\s*(\d+)[°]\s*(\d+)[''′]\s*([\d.]+)[""″]?\s*([EeWw])/
+  );
+  if (dms) {
+    let lat = parseFloat(dms[1]) + parseFloat(dms[2]) / 60 + parseFloat(dms[3]) / 3600;
+    let lon = parseFloat(dms[5]) + parseFloat(dms[6]) / 60 + parseFloat(dms[7]) / 3600;
+    if (dms[4].toUpperCase() === 'S') lat = -lat;
+    if (dms[8].toUpperCase() === 'W') lon = -lon;
+    return { lat, lon };
+  }
+  
+  const dec = text.match(/([\d.-]+)\s*[Nn]?\s*,\s*([\d.-]+)\s*[Ee]?/);
+  if (dec) return { lat: parseFloat(dec[1]), lon: parseFloat(dec[2]) };
+  return null;
+}
+
+const NotifLocationText = ({ text }: { text: string }) => {
+  const [display, setDisplay] = useState(text);
+  useEffect(() => {
+    const coords = parseCoordinates(text);
+    if (!coords) return;
+    const key = `${coords.lat.toFixed(4)},${coords.lon.toFixed(4)}`;
+    if (notifAddressCache.has(key)) { setDisplay(notifAddressCache.get(key)!); return; }
+    const t = setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lon}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d?.display_name) {
+            const parts = d.display_name.split(', ');
+            const simplified = parts.length > 3 ? parts.slice(0, 3).join(', ') : d.display_name;
+            notifAddressCache.set(key, simplified);
+            setDisplay(simplified);
+          }
+        }).catch(() => {});
+    }, Math.random() * 1000);
+    return () => clearTimeout(t);
+  }, [text]);
+  return <>{display}</>;
+};
 
 interface ResponseUnitLayoutProps {
   children: React.ReactNode;
   activeIncidentsCount?: number;
 }
 
-export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 }: ResponseUnitLayoutProps) {
+export default function ResponseUnitLayout({ children }: ResponseUnitLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,10 +68,15 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
   const userName = user?.name || 'Responder';
+  const responderName = user?.taskforce_name || user?.name || 'Task Force 1';
   const userInitials = userName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
 
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [lastReadTime, setLastReadTime] = useState(parseInt(localStorage.getItem('lastReadTime_Responder') || '0'));
+
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
       return localStorage.getItem('theme') === 'dark';
@@ -47,10 +97,65 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
     }
   }, [isDarkMode]);
 
+ 
+  useEffect(() => {
+    const fetchNotifs = async () => {
+      try {
+        const [incRes, alertRes] = await Promise.all([
+          fetch(`${API_URL}/api/incidents`),
+          fetch(`${API_URL}/api/announcements`)
+        ]);
+        
+        const incData = incRes.ok ? await incRes.json() : [];
+        const alertData = alertRes.ok ? await alertRes.json() : { data: [] };
+
+        const myIncidents = (Array.isArray(incData) ? incData : []).filter((i: any) => 
+            i.assigned_responder?.includes(responderName) && i.status !== 'Resolved'
+        );
+        const systemAlerts = Array.isArray(alertData) ? alertData : (alertData.data || []);
+
+        const formattedNotifs = [
+          ...myIncidents.map((i: any) => ({ 
+            id: i.incident_id || i.id, 
+            type: 'Incident', 
+            title: `Assigned: ${i.type} at ${i.location}`, 
+            prefix: `Assigned: ${i.type} at `,
+            location: i.location,
+            time: i.timestamp || i.created_at || Date.now(), 
+            icon: Siren, 
+            color: 'text-red-500', 
+            bg: 'bg-red-50' 
+          })),
+          ...systemAlerts.map((a: any) => ({ 
+            id: a.id || a.announcement_id, 
+            type: 'Alert', 
+            title: `System Alert: ${a.title || a.message}`, 
+            time: a.timestamp || a.created_at || Date.now(), 
+            icon: Radio, 
+            color: 'text-blue-500', 
+            bg: 'bg-blue-50' 
+          }))
+        ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+        setNotifications(formattedNotifs);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 10000);
+    return () => clearInterval(interval);
+  }, [responderName]);
+
+  const hasUnread = notifications.some(n => new Date(n.time).getTime() > lastReadTime);
+  const displayCount = notifications.length;
+
   const getPageTitle = () => {
     const path = location.pathname;
     if (path.includes('incidents')) return 'Incident Response';
     if (path.includes('deliveries')) return 'Relief Deliveries';
+    if (path.includes('hazards')) return 'Hazard Map';
     return 'Dashboard';
   };
 
@@ -91,12 +196,10 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
         <div className="flex-1 overflow-y-auto py-2 space-y-1 scrollbar-thin">
           <div className="px-5 pt-6 pb-2 text-[11px] uppercase font-semibold tracking-widest text-sidebar-foreground/50">Modules</div>
           <NavItem icon={LayoutDashboard} label="Dashboard" path="/responders" />
-          <NavItem icon={Siren} label="Incident Response" path="/responders/incidents" badgeCount={activeIncidentsCount} />
+          <NavItem icon={Siren} label="Incident Response" path="/responders/incidents" />
           <NavItem icon={Package} label="Relief Deliveries" path="/responders/deliveries" />
-          <NavItem icon={Map} label="Hazard Map" path="/responders/hazards" />
+          <NavItem icon={MapIcon} label="Hazard Map" path="/responders/hazards" />
         </div>
-
-
       </aside>
 
       {/* Main Container */}
@@ -121,15 +224,69 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
               >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
-              <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-                <Bell className="w-5 h-5" />
-                {activeIncidentsCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
-              </button>
+              
+              <div className="relative">
+                <button 
+                  onClick={() => {
+                    setIsNotificationsOpen(!isNotificationsOpen);
+                    setIsProfileOpen(false);
+                    if (!isNotificationsOpen) {
+                      const now = Date.now();
+                      setLastReadTime(now);
+                      localStorage.setItem('lastReadTime_Responder', now.toString());
+                    }
+                  }}
+                  className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+                >
+                  <Bell className="w-5 h-5" />
+                  {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>}
+                </button>
+
+                {isNotificationsOpen && (
+                  <div className="absolute top-full mt-2 right-0 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50">
+                    <div className="p-4 border-b border-slate-50 flex items-center justify-between">
+                      <h3 className="font-bold text-slate-900">Notifications</h3>
+                      <span className="text-[10px] font-bold bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">{displayCount} Total</span>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length > 0 ? notifications.map(n => {
+                        const Icon = n.icon;
+                        return (
+                          <div 
+                            key={n.id} 
+                            onClick={() => {
+                               if(n.type === 'Incident') navigate('/responders/incidents');
+                               setIsNotificationsOpen(false);
+                            }}
+                            className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors flex gap-3 cursor-pointer"
+                          >
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${n.bg} ${n.color}`}>
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-800 line-clamp-2">{n.location ? <>{n.prefix}<NotifLocationText text={n.location} /></> : n.title}</p>
+                              <p className="text-[10px] text-slate-500 mt-1">{new Date(n.time).toLocaleString()}</p>
+                            </div>
+                          </div>
+                        )
+                      }) : (
+                        <div className="p-8 text-center text-slate-500 text-sm">No new notifications</div>
+                      )}
+                    </div>
+                    <div className="p-3 border-t border-slate-50 bg-slate-50 text-center">
+                      <button onClick={() => setIsNotificationsOpen(false)} className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">Close</button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-slate-200 relative">
               <button 
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                onClick={() => {
+                  setIsProfileOpen(!isProfileOpen);
+                  setIsNotificationsOpen(false);
+                }}
                 className="flex items-center gap-3 hover:bg-slate-50 p-2 rounded-xl transition-colors cursor-pointer"
               >
                 <div className="flex flex-col text-right">
@@ -164,3 +321,4 @@ export default function ResponseUnitLayout({ children, activeIncidentsCount = 0 
     </div>
   );
 }
+

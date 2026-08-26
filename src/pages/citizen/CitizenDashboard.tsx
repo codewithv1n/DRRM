@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 
 import ResidentLayout from '../../components/layout/CitizenLayout';
-import { useAppData } from '../../data/AppDataContext';
+import { useLanguage } from '../../data/LanguageContext';
+import { useEvacuationAI } from '../../hooks/useEvacuationAI';
 
 
 
@@ -26,7 +27,8 @@ import { useAppData } from '../../data/AppDataContext';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CitizenDashboard() {
-  const { language } = useAppData();
+  const { language } = useLanguage();
+  const { getAIRecommendedShelters } = useEvacuationAI();
   const navigate = useNavigate();
   const location = useLocation();
   const [showToast, setShowToast] = useState(false);
@@ -36,7 +38,6 @@ export default function CitizenDashboard() {
   const [userName, setUserName] = useState('Resident');
   const [weather, setWeather] = useState<{ temp: number; description: string; code: number } | null>(null);
 
-  // Load user name from localStorage
   useEffect(() => {
     try {
       const stored = localStorage.getItem('user');
@@ -49,7 +50,6 @@ export default function CitizenDashboard() {
     }
   }, []);
 
-  // Fetch real-time weather
   useEffect(() => {
     fetch('https://api.open-meteo.com/v1/forecast?latitude=14.676&longitude=121.0437&current=temperature_2m,weather_code&timezone=Asia%2FManila')
       .then(res => res.json())
@@ -73,7 +73,6 @@ export default function CitizenDashboard() {
 
   const fetchAndSetShelters = async (lat: number, lon: number) => {
     try {
-      // 1. Fetch nearest evacuation centers from our database (sorted by distance)
       const dbResponse = await fetch(`${API_URL}/api/evacuation-centers?lat=${lat}&lon=${lon}`);
       const dbData = await dbResponse.json();
       const nearbyCenters = (dbData.data || []).slice(0, 10);
@@ -86,7 +85,7 @@ export default function CitizenDashboard() {
         return;
       }
 
-      // Format the DB results into display-ready data as fallback
+      
       const dbShelters = nearbyCenters.slice(0, 3).map((c: any) => ({
         name: c.name,
         distance: c.distance ? `${c.distance.toFixed(2)}km away` : 'Nearby',
@@ -94,52 +93,15 @@ export default function CitizenDashboard() {
         isFull: (c.current_occupants || 0) >= c.capacity
       }));
 
-      // 2. Try AI to pick the best 3
       try {
-        const contextText = nearbyCenters.map((c: any) => 
-          `- ${c.name} (Barangay: ${c.barangay}, Capacity: ${c.current_occupants || 0}/${c.capacity}, Distance: ${c.distance ? c.distance.toFixed(2) + 'km' : 'Unknown'})`
-        ).join('\n');
-
-        const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY || ''}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: "llama3-8b-8192",
-            messages: [
-              {
-                role: "system", 
-                content: "You are a disaster management AI for Quezon City. Based on the provided list of nearby evacuation centers, select the 3 BEST shelters for the user. Prioritize those with available capacity (current_occupants < capacity) and shorter distances. Respond ONLY with a valid JSON array of exactly 3 shelters. No markdown, no backticks, no explanation. Just the JSON array. Format: [{\"name\": \"...\", \"distance\": \"...\", \"status\": \"...\", \"isFull\": false}]"
-              },
-              {
-                role: "user", 
-                content: `Here are the nearest evacuation centers to my location:\n${contextText}\n\nPick the 3 best shelters.`
-              }
-            ],
-            temperature: 0.1
-          })
-        });
-        
-        const aiData = await aiResponse.json();
-        console.log('AI response:', aiData);
-        
-        if (aiData.choices && aiData.choices[0]) {
-          const text = aiData.choices[0].message.content.trim();
-          console.log('AI text:', text);
-          const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-          const parsed = JSON.parse(jsonStr);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setShelters(parsed);
-            return;
-          }
-        }
+        const parsed = await getAIRecommendedShelters(nearbyCenters, lat, lon);
+        setShelters(parsed);
+        return;
       } catch (aiError) {
         console.warn('AI failed, using database results directly:', aiError);
       }
 
-      // 3. Fallback: use database-sorted results directly
+     
       setShelters(dbShelters);
 
     } catch (error) {
@@ -153,7 +115,6 @@ export default function CitizenDashboard() {
   const handleSyncLocation = () => {
     setIsSyncing(true);
     
-    // Default fallback to Quezon City Hall coordinates if location is blocked
     const fallbackLat = 14.6465;
     const fallbackLon = 121.0505;
 
@@ -166,7 +127,7 @@ export default function CitizenDashboard() {
           console.warn('Geolocation failed, using fallback location.', error);
           fetchAndSetShelters(fallbackLat, fallbackLon);
         },
-        { timeout: 5000 } // Wait max 5 seconds before fallback
+        { timeout: 15000, maximumAge: 0 } 
       );
     } else {
       console.warn('Geolocation not supported, using fallback location.');

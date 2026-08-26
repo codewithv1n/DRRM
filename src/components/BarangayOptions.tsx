@@ -74,6 +74,7 @@ export default function BarangayOptions() {
         <option value="Pansol">Pansol</option>
         <option value="Quirino 2-A">Quirino 2-A</option>
         <option value="Quirino 2-B">Quirino 2-B</option>
+        <option value="St.Ignatius">St.Ignatius</option>
         <option value="San Roque">San Roque</option>
         <option value="Silangan">Silangan</option>
         <option value="Socorro">Socorro</option>

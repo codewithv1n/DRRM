@@ -5,6 +5,13 @@ import { logAction } from './auditLogController';
 
 export const getClaimHistory = async (req: Request, res: Response): Promise<void> => {
     try {
+        // Auto-expire any pending claims where the valid_until date is in the past
+        await pool.query(`
+            UPDATE citizen_relief_history 
+            SET status = 'Expired' 
+            WHERE status = 'Pending' AND valid_until < CURRENT_DATE
+        `);
+
         const { email, barangay } = req.query;
 
         let result;
@@ -77,12 +84,29 @@ export const createClaimRecord = async (req: Request, res: Response): Promise<vo
 export const updateClaimStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, item_name, quantity, barangay } = req.body;
 
-        const result = await pool.query(
-            `UPDATE citizen_relief_history SET status = $1 WHERE citizen_relief_history_id = $2 RETURNING *`,
-            [status, id]
-        );
+        let result;
+        if (item_name && quantity !== undefined) {
+            result = await pool.query(
+                `UPDATE citizen_relief_history SET status = $1, item_name = $2, quantity = $3 WHERE citizen_relief_history_id = $4 RETURNING *`,
+                [status, item_name, quantity, id]
+            );
+
+            if (status === 'Claimed' && barangay) {
+                await pool.query(
+                    `UPDATE barangay_relief_inventory 
+                     SET quantity = GREATEST(0, quantity - $3)
+                     WHERE barangay = $1 AND type = $2`,
+                    [barangay, item_name, quantity]
+                );
+            }
+        } else {
+            result = await pool.query(
+                `UPDATE citizen_relief_history SET status = $1 WHERE citizen_relief_history_id = $2 RETURNING *`,
+                [status, id]
+            );
+        }
 
         if (result.rowCount === 0) {
             res.status(404).json({ message: 'Claim record not found' });
@@ -112,7 +136,7 @@ export const createBatchClaimsForBarangay = async (req: Request, res: Response):
 
         
         const citizensResult = await pool.query(
-            `SELECT name, email, family_members FROM auth WHERE barangay = $1 AND role = 'Citizen'`,
+            `SELECT name, email FROM auth WHERE barangay = $1 AND role = 'Citizen'`,
             [barangay]
         );
 
@@ -126,21 +150,20 @@ export const createBatchClaimsForBarangay = async (req: Request, res: Response):
        
         let insertedCount = 0;
         for (const citizen of citizens) {
-            const familyMembers = citizen.family_members ? JSON.parse(citizen.family_members) : [];
-            const familySize = 1 + familyMembers.length; 
-            const remarkText = valid_until ? `Valid until: ${valid_until}` : (remarks || `For family of ${familySize}`);
+            const remarkText = valid_until ? `Valid until: ${valid_until}` : (remarks || null);
 
             await pool.query(
                 `INSERT INTO citizen_relief_history 
-                (citizen_email, citizen_name, item_name, quantity, status, remarks) 
-                VALUES ($1, $2, $3, $4, $5, $6)`,
+                (citizen_email, citizen_name, item_name, quantity, status, remarks, valid_until) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7)`,
                 [
                     citizen.email.trim().toLowerCase(),
                     citizen.name,
                     item_name,
                     parseInt(quantity) || 1,
                     'Pending',
-                    remarkText
+                    remarkText,
+                    valid_until || null
                 ]
             );
             insertedCount++;

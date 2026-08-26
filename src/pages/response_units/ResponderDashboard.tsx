@@ -1,60 +1,76 @@
 import { useState, useEffect } from 'react';
-import { useAppData } from '../../data/AppDataContext';
+import { useReliefDispatches } from '../../hooks/useSystemHooks';
 import ResponseUnitLayout from '../../components/layout/ResponseUnitLayout';
-import { Activity, Clock, Users, Package } from 'lucide-react';
+import { Activity, Clock, Package } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ResponderDashboard() {
-  const { incidents, reliefDispatches } = useAppData();
-  const [evacuationCenters, setEvacuationCenters] = useState<any[]>([]);
+  const { reliefDispatches } = useReliefDispatches();
+  const [incidents, setIncidents] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/evacuation-centers`)
+    fetch(`${API_URL}/api/incidents`)
       .then(res => res.json())
-      .then(data => {
-        if (data && data.data) {
-          setEvacuationCenters(data.data);
-        }
-      })
+      .then(data => setIncidents(data))
       .catch(err => console.error(err));
   }, []);
   
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
-  const responderName = user?.name || 'Task Force 1';
+  const responderName = user?.taskforce_name || user?.name || 'Task Force 1';
 
   const activeIncidents = incidents.filter(i => 
-    i.status !== 'Resolved' && i.assignedResponder === responderName
+    i.status !== 'Resolved' && i.assigned_responder?.includes(responderName)
   );
 
-  const totalEvacuees = evacuationCenters.reduce((sum: number, ec: any) => sum + Number(ec.current_occupants || 0), 0);
   const deliveriesCompleted = reliefDispatches.filter(d => d.status === 'Delivered').length;
 
-  // Mock Average Response Time
-  const avgResponseTime = "14m 30s";
+  // Compute Average Response Time
+  let avgResponseTime = "N/A";
+  const resolvedIncidents = incidents.filter(i => i.status === 'Resolved' && i.assigned_responder?.includes(responderName));
+  if (resolvedIncidents.length > 0) {
+    const totalDiff = resolvedIncidents.reduce((sum, inc) => {
+      const created = new Date(inc.created_at || inc.timestamp).getTime();
+      const updated = new Date(inc.updated_at || Date.now()).getTime();
+      return sum + (updated - created);
+    }, 0);
+    const avgMs = totalDiff / resolvedIncidents.length;
+    const mins = Math.floor(avgMs / 60000);
+    const secs = Math.floor((avgMs % 60000) / 1000);
+    avgResponseTime = `${mins}m ${secs}s`;
+  }
 
-  const barChartData = [
-    { name: 'Fire', count: 12 },
-    { name: 'Flood', count: 18 },
-    { name: 'Medical', count: 8 },
-    { name: 'Rescue', count: 5 },
-    { name: 'Clearing', count: 15 }
-  ];
+  // Compute Bar Chart Data
+  const incidentCountsByType = incidents.reduce((acc, inc) => {
+    if (inc.assigned_responder?.includes(responderName)) {
+      acc[inc.type] = (acc[inc.type] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
 
-  const pieChartData = [
-    { name: 'Delivered', value: 45 },
-    { name: 'En Route', value: 8 },
-    { name: 'Preparing', value: 12 },
-    { name: 'Pending', value: 5 }
-  ];
+  const barChartData = Object.entries(incidentCountsByType).map(([name, count]) => ({ name, count }));
+  if (barChartData.length === 0) {
+    barChartData.push({ name: 'No Data', count: 0 });
+  }
+
+  // Compute Pie Chart Data
+  const reliefCountsByStatus = reliefDispatches.reduce((acc, dispatch) => {
+    acc[dispatch.status] = (acc[dispatch.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const pieChartData = Object.entries(reliefCountsByStatus).map(([name, value]) => ({ name, value }));
+  if (pieChartData.length === 0) {
+    pieChartData.push({ name: 'No Data', value: 1 });
+  }
 
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
   return (
     <ResponseUnitLayout activeIncidentsCount={activeIncidents.length}>
-      <div className="animate-fade-in space-y-6">
+      <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 font-display">Dashboard Overview</h2>
           <p className="text-slate-500 mt-1">Overview of your unit's performance and history</p>
@@ -62,9 +78,9 @@ export default function ResponderDashboard() {
 
         {/* Metrics Overview */}
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Metric 1: Active Missions */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-md cursor-default">
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-default">
               <div className="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
                 <Activity className="w-6 h-6 text-indigo-600" />
               </div>
@@ -75,7 +91,7 @@ export default function ResponderDashboard() {
             </div>
 
             {/* Metric 2: Average Response Time */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-md cursor-default">
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-default">
               <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                 <Clock className="w-6 h-6 text-blue-600" />
               </div>
@@ -85,19 +101,8 @@ export default function ResponderDashboard() {
               </div>
             </div>
 
-            {/* Metric 3: Total Evacuees */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-md cursor-default">
-              <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
-                <Users className="w-6 h-6 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Citywide Evacuees</p>
-                <h3 className="text-2xl font-black text-slate-800">{totalEvacuees.toLocaleString()}</h3>
-              </div>
-            </div>
-
-            {/* Metric 4: Deliveries Completed */}
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 transition-transform hover:-translate-y-1 hover:shadow-md cursor-default">
+            {/* Metric 3: Deliveries Completed */}
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-default">
               <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
                 <Package className="w-6 h-6 text-emerald-600" />
               </div>
@@ -123,7 +128,7 @@ export default function ResponderDashboard() {
                     <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                     <RechartsTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
-                    <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={48} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

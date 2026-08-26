@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, History, LayoutDashboard, Megaphone, Menu, Bell, BellRing, FileText, Sun, Moon, ChevronDown, Siren, Radio, Globe } from 'lucide-react';
+import { LogOut, History, LayoutDashboard, Megaphone, Menu, Bell, BellRing, FileText, Sun, Moon, ChevronDown, Siren, Radio, Heart } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAppData } from '../../data/AppDataContext';
+import { useLanguage } from '../../data/LanguageContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -54,7 +54,7 @@ interface CitizenLayoutProps {
 export default function CitizenLayout({ children }: CitizenLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { language, setLanguage } = useAppData();
+  const { language, setLanguage } = useLanguage();
 
   useEffect(() => {
     if (!localStorage.getItem('user')) {
@@ -159,12 +159,14 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
       if (path.includes('report_logs')) return 'Aking Mga Report';
       if (path.includes('announcements')) return 'Mga Anunsyo ng Relief';
       if (path.includes('claim_history')) return 'Kasaysayan ng Pag-claim';
+      if (path.includes('donation_logs')) return 'Aking Mga Donasyon';
       return 'Dashboard';
     } else {
       if (path.includes('alerts')) return 'Alerts & Advisories';
       if (path.includes('report_logs')) return 'My Report Logs';
       if (path.includes('announcements')) return 'Relief Announcements';
       if (path.includes('claim_history')) return 'Claim History';
+      if (path.includes('donation_logs')) return 'My Donations';
       return 'Dashboard';
     }
   };
@@ -231,6 +233,7 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
           <NavItem icon={FileText} label={language === 'en' ? "My Report Logs" : "Aking Mga Report"} path="/citizen/report_logs" />
           <NavItem icon={Megaphone} label={language === 'en' ? "Relief Announcements" : "Mga Anunsyo ng Relief"} path="/citizen/announcements" />
           <NavItem icon={History} label={language === 'en' ? "Claim History" : "Kasaysayan ng Pag-claim"} path="/citizen/claim_history" />
+          <NavItem icon={Heart} label={language === 'en' ? "My Donations" : "Aking Mga Donasyon"} path="/citizen/donation_logs" />
         </div>
 
 
@@ -251,14 +254,22 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
           
           <div className="flex items-center gap-4 lg:gap-6">
             <div className="flex items-center gap-2 relative">
-              <button
-                onClick={() => setLanguage(language === 'en' ? 'ph' : 'en')}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer mr-1"
-                title="Toggle Language"
-              >
-                <Globe className="w-4 h-4 text-blue-500" />
-                <span>{language === 'en' ? 'EN' : 'PH'}</span>
-              </button>
+              <div className="flex items-center mr-1 md:mr-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={`text-xs font-bold px-2.5 py-1.5 rounded-lg transition-all ${language === 'en' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                  title="Switch to English"
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => setLanguage('ph')}
+                  className={`text-xs font-bold px-2.5 py-1.5 rounded-lg transition-all ${language === 'ph' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                  title="Switch to Tagalog"
+                >
+                  PH
+                </button>
+              </div>
 
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}

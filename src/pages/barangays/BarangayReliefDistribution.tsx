@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Megaphone, Package, AlertCircle, AlertTriangle, Send, Search, X } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
-import { useAppData } from '../../data/AppDataContext';
+import { useAlerts } from '../../hooks/useSystemHooks';
 
 const ASSIGNED_BARANGAY = "Balingasa";
 
 function ReliefDistributionPanel() {
-  const { broadcastAlert } = useAppData();
+  const { broadcastAlert } = useAlerts();
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [selectedBarangay] = useState('All');
   const [citizenId, setCitizenId] = useState('');
@@ -15,12 +15,15 @@ function ReliefDistributionPanel() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'claimed'>('pending');
-  const [citizenToConfirm, setCitizenToConfirm] = useState<{id: string, name: string, barangay: string, familySize: number, status: string, time: string} | null>(null);
+  const [citizenToConfirm, setCitizenToConfirm] = useState<{id: string, name: string, barangay: string, status: string, time: string, item: string, quantity: number} | null>(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
   
   
   const [searchQuery, setSearchQuery] = useState('');
   const [claimSearchQuery, setClaimSearchQuery] = useState('');
   const [validUntil, setValidUntil] = useState('');
+  const [claimItem, setClaimItem] = useState('Relief Pack');
+  const [claimQuantity, setClaimQuantity] = useState(1);
 
   const [mockClaims, setMockClaims] = useState<any[]>([]);
 
@@ -34,9 +37,10 @@ function ReliefDistributionPanel() {
           name: c.citizen_name,
           email: c.citizen_email,
           barangay: ASSIGNED_BARANGAY,
-          familySize: c.quantity || 1,
           status: c.status,
-          time: new Date(c.claimed_at || c.created_at).toLocaleString()
+          time: new Date(c.claimed_at || c.created_at).toLocaleString(),
+          item: c.item_name || 'Relief Pack',
+          quantity: Number(c.quantity) || 1
         }));
         setMockClaims(mapped);
       }
@@ -45,8 +49,26 @@ function ReliefDistributionPanel() {
     }
   };
 
+  const [localInventory, setLocalInventory] = useState<{type: string, quantity: number}[]>([]);
+
+  const fetchInventory = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/inventory/barangay?barangay=${ASSIGNED_BARANGAY}`);
+      if (res.ok) {
+        const data = await res.json();
+        setLocalInventory(data.map((item: any) => ({
+          type: item.type,
+          quantity: Number(item.quantity) || 0
+        })));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchClaims();
+    fetchInventory();
   }, []);
 
   const pendingClaims = mockClaims.filter(c => c.status === 'Pending' && (
@@ -65,7 +87,7 @@ function ReliefDistributionPanel() {
     e.preventDefault();
     if (!broadcastMessage) return;
     
-    // Broadcast the alert
+    
     const messageWithDate = validUntil ? `${broadcastMessage} (Valid until: ${validUntil})` : broadcastMessage;
     broadcastAlert('General Alert', `RELIEF DISTRIBUTION (${selectedBarangay}): ${messageWithDate}`);
     
@@ -108,6 +130,9 @@ function ReliefDistributionPanel() {
         alert(`${exists.name} has already claimed their relief goods!`);
       } else {
         setCitizenToConfirm(exists);
+        const preselect = localInventory.find(inv => inv.type === exists.item) ? exists.item : (localInventory[0]?.type || '');
+        setClaimItem(preselect);
+        setClaimQuantity(exists.quantity);
         setShowConfirmModal(true);
       }
     } else {
@@ -122,11 +147,19 @@ function ReliefDistributionPanel() {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/claim-history/${citizenToConfirm.id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Claimed' })
+        body: JSON.stringify({ 
+          status: 'Claimed',
+          item_name: claimItem,
+          quantity: claimQuantity,
+          barangay: ASSIGNED_BARANGAY
+        })
       });
       
       if (res.ok) {
         fetchClaims();
+        fetchInventory();
+        setShowSuccessToast(true);
+        setTimeout(() => setShowSuccessToast(false), 3000);
       } else {
         alert('Failed to update claim status in database.');
       }
@@ -201,7 +234,6 @@ function ReliefDistributionPanel() {
                   <tr className="bg-slate-50/50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                     <th className="px-6 py-3 font-semibold">Citizen Info</th>
                     <th className="px-6 py-3 font-semibold">Barangay</th>
-                    <th className="px-6 py-3 font-semibold">Family Size</th>
                     <th className="px-6 py-3 font-semibold text-right">Action</th>
                   </tr>
                 </thead>
@@ -217,15 +249,12 @@ function ReliefDistributionPanel() {
                       <td className="px-6 py-4 text-sm text-slate-600">
                         {claim.barangay}
                       </td>
-                      <td className="px-6 py-4 text-sm font-bold text-slate-700">
-                        {claim.familySize} Members
-                      </td>
                       <td className="px-6 py-4 text-right">
                         <button 
                           onClick={() => handleMarkClaimed(claim.id)}
                           className="text-sm text-emerald-600 hover:text-emerald-700 font-bold px-4 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-50 transition-colors cursor-pointer"
                         >
-                          Mark Claimed
+                          Mark as Received
                         </button>
                       </td>
                     </tr>
@@ -233,7 +262,7 @@ function ReliefDistributionPanel() {
                   
                   {pendingClaims.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                      <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
                         <AlertCircle className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                         <p>No pending citizens found.</p>
                       </td>
@@ -249,7 +278,6 @@ function ReliefDistributionPanel() {
                   <tr className="bg-slate-50/50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                     <th className="px-6 py-3 font-semibold">Citizen Info</th>
                     <th className="px-6 py-3 font-semibold">Barangay</th>
-                    <th className="px-6 py-3 font-semibold">Family Size</th>
                     <th className="px-6 py-3 font-semibold">Date Claimed</th>
                   </tr>
                 </thead>
@@ -265,9 +293,6 @@ function ReliefDistributionPanel() {
                       <td className="px-6 py-4 text-sm text-slate-600">
                         {claim.barangay}
                       </td>
-                      <td className="px-6 py-4 text-sm font-bold text-slate-700">
-                        {claim.familySize} Members
-                      </td>
                       <td className="px-6 py-4 text-sm font-medium text-emerald-600">
                         {claim.time}
                       </td>
@@ -276,7 +301,7 @@ function ReliefDistributionPanel() {
                   
                   {claimedClaims.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                      <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
                         <Package className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                         <p>No claims recorded yet.</p>
                       </td>
@@ -359,13 +384,40 @@ function ReliefDistributionPanel() {
               <AlertTriangle className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Confirm Action</h3>
-            <p className="text-slate-500 text-sm mb-6">
-              Are you sure you want to mark <span className="font-bold text-slate-700">{citizenToConfirm.name}</span> as claimed? This action will record their claim for this distribution.
-              <br/><br/>
-              <span className="inline-block bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-lg border border-blue-100">
-                Give Relief for: {citizenToConfirm.familySize} Members
-              </span>
+            <p className="text-slate-500 text-sm mb-4">
+              Are you sure you want to mark <span className="font-bold text-slate-700">{citizenToConfirm.name}</span> as claimed? This action will record their claim for this distribution and deduct the items from the inventory.
             </p>
+            
+            <div className="mb-6 text-left space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Item Name</label>
+                <select 
+                  className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all p-2.5 outline-none"
+                  value={claimItem}
+                  onChange={(e) => setClaimItem(e.target.value)}
+                  required
+                >
+                  {localInventory.length === 0 && <option value="" disabled>No items available</option>}
+                  {localInventory.map(inv => (
+                    <option key={inv.type} value={inv.type}>
+                      {inv.type} ({inv.quantity} available)
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Quantity</label>
+                <input 
+                  type="number"
+                  min="1"
+                  className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all p-2.5 outline-none"
+                  value={claimQuantity}
+                  onChange={(e) => setClaimQuantity(parseInt(e.target.value) || 1)}
+                  required
+                />
+              </div>
+            </div>
+            
             <div className="flex gap-3">
               <button 
                 onClick={() => {
@@ -384,6 +436,15 @@ function ReliefDistributionPanel() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {/* Success Toast */}
+      {showSuccessToast && (
+        <div className="fixed bottom-8 right-8 z-100 bg-emerald-500 text-white px-6 py-4 rounded-2xl shadow-[0_10px_40px_rgba(16,185,129,0.3)] flex items-center gap-3 transition-all transform animate-fade-in pointer-events-none">
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="font-bold tracking-wide">Successfully marked as received!</span>
         </div>
       )}
     </div>

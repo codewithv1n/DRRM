@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Truck, CheckCircle, Clock, AlertTriangle, Image as ImageIcon, X, Search, Filter } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
-import { useAppData } from '../../data/AppDataContext';
+import { useIncidentsCount } from '../../hooks/useSystemHooks';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ValidateDonationsPanel() {
-  const { incidents } = useAppData();
-  const pendingCount = incidents.filter(i => i.status === 'Pending').length;
+  const { pendingCount } = useIncidentsCount();
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [donations, setDonations] = useState<any[]>([]);
   const [donationLogs, setDonationLogs] = useState<any[]>([]);
