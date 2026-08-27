@@ -4,7 +4,7 @@ import { Clock, Search, Filter, RefreshCw, Loader2 } from 'lucide-react';
 
 
 const API_URL = import.meta.env.VITE_API_URL;
-
+import { encryptedFetch } from '../../utils/encryptedFetch';
 interface AuditLog {
   log_id: string;
   action: string;
@@ -29,7 +29,7 @@ export default function AuditLogsPage() {
       const params = new URLSearchParams();
       if (actionFilter) params.set('action', actionFilter);
       const url = `${API_URL}/api/audit-logs${params.toString() ? '?' + params.toString() : ''}`;
-      const res = await fetch(url);
+      const res = await encryptedFetch(url);
       const data = await res.json();
       if (data.success) {
         setLogs(data.logs);

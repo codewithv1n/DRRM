@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mail, KeyRound, AlertCircle, Loader2, CheckCircle2, Lock } from 'lucide-react';
 
+import { encryptedFetch } from '../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface ForgotPasswordFormProps {
@@ -41,7 +42,7 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
     setError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/otp/send-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/otp/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, type: 'forgot_password' })
@@ -101,7 +102,7 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
     setError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/otp/verify-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/otp/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: fullOtp })
@@ -136,7 +137,7 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
 
     try {
       const fullOtp = otpValues.join('');
-      const res = await fetch(`${API_URL}/api/otp/reset-password`, {
+      const res = await encryptedFetch(`${API_URL}/api/otp/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: fullOtp, newPassword })

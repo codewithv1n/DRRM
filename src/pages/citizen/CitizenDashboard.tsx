@@ -24,6 +24,7 @@ import { useEvacuationAI } from '../../hooks/useEvacuationAI';
 
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CitizenDashboard() {
@@ -73,7 +74,7 @@ export default function CitizenDashboard() {
 
   const fetchAndSetShelters = async (lat: number, lon: number) => {
     try {
-      const dbResponse = await fetch(`${API_URL}/api/evacuation-centers?lat=${lat}&lon=${lon}`);
+      const dbResponse = await encryptedFetch(`${API_URL}/api/evacuation-centers?lat=${lat}&lon=${lon}`);
       const dbData = await dbResponse.json();
       const nearbyCenters = (dbData.data || []).slice(0, 10);
       

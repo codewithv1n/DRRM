@@ -4,6 +4,7 @@ import ResponseUnitLayout from '../../components/layout/ResponseUnitLayout';
 import HazardMap from '../../components/HazardMap';
 import { useHazardApis } from '../../hooks/useHazardApis';
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 function timeAgo(ts: string | number) {
@@ -34,7 +35,7 @@ export default function ResponderHazardMapPage() {
 
   const fetchDbHazards = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/hazards`);
+      const res = await encryptedFetch(`${API_URL}/api/hazards`);
       if (res.ok) {
         const data = await res.json();
         setDbHazards(data.data || data || []);
@@ -52,7 +53,7 @@ export default function ResponderHazardMapPage() {
 
   const fetchDbIncidents = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/incidents`);
+      const res = await encryptedFetch(`${API_URL}/api/incidents`);
       if (res.ok) {
         const data = await res.json();
         setDbIncidents(data || []);

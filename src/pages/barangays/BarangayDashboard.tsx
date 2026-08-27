@@ -4,6 +4,7 @@ import { Package, FileText, Bell, CloudLightning, Activity, Waves, Wind, Clock, 
 import BarangayLayout from '../../components/layout/BarangayLayout';
 import { useHazardApis } from '../../hooks/useHazardApis';
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const ASSIGNED_BARANGAY = "Balingasa";
@@ -65,28 +66,28 @@ function OverviewPanel() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const claimsRes = await fetch(`${API_URL}/api/relief-claims`);
+        const claimsRes = await encryptedFetch(`${API_URL}/api/relief-claims`);
         if (claimsRes.ok) setReliefClaims(await claimsRes.json());
         
-        const sitRes = await fetch(`${API_URL}/api/sitreps`);
+        const sitRes = await encryptedFetch(`${API_URL}/api/sitreps`);
         if (sitRes.ok) {
           const data = await sitRes.json();
           setBarangaySitReps(data.data || []);
         }
 
-        const alertRes = await fetch(`${API_URL}/api/announcements`);
+        const alertRes = await encryptedFetch(`${API_URL}/api/announcements`);
         if (alertRes.ok) {
           const data = await alertRes.json();
           setActiveAlerts(data.data || data || []);
         }
 
-        const hazardRes = await fetch(`${API_URL}/api/hazards`);
+        const hazardRes = await encryptedFetch(`${API_URL}/api/hazards`);
         if (hazardRes.ok) {
           const data = await hazardRes.json();
           setLiveHazards(data.data || data || []);
         }
 
-        const invRes = await fetch(`${API_URL}/api/inventory`);
+        const invRes = await encryptedFetch(`${API_URL}/api/inventory`);
         if (invRes.ok) {
           setReliefInventory(await invRes.json());
         }

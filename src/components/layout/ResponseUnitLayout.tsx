@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { encryptedFetch } from '../../utils/encryptedFetch';
 import {
   LogOut, LayoutDashboard, ChevronDown,
   Menu, Bell, Package, Siren, Sun, Moon, Map as MapIcon, Radio
@@ -102,8 +103,8 @@ export default function ResponseUnitLayout({ children }: ResponseUnitLayoutProps
     const fetchNotifs = async () => {
       try {
         const [incRes, alertRes] = await Promise.all([
-          fetch(`${API_URL}/api/incidents`),
-          fetch(`${API_URL}/api/announcements`)
+          encryptedFetch(`${API_URL}/api/incidents`),
+          encryptedFetch(`${API_URL}/api/announcements`)
         ]);
         
         const incData = incRes.ok ? await incRes.json() : [];

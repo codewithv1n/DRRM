@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { encryptedFetch } from '../../utils/encryptedFetch';
 import { LogOut, History, LayoutDashboard, Megaphone, Menu, Bell, BellRing, FileText, Sun, Moon, ChevronDown, Siren, Radio, Heart } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../data/LanguageContext';
@@ -98,8 +99,8 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
     const fetchNotifs = async () => {
       try {
         const [incRes, alertRes] = await Promise.all([
-          fetch(`${API_URL}/api/incidents`),
-          fetch(`${API_URL}/api/announcements`)
+          encryptedFetch(`${API_URL}/api/incidents`),
+          encryptedFetch(`${API_URL}/api/announcements`)
         ]);
 
         const incData = incRes.ok ? await incRes.json() : [];

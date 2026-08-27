@@ -4,6 +4,7 @@ import { UserPlus, Mail, Key, X, ArrowLeft } from 'lucide-react';
 import BarangayOptions from '../components/BarangayOptions';
 
 
+import { encryptedFetch } from '../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SignupPage() {
@@ -38,7 +39,7 @@ export default function SignupPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/otp/send-otp`, {
+      const response = await encryptedFetch(`${API_URL}/api/otp/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, type: 'signup' }),
@@ -68,7 +69,7 @@ export default function SignupPage() {
 
     try {
       // 1. Verify OTP
-      const verifyRes = await fetch(`${API_URL}/api/otp/verify-otp`, {
+      const verifyRes = await encryptedFetch(`${API_URL}/api/otp/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, otp }),
@@ -83,7 +84,7 @@ export default function SignupPage() {
 
       // 2. Create Account
       const fullName = `${form.firstName} ${form.lastName}`.trim();
-      const response = await fetch(`${API_URL}/api/auth/admin/create-account`, {
+      const response = await encryptedFetch(`${API_URL}/api/auth/admin/create-account`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

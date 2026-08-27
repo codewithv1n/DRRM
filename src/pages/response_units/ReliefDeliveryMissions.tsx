@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { encryptedFetch } from '../../utils/encryptedFetch';
 import { useAuditLogs, useReliefDispatches } from '../../hooks/useSystemHooks';
 import type { ReliefDispatch } from '../../data/types';
 import { Package, Shield, MapPin, Clock, CheckCircle, Truck, Navigation, FileCheck, Camera, ClipboardList } from 'lucide-react';
@@ -189,7 +190,7 @@ export default function ReliefDeliveryMissions() {
   const [activeTab, setActiveTab] = useState<'active' | 'delivered'>('active');
 
   useEffect(() => {
-    fetch(`${API_URL}/api/incidents`)
+    encryptedFetch(`${API_URL}/api/incidents`)
       .then(res => res.json())
       .then(data => setIncidents(data))
       .catch(err => console.error(err));

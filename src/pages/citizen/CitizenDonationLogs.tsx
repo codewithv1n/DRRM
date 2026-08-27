@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Heart, Package, Clock, CheckCircle } from 'lucide-react';
 import CitizenLayout from '../../components/layout/CitizenLayout';
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface DonationLog {
@@ -29,7 +30,7 @@ export default function CitizenDonationLogs() {
 
       try {
         // Fetch Pending Donations
-        const pendingRes = await fetch(`${API_URL}/api/donations/pending`);
+        const pendingRes = await encryptedFetch(`${API_URL}/api/donations/pending`);
         const pendingData = await pendingRes.json();
         const userPending = pendingData
           .filter((d: any) => d.email === userEmail)
@@ -42,7 +43,7 @@ export default function CitizenDonationLogs() {
           }));
 
         // Fetch Received Donations (Logs)
-        const logsRes = await fetch(`${API_URL}/api/donations/logs`);
+        const logsRes = await encryptedFetch(`${API_URL}/api/donations/logs`);
         const logsData = await logsRes.json();
         const userLogs = logsData
           .filter((d: any) => d.email === userEmail)

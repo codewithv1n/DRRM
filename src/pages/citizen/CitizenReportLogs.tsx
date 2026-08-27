@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import CitizenLayout from '../../components/layout/CitizenLayout';
 import { useLanguage } from '../../data/LanguageContext';
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 const LocationDisplay = ({ locationStr }: { locationStr: string }) => {
@@ -75,7 +76,7 @@ export default function CitizenReportLogs() {
           return;
         }
 
-        const res = await fetch(`${API_URL}/api/citizen-report-logs?email=${encodeURIComponent(user.email)}`);
+        const res = await encryptedFetch(`${API_URL}/api/citizen-report-logs?email=${encodeURIComponent(user.email)}`);
         if (res.ok) {
           const data = await res.json();
           setIncidents(data);

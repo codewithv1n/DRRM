@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Package, MapPin, Mail, User, CheckCircle2, Info, Upload, X } from 'lucide-react';
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function DonationsPage() {
@@ -49,7 +50,7 @@ export default function DonationsPage() {
         data.append('photo', photo);
       }
 
-      const response = await fetch(`${API_URL}/api/donations/pending`, {
+      const response = await encryptedFetch(`${API_URL}/api/donations/pending`, {
         method: 'POST',
         body: data,
       });

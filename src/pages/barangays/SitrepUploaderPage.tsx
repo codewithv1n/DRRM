@@ -7,6 +7,7 @@ import { ASSIGNED_BARANGAY } from './BarangayDashboard';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SitrepPanel() {
@@ -22,7 +23,7 @@ export default function SitrepPanel() {
   const [selectedEvacuationCenter, setSelectedEvacuationCenter] = useState('');
 
   useEffect(() => {
-    fetch(`${API_URL}/api/evacuation-centers`)
+    encryptedFetch(`${API_URL}/api/evacuation-centers`)
       .then(res => res.json())
       .then(data => {
         if (data.data) {
@@ -36,7 +37,7 @@ export default function SitrepPanel() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${API_URL}/api/sitreps`, {
+      const res = await encryptedFetch(`${API_URL}/api/sitreps`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

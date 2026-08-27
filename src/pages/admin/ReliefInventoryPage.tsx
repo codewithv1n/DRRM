@@ -4,6 +4,7 @@ import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useIncidentsCount } from '../../hooks/useSystemHooks';
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ReliefInventoryPanel() {
@@ -23,7 +24,7 @@ export default function ReliefInventoryPanel() {
 
   const fetchInventory = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/inventory`);
+      const res = await encryptedFetch(`${API_URL}/api/inventory`);
       const data = await res.json();
       setInventory(data);
     } catch (error) {
@@ -43,7 +44,7 @@ export default function ReliefInventoryPanel() {
     
     setIsSubmitting(true);
     try {
-      await fetch(`${API_URL}/api/inventory`, {
+      await encryptedFetch(`${API_URL}/api/inventory`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

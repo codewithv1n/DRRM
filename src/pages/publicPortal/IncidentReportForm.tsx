@@ -6,7 +6,6 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 import {
   AlertCircle,
-  Camera,
   CheckCircle2,
   MapPin,
   Phone,
@@ -43,6 +42,7 @@ export default function IncidentReportForm() {
   const [otherType, setOtherType] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [hasPhoto, setHasPhoto] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   // OTP State
   const [otpValues, setOtpValues] = useState<string[]>(['', '', '', '', '', '']);
@@ -68,16 +68,24 @@ export default function IncidentReportForm() {
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
+      setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setFormData((prev) => ({
             ...prev,
             location: `${position.coords.latitude.toFixed(4)} N, ${position.coords.longitude.toFixed(4)} E (Auto-detected)`,
           }));
+          setIsLocating(false);
         },
-        () => {
-          alert('Unable to retrieve your location. Please type your location manually.');
-        }
+        (error) => {
+          setIsLocating(false);
+          let errorMsg = 'Unable to retrieve your location. Please type your location manually.';
+          if (error.code === error.PERMISSION_DENIED) {
+            errorMsg = 'Location access was denied. Please enable location permissions in your browser.';
+          }
+          alert(errorMsg);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
       );
     } else {
       alert('Geolocation is not supported by your browser.');
@@ -343,10 +351,11 @@ export default function IncidentReportForm() {
                     type="tel"
                     name="contactNumber"
                     required
+                    maxLength={11}
                     value={formData.contactNumber}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all"
-                    placeholder="0912 345 6789"
+                    placeholder="09123456789"
                   />
                 </div>
               </div>
@@ -404,10 +413,11 @@ export default function IncidentReportForm() {
                   <button
                     type="button"
                     onClick={handleGetLocation}
-                    className="flex items-center justify-center px-3.5 py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl transition-colors cursor-pointer"
+                    disabled={isLocating}
+                    className="flex items-center justify-center px-3.5 py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                     title="Use Current Location"
                   >
-                    <Navigation className="w-4 h-4" />
+                    {isLocating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -417,26 +427,10 @@ export default function IncidentReportForm() {
                   Upload Photo <span className="text-slate-400 font-normal lowercase">(optional)</span>
                 </label>
                 {!hasPhoto ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    <label className="flex items-center justify-center gap-2 py-2.5 px-2 border-2 border-dashed border-slate-200 rounded-xl text-slate-600 hover:border-blue-500/50 hover:text-blue-600 hover:bg-blue-50/50 cursor-pointer transition-all">
-                      <Camera className="w-4 h-4" />
-                      <span className="text-xs font-semibold">Camera</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        className="hidden"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files.length > 0) {
-                            setPhotoFile(e.target.files[0]);
-                            setHasPhoto(true);
-                          }
-                        }}
-                      />
-                    </label>
-                    <label className="flex items-center justify-center gap-2 py-2.5 px-2 border-2 border-dashed border-slate-200 rounded-xl text-slate-600 hover:border-blue-500/50 hover:text-blue-600 hover:bg-blue-50/50 cursor-pointer transition-all">
+                  <div className="w-full">
+                    <label className="flex items-center justify-center gap-2 py-2.5 px-2 border-2 border-dashed border-slate-200 rounded-xl text-slate-600 hover:border-blue-500/50 hover:text-blue-600 hover:bg-blue-50/50 cursor-pointer transition-all w-full">
                       <Upload className="w-4 h-4" />
-                      <span className="text-xs font-semibold">Upload</span>
+                      <span className="text-xs font-semibold">Upload Photo</span>
                       <input
                         type="file"
                         accept="image/*"

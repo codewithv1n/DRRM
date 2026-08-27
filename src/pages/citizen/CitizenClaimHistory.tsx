@@ -3,6 +3,7 @@ import { Package, Clock, CheckCircle, Search, XCircle } from 'lucide-react';
 import ResidentLayout from '../../components/layout/CitizenLayout';
 import { useLanguage } from '../../data/LanguageContext';
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface ClaimRecord {
@@ -31,7 +32,7 @@ export default function ResidentClaimHistory() {
   useEffect(() => {
     const fetchClaims = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/claim-history?email=${encodeURIComponent(userEmail)}`);
+        const res = await encryptedFetch(`${API_URL}/api/claim-history?email=${encodeURIComponent(userEmail)}`);
         if (res.ok) {
           const data = await res.json();
           setClaims(data);

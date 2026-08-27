@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { encryptedFetch } from '../../utils/encryptedFetch';
 import { 
   Building2, Users, Search, Filter, 
   AlertCircle, CheckCircle2, Clock, ShieldAlert, Home
@@ -25,7 +26,7 @@ export default function EvacuationCenterMonitoringPage() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
 
   useEffect(() => {
-    fetch(`${API_URL}/api/evacuation-centers`)
+    encryptedFetch(`${API_URL}/api/evacuation-centers`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {

@@ -7,6 +7,7 @@ import { useAuditLogs } from '../../hooks/useSystemHooks';
 import { generateReportHTML } from '../../data/reportTemplate';
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface DBIncident {
@@ -114,7 +115,7 @@ export default function IncidentDispatcherPanel() {
 
   const fetchIncidents = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/incidents`);
+      const response = await encryptedFetch(`${API_URL}/api/incidents`);
       if (response.ok) {
         const data = await response.json();
         setIncidents(data);
@@ -187,7 +188,7 @@ export default function IncidentDispatcherPanel() {
     const newAssigned = isBackup && currentAssigned ? `${currentAssigned}, ${responderId}` : responderId;
 
     try {
-      const response = await fetch(`${API_URL}/api/incidents/${incidentId}/status`, {
+      const response = await encryptedFetch(`${API_URL}/api/incidents/${incidentId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -5,6 +5,7 @@ import ResponseUnitLayout from '../../components/layout/ResponseUnitLayout';
 import type { Incident, Resource } from '../../data/types';
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 interface IncidentCardProps {
   incident: Incident;
   assignedResources: Resource[];
@@ -309,7 +310,7 @@ export default function IncidentResponsePage() {
 
   const fetchIncidents = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/incidents`);
+      const response = await encryptedFetch(`${API_URL}/api/incidents`);
       if (response.ok) {
         const data = await response.json();
         setDbIncidents(data);
@@ -358,7 +359,7 @@ export default function IncidentResponsePage() {
     const mockGps = `14.${Math.floor(Math.random() * 10000)} N, 121.${Math.floor(Math.random() * 10000)} E`;
     
     try {
-      await fetch(`${API_URL}/api/incidents/${id}/status`, {
+      await encryptedFetch(`${API_URL}/api/incidents/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

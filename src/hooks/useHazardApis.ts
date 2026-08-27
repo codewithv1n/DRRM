@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 
+import { encryptedFetch } from '../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -317,7 +318,7 @@ export function useHazardApis(): HazardApiData {
     });
 
     if (hazardsPayload.length > 0) {
-      fetch(`${API_URL}/api/hazards/sync`, {
+      encryptedFetch(`${API_URL}/api/hazards/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hazards: hazardsPayload })

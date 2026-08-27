@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { encryptedFetch } from '../../utils/encryptedFetch';
 import { 
   FileText, Search, CheckCircle2,  
   Users,  Eye, X, PlusCircle 
@@ -30,7 +31,7 @@ export default function SitrepLogsPage() {
   const [totalEvacuees, setTotalEvacuees] = useState(0);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/sitreps`)
+    encryptedFetch(`${API_URL}/api/sitreps`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {
@@ -52,7 +53,7 @@ export default function SitrepLogsPage() {
       })
       .catch(err => console.error("Error fetching sitreps:", err));
 
-    fetch(`${API_URL}/api/evacuation-centers`)
+    encryptedFetch(`${API_URL}/api/evacuation-centers`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {

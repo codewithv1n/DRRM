@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { encryptedFetch } from '../../utils/encryptedFetch';
 import {
   FileText, LogOut, LayoutDashboard, ChevronDown,
   Menu, Bell, Package, List, Megaphone, History, Building2, Sun, Moon
@@ -55,7 +56,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
   const hasUnread = notifications.some(n => new Date(n.created_at || n.timestamp || Date.now()).getTime() > lastReadTime);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/announcements`)
+    encryptedFetch(`${API_URL}/api/announcements`)
       .then(res => res.json())
       .then(data => {
         setNotifications(data.data || data || []);

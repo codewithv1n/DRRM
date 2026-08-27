@@ -3,6 +3,7 @@ import { Megaphone, Package, AlertCircle, AlertTriangle, Send, Search, X } from 
 import BarangayLayout from '../../components/layout/BarangayLayout';
 import { useAlerts } from '../../hooks/useSystemHooks';
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const ASSIGNED_BARANGAY = "Balingasa";
 
 function ReliefDistributionPanel() {
@@ -29,7 +30,7 @@ function ReliefDistributionPanel() {
 
   const fetchClaims = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/claim-history?barangay=${ASSIGNED_BARANGAY}`);
+      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/claim-history?barangay=${ASSIGNED_BARANGAY}`);
       if (res.ok) {
         const data = await res.json();
         const mapped = data.map((c: any) => ({
@@ -53,7 +54,7 @@ function ReliefDistributionPanel() {
 
   const fetchInventory = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/inventory/barangay?barangay=${ASSIGNED_BARANGAY}`);
+      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/inventory/barangay?barangay=${ASSIGNED_BARANGAY}`);
       if (res.ok) {
         const data = await res.json();
         setLocalInventory(data.map((item: any) => ({
@@ -93,7 +94,7 @@ function ReliefDistributionPanel() {
     
     // Call batch API to generate pending claims
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/claim-history/batch`, {
+      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/claim-history/batch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -144,7 +145,7 @@ function ReliefDistributionPanel() {
     if (!citizenToConfirm) return;
     
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/claim-history/${citizenToConfirm.id}/status`, {
+      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/claim-history/${citizenToConfirm.id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

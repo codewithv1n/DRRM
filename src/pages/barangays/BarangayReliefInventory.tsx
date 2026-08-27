@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Box, Search } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 export default function BarangayReliefInventory() {
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
@@ -12,7 +13,7 @@ export default function BarangayReliefInventory() {
   useEffect(() => {
     const fetchInventory = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/inventory/barangay?barangay=${currentBarangay}`);
+        const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/inventory/barangay?barangay=${currentBarangay}`);
         if (res.ok) {
           const data = await res.json();
           setLocalInventory(data.map((item: any) => ({

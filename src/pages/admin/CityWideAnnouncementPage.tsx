@@ -3,6 +3,7 @@ import { Send, Radio, AlertTriangle, Route, BookOpen, Megaphone } from 'lucide-r
 import DepartmentLayout from '../../components/layout/AdminLayout';
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface DBAnnouncement {
@@ -22,10 +23,10 @@ export default function EarlyWarningPanel() {
 
   const fetchData = async () => {
     try {
-      const annRes = await fetch(`${API_URL}/api/announcements`);
+      const annRes = await encryptedFetch(`${API_URL}/api/announcements`);
       if (annRes.ok) setActiveAlerts(await annRes.json());
       
-      const incRes = await fetch(`${API_URL}/api/incidents`);
+      const incRes = await encryptedFetch(`${API_URL}/api/incidents`);
       if (incRes.ok) {
         const incidents = await incRes.json();
         setPendingCount(incidents.filter((i: any) => i.status === 'Pending').length);
@@ -51,7 +52,7 @@ export default function EarlyWarningPanel() {
   const handleBroadcast = async () => {
     if (!broadcastMessage.trim()) return;
     try {
-      await fetch(`${API_URL}/api/announcements`, {
+      await encryptedFetch(`${API_URL}/api/announcements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

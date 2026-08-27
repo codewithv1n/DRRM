@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { encryptedFetch } from '../../utils/encryptedFetch';
 import {
   LayoutDashboard, Siren, Radio, Map as MapIcon,
   ChevronRight, ChevronDown, Bell, Menu, Users, LogOut, Package, Shield, FileText, Home, Sun, Moon
@@ -103,9 +104,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const fetchNotifs = async () => {
       try {
         const [incRes, donRes, alertRes] = await Promise.all([
-          fetch(`${API_URL}/api/incidents`),
-          fetch(`${API_URL}/api/donations/pending`),
-          fetch(`${API_URL}/api/announcements`)
+          encryptedFetch(`${API_URL}/api/incidents`),
+          encryptedFetch(`${API_URL}/api/donations/pending`),
+          encryptedFetch(`${API_URL}/api/announcements`)
         ]);
         
         const incData = incRes.ok ? await incRes.json() : [];

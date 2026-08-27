@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, KeyRound, AlertCircle, Loader2, ArrowLeft, ShieldCheck, RefreshCw } from 'lucide-react';
 import ForgotPasswordForm from './ForgotPasswordForm';
 
+import { encryptedFetch } from '../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginPage() {
@@ -63,7 +64,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-        const response = await fetch(`${API_URL}/api/auth/login`, {
+        const response = await encryptedFetch(`${API_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -88,7 +89,7 @@ export default function LoginPage() {
         setTempUser(user);
 
         // Send OTP Request immediately
-        const otpRes = await fetch(`${API_URL}/api/auth/send-otp`, {
+        const otpRes = await encryptedFetch(`${API_URL}/api/auth/send-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: user.email, type: 'login' }),
@@ -118,7 +119,7 @@ export default function LoginPage() {
     setOtpError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/send-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: tempUser.email, type: 'login' }),
@@ -180,7 +181,7 @@ export default function LoginPage() {
     setOtpError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/verify-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: tempUser.email, otp: fullOtp }),

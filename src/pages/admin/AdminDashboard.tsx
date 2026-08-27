@@ -6,6 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 function OverviewPanel({ incidents, pendingCount }: { incidents: any[], pendingCount: number }) {
@@ -16,16 +17,16 @@ function OverviewPanel({ incidents, pendingCount }: { incidents: any[], pendingC
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const invRes = await fetch(`${API_URL}/api/inventory`);
+        const invRes = await encryptedFetch(`${API_URL}/api/inventory`);
         if (invRes.ok) setReliefInventory(await invRes.json());
         
-        const donRes = await fetch(`${API_URL}/api/donations/pending`);
+        const donRes = await encryptedFetch(`${API_URL}/api/donations/pending`);
         if (donRes.ok) {
           const donData = await donRes.json();
           setPendingDonationsCount(donData.length);
         }
 
-        const evRes = await fetch(`${API_URL}/api/evacuation-centers`);
+        const evRes = await encryptedFetch(`${API_URL}/api/evacuation-centers`);
         if (evRes.ok) {
           const evData = await evRes.json();
           setEvacuationCenters(evData.data || []);
@@ -223,7 +224,7 @@ export default function DepartmentDashboard() {
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/incidents`);
+        const res = await encryptedFetch(`${API_URL}/api/incidents`);
         if (res.ok) setIncidents(await res.json());
       } catch (error) {
         console.error('Error fetching incidents', error);

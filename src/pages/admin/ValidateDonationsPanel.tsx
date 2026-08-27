@@ -4,6 +4,7 @@ import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useIncidentsCount } from '../../hooks/useSystemHooks';
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ValidateDonationsPanel() {
@@ -23,7 +24,7 @@ export default function ValidateDonationsPanel() {
 
   const fetchDonations = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/donations/pending`);
+      const res = await encryptedFetch(`${API_URL}/api/donations/pending`);
       const data = await res.json();
       setDonations(data);
     } catch (error) {
@@ -33,7 +34,7 @@ export default function ValidateDonationsPanel() {
 
   const fetchLogs = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/donations/logs`);
+      const res = await encryptedFetch(`${API_URL}/api/donations/logs`);
       const data = await res.json();
       setDonationLogs(data);
     } catch (error) {
@@ -43,7 +44,7 @@ export default function ValidateDonationsPanel() {
 
   const receiveDonation = async (id: string) => {
     try {
-      await fetch(`${API_URL}/api/donations/pending/${id}/receive`, {
+      await encryptedFetch(`${API_URL}/api/donations/pending/${id}/receive`, {
         method: 'PUT'
       });
       fetchDonations();

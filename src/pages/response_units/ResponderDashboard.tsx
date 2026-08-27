@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { encryptedFetch } from '../../utils/encryptedFetch';
 import { useReliefDispatches } from '../../hooks/useSystemHooks';
 import ResponseUnitLayout from '../../components/layout/ResponseUnitLayout';
 import { Activity, Clock, Package } from 'lucide-react';
@@ -11,7 +12,7 @@ export default function ResponderDashboard() {
   const [incidents, setIncidents] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/incidents`)
+    encryptedFetch(`${API_URL}/api/incidents`)
       .then(res => res.json())
       .then(data => setIncidents(data))
       .catch(err => console.error(err));

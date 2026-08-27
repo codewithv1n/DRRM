@@ -5,6 +5,7 @@ import { UserPlus, Shield, Mail, Key, IdCard, X } from 'lucide-react';
 import BarangayOptions from '../../components/BarangayOptions';
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function UserManagement() {
@@ -18,7 +19,7 @@ export default function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/auth/users`);
+      const res = await encryptedFetch(`${API_URL}/api/auth/users`);
       if (res.ok) {
         const data = await res.json();
         setUsers(data.users || []);
@@ -60,7 +61,7 @@ export default function UserManagement() {
     const fullName = form.role === 'Responder' ? form.taskForce : `${form.firstName} ${form.lastName}`.trim();
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/admin/create-account`, {
+      const response = await encryptedFetch(`${API_URL}/api/auth/admin/create-account`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

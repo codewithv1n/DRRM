@@ -9,6 +9,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { encryptedFetch } from '../../utils/encryptedFetch';
 import ResidentLayout from '../../components/layout/CitizenLayout';
 import { useLanguage } from '../../data/LanguageContext';
 
@@ -22,7 +23,7 @@ export default function CitizenAlerts() {
 
   useEffect(() => {
     // Fetch announcements
-    fetch(`${API_URL}/api/announcements`)
+    encryptedFetch(`${API_URL}/api/announcements`)
       .then(res => res.json())
       .then(data => setActiveAlerts(data))
       .catch(err => console.error('Error fetching announcements:', err));
@@ -52,7 +53,7 @@ export default function CitizenAlerts() {
           else if (yellowCodes.includes(currentCode)) { level = 'YELLOW'; msg = 'Flooding is possible in low-lying areas. Monitor the weather condition.'; }
 
           if (level) {
-            fetch(`${API_URL}/api/weather-alerts`, {
+            encryptedFetch(`${API_URL}/api/weather-alerts`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

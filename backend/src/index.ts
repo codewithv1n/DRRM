@@ -17,11 +17,13 @@ import auditLogRoutes from './routes/auditLogRoutes';
 import otpRoutes from './routes/otpRoutes';
 import claimHistoryRoutes from './routes/claimHistoryRoutes';
 import citizenReportLogsRoutes from './routes/citizenReportLogsRoutes';
+import { encryptResponse } from './middleware/encryption';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
+app.use(encryptResponse);
 
 const uploadsDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {

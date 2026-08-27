@@ -5,6 +5,7 @@ import { useReliefDispatches } from '../../hooks/useSystemHooks';
 import BarangayOptions from '../../components/BarangayOptions';
 
 
+import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface InventoryItem {
@@ -35,7 +36,7 @@ export default function ReliefDispatchPanel() {
 
   const fetchData = async () => {
     try {
-      const invRes = await fetch(`${API_URL}/api/inventory`);
+      const invRes = await encryptedFetch(`${API_URL}/api/inventory`);
       const invData = await invRes.json();
       setInventory(invData);
     } catch (error) {
@@ -62,20 +63,20 @@ export default function ReliefDispatchPanel() {
 
     try {
       
-      await fetch(`${API_URL}/api/inventory`, {
+      await encryptedFetch(`${API_URL}/api/inventory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ category: form.type, quantity: -qty })
       });
 
       if (form.id) {
-         await fetch(`${API_URL}/api/relief-requests/${form.id}/status`, {
+         await encryptedFetch(`${API_URL}/api/relief-requests/${form.id}/status`, {
            method: 'PUT',
            headers: { 'Content-Type': 'application/json' },
            body: JSON.stringify({ status: 'En Route', vehicle: form.vehicle })
          });
       } else {
-         const reqRes = await fetch(`${API_URL}/api/relief-requests`, {
+         const reqRes = await encryptedFetch(`${API_URL}/api/relief-requests`, {
            method: 'POST',
            headers: { 'Content-Type': 'application/json' },
            body: JSON.stringify({ barangay: form.location, type: form.type, quantity: qty })
@@ -83,7 +84,7 @@ export default function ReliefDispatchPanel() {
          const reqData = await reqRes.json();
          const newId = reqData.request.mission_id || reqData.request.id;
 
-         await fetch(`${API_URL}/api/relief-requests/${newId}/status`, {
+         await encryptedFetch(`${API_URL}/api/relief-requests/${newId}/status`, {
            method: 'PUT',
            headers: { 'Content-Type': 'application/json' },
            body: JSON.stringify({ status: 'En Route', vehicle: form.vehicle })
