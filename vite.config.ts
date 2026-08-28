@@ -43,8 +43,8 @@ function devObfuscatorPlugin() {
             shuffleStringArray: true,
             splitStrings: false,
             stringArray: true,
-            stringArrayEncoding: ['rc4'],
-            transformObjectKeys: true,
+            stringArrayEncoding: ['base64'],
+            transformObjectKeys: false,
             unicodeEscapeSequence: false
           });
           return {

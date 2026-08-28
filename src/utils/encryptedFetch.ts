@@ -1,38 +1,45 @@
-/**
- * Encrypted fetch wrapper.
- * Drop-in replacement for the native fetch() that automatically
- * decrypts AES-256-CBC encrypted responses from the backend.
- */
 
 import { decryptResponse, isEncryptedResponse } from './crypto';
 
-/**
- * A wrapper around the native fetch() that automatically decrypts
- * encrypted API responses. Use this instead of fetch() for all
- * API calls.
- *
- * Usage (identical to fetch):
- *   const res = await encryptedFetch(`${API_URL}/api/inventory`);
- *   const data = await res.json(); // Already decrypted!
- */
+const cache = new Map<string, { data: string; timestamp: number }>();
+const CACHE_DURATION_MS = 30000; 
 export async function encryptedFetch(
     input: RequestInfo | URL,
     init?: RequestInit
 ): Promise<Response> {
-    const response = await fetch(input, init);
+    const method = init?.method?.toUpperCase() || 'GET';
+    const cacheKey = typeof input === 'string' ? input : input.toString();
 
-    // Clone the response so we can read the body without consuming it
+   
+    if (method === 'GET') {
+        const cached = cache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION_MS) {
+           
+            return new Response(cached.data, {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+    }
+
+   
+    const response = await fetch(input, init);
     const cloned = response.clone();
 
     try {
         const body = await cloned.json();
 
         if (isEncryptedResponse(body)) {
-            // Decrypt the data
+            
             const decrypted = await decryptResponse(body.data);
             const decryptedString = JSON.stringify(decrypted);
 
-            // Create a new Response with the decrypted data
+            
+            if (method === 'GET' && response.ok) {
+                cache.set(cacheKey, { data: decryptedString, timestamp: Date.now() });
+            }
+
+           
             return new Response(decryptedString, {
                 status: response.status,
                 statusText: response.statusText,
@@ -40,9 +47,8 @@ export async function encryptedFetch(
             });
         }
     } catch {
-        // If JSON parsing fails, return the original response
+        
     }
 
-    // Return original response if not encrypted
     return response;
 }
