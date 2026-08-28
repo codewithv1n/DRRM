@@ -12,6 +12,11 @@ function obfuscateDirectory(directory) {
     if (fs.statSync(fullPath).isDirectory()) {
       obfuscateDirectory(fullPath);
     } else if (fullPath.endsWith('.js')) {
+      if (file.startsWith('vendor-') || file.includes('vendor')) {
+        console.log(`Skipping vendor file: ${file}`);
+        continue;
+      }
+
       const code = fs.readFileSync(fullPath, 'utf8');
       
       const obfuscationResult = JavaScriptObfuscator.obfuscate(code, {

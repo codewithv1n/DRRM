@@ -71,6 +71,15 @@ export default defineConfig({
   build: {
     sourcemap: false, // No source maps in production
     minify: 'terser', // Use Terser for better minification
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+        }
+      }
+    },
     terserOptions: {
       compress: {
         drop_console: true, // Remove all console.log in production

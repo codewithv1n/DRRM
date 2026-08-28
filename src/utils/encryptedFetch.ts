@@ -1,4 +1,3 @@
-
 import { decryptResponse, isEncryptedResponse } from './crypto';
 
 const cache = new Map<string, { data: string; timestamp: number }>();
