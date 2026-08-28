@@ -45,9 +45,8 @@ export async function encryptedFetch(
                 headers: response.headers,
             });
         }
-    } catch {
-        
+    } catch (err) {
+        console.error('[encryptedFetch] Error decrypting or parsing response:', err);
     }
-
     return response;
 }
