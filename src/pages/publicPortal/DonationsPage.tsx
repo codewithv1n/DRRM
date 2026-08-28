@@ -70,7 +70,7 @@ export default function DonationsPage() {
 
   return (
     <div className="min-h-screen bg-white relative overflow-x-hidden font-sans text-slate-900 flex flex-col">
-      {/* Header */}
+     
       <header className="w-full px-6 py-6 flex justify-between items-center z-10 max-w-7xl mx-auto">
         <div className="flex items-center gap-3">
           <img src="/logo-system.png" alt="GovServe Logo" className="h-10 object-contain shrink-0" />
@@ -88,31 +88,31 @@ export default function DonationsPage() {
         </div>
       </header>
 
-      {/* Main Content */}
+      
       <main className="flex-1 flex flex-col items-center px-4 z-10 w-full max-w-6xl mx-auto mt-6 pb-20">
         
-        {/* Top Badge */}
+       
         <div className="bg-blue-50 text-blue-600 rounded-full px-4 py-1.5 flex items-center gap-2 mb-8 border border-blue-100">
           <Heart className="w-3.5 h-3.5 text-blue-600" />
           <span className="text-[10px] font-extrabold tracking-widest uppercase">Relief & Donations</span>
         </div>
 
-        {/* Hero Title */}
+        
         <div className="text-center mb-4">
           <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.1]">
             Donate Relief <span className="text-blue-600">Goods</span>
           </h1>
         </div>
 
-        {/* Subtitle */}
+       
         <p className="text-center text-slate-500 max-w-2xl text-[15px] md:text-base mb-12 leading-relaxed">
           Your contribution saves lives. Coordinate your donation drop-off or pick-up with our disaster response team.
         </p>
 
-        {/* Form and Info Section Grid */}
+        
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Form Card */}
+         
           <div className="lg:col-span-7">
             <div className="bg-white rounded-[20px] p-8 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden h-full">
               {!submitted ? (
@@ -127,7 +127,7 @@ export default function DonationsPage() {
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
-                    {/* Name */}
+                  
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                         Full Name <span className="text-red-500">*</span>
@@ -147,7 +147,7 @@ export default function DonationsPage() {
                       </div>
                     </div>
 
-                    {/* Email */}
+                   
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                         Email Address <span className="text-red-500">*</span>
@@ -167,7 +167,7 @@ export default function DonationsPage() {
                       </div>
                     </div>
 
-                    {/* Type of Relief */}
+           
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                         Type of Donation <span className="text-red-500">*</span>
@@ -192,7 +192,7 @@ export default function DonationsPage() {
                       </div>
                     </div>
 
-                    {/* Quantity */}
+                   
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                         Quantity <span className="text-red-500">*</span>

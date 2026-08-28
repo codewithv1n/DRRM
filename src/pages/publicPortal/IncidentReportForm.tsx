@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { EmergencyType } from '../../data/types';
+import { encryptedFetch } from '../../utils/encryptedFetch';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -44,7 +45,7 @@ export default function IncidentReportForm() {
   const [hasPhoto, setHasPhoto] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
 
-  // OTP State
+  
   const [otpValues, setOtpValues] = useState<string[]>(['', '', '', '', '', '']);
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
@@ -52,7 +53,7 @@ export default function IncidentReportForm() {
 
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Resend timer countdown
+  
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const timer = setInterval(() => {
@@ -92,7 +93,7 @@ export default function IncidentReportForm() {
     }
   };
 
-  // Request OTP and transition to OTP screen
+  
   const handleInitiateOtp = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -105,7 +106,7 @@ export default function IncidentReportForm() {
     setOtpError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/send-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, type: 'incident' }),
@@ -128,14 +129,14 @@ export default function IncidentReportForm() {
     }
   };
 
-  // Handle Resend OTP
+ 
   const handleResendOtp = async () => {
     if (resendCooldown > 0 || otpLoading) return;
     setOtpLoading(true);
     setOtpError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/send-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/auth/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, type: 'incident' }),
@@ -153,10 +154,10 @@ export default function IncidentReportForm() {
     }
   };
 
-  // Handle OTP digit box input
+  
   const handleOtpBoxChange = (index: number, value: string) => {
     if (value.length > 1) {
-      // Handle paste
+     
       const pasted = value.replace(/\D/g, '').slice(0, 6).split('');
       const updated = [...otpValues];
       pasted.forEach((char, idx) => {
@@ -184,7 +185,7 @@ export default function IncidentReportForm() {
     }
   };
 
-  // Final incident submission
+ 
   const submitIncidentReport = async () => {
     const finalType = formData.type === 'Other' && otherType.trim() ? otherType : formData.type;
 
@@ -204,7 +205,7 @@ export default function IncidentReportForm() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/incidents`, {
+      const response = await encryptedFetch(`${API_URL}/api/incidents`, {
         method: 'POST',
         body: payload,
       });
@@ -232,7 +233,7 @@ export default function IncidentReportForm() {
     }
   };
 
-  // Verify OTP code
+  
   const handleVerifyOtpAndSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const fullOtp = otpValues.join('');
@@ -246,7 +247,7 @@ export default function IncidentReportForm() {
     setOtpError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/verify-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, otp: fullOtp }),
@@ -275,7 +276,7 @@ export default function IncidentReportForm() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      {/* Toast Notification */}
+      
       {showSuccess && (
         <div className="fixed top-4 right-4 bg-emerald-600 text-white px-6 py-3.5 rounded-xl shadow-xl flex items-center gap-3 z-50 transition-all duration-300 animate-fade-in-down border border-emerald-400">
           <CheckCircle2 className="w-5 h-5 text-white" />
@@ -287,7 +288,7 @@ export default function IncidentReportForm() {
       )}
 
       <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
-        {/* Header */}
+      
         <div className="bg-linear-to-r from-blue-700 to-blue-600 p-6 text-center text-white relative">
           {step === 'FORM' ? (
             <button
@@ -311,10 +312,10 @@ export default function IncidentReportForm() {
             <AlertCircle className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-black text-white tracking-tight">Helpline 122</h1>
-          <p className="text-blue-100 text-xs font-medium mt-1">Quezon City Emergency Incident Reporting Portal</p>
+          <p className="text-blue-100 text-xs font-medium mt-1">GovServe Emergency Incident Reporting Portal</p>
         </div>
 
-        {/* STEP 1: INCIDENT FORM */}
+        
         {step === 'FORM' && (
           <form onSubmit={handleInitiateOtp} className="p-6 md:p-8 space-y-6">
             {/* Row 1: Name & Contact */}
@@ -389,7 +390,7 @@ export default function IncidentReportForm() {
               </p>
             </div>
 
-            {/* Row 3: Location and Photo */}
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
@@ -467,7 +468,7 @@ export default function IncidentReportForm() {
               </div>
             </div>
 
-            {/* Row 4: Emergency Type Selector */}
+            
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
                 Emergency Type <span className="text-red-500">*</span>
@@ -520,7 +521,7 @@ export default function IncidentReportForm() {
               )}
             </div>
 
-            {/* Submit Button */}
+           
             <div className="pt-2">
               <button
                 type="submit"
@@ -543,7 +544,7 @@ export default function IncidentReportForm() {
           </form>
         )}
 
-        {/* STEP 2: OTP VERIFICATION SCREEN */}
+     
         {step === 'OTP_VERIFICATION' && (
           <div className="p-6 md:p-8 animate-fade-in">
             <div className="text-center max-w-md mx-auto mb-6">
@@ -593,7 +594,7 @@ export default function IncidentReportForm() {
                 </p>
               </div>
 
-              {/* Verify Button */}
+              
               <button
                 type="submit"
                 disabled={otpLoading || otpValues.join('').length !== 6}
@@ -612,7 +613,7 @@ export default function IncidentReportForm() {
                 )}
               </button>
 
-              {/* Resend & Back controls */}
+             
               <div className="flex items-center justify-between text-xs pt-2">
                 <button
                   type="button"
@@ -636,7 +637,7 @@ export default function IncidentReportForm() {
           </div>
         )}
 
-        {/* STEP 3: PHOTO VALIDATION (Simulated Anti-Abuse Scanner) */}
+        
         {step === 'PHOTO_VALIDATION' && (
           <div className="p-12 text-center flex flex-col items-center">
             <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl mb-4">
@@ -652,7 +653,7 @@ export default function IncidentReportForm() {
           </div>
         )}
 
-        {/* STEP 4: SUCCESS CONFIRMATION */}
+        
         {step === 'SUCCESS' && (
           <div className="p-10 text-center flex flex-col items-center bg-linear-to-b from-emerald-50/50 to-white">
             <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
