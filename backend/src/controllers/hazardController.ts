@@ -28,7 +28,7 @@ export const syncHazards = async (req: Request, res: Response): Promise<void> =>
 
         await client.query("DELETE FROM hazard_reports WHERE source IN ('Open-Meteo', 'GDACS', 'USGS')");
 
-        // Insert the fresh, current active hazards
+      
         for (const h of hazards) {
             await client.query(`
                 INSERT INTO hazard_reports (type, title, description, severity, coordinates, source, reported_at)

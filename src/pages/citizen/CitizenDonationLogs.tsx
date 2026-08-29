@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Heart, Package, Clock, CheckCircle } from 'lucide-react';
+import { Heart, Clock, CheckCircle } from 'lucide-react';
 import CitizenLayout from '../../components/layout/CitizenLayout';
+import { useLanguage } from '../../data/LanguageContext';
 
 import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
@@ -14,6 +15,7 @@ interface DonationLog {
 }
 
 export default function CitizenDonationLogs() {
+  const { language } = useLanguage();
   const [donations, setDonations] = useState<DonationLog[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -76,45 +78,52 @@ export default function CitizenDonationLogs() {
       <div className="animate-fade-in pb-12">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Heart className="w-6 h-6 text-rose-500" /> My Donations
+           {language === 'en' ? 'My Donations' : 'Aking Mga Donasyon'}
           </h1>
-          <p className="text-slate-500 mt-1">Track the status of your relief good contributions.</p>
+          <p className="text-slate-500 mt-1">
+            {language === 'en' ? 'Track the status of your relief good contributions.' : 'Subaybayan ang katayuan ng iyong mga naiambag na relief goods.'}
+          </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between gap-4 bg-slate-50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600">
-                <Package className="w-5 h-5" />
-              </div>
-              <h2 className="text-lg font-bold text-slate-800">Donation History</h2>
+              <h2 className="text-lg font-bold text-slate-800">
+                {language === 'en' ? 'Donation History' : 'Kasaysayan ng Donasyon'}
+              </h2>
             </div>
             <div className="text-sm font-semibold text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
-              {donations.length} {donations.length === 1 ? 'Record' : 'Records'}
+              {donations.length} {donations.length === 1 ? (language === 'en' ? 'Record' : 'Tala') : (language === 'en' ? 'Records' : 'Mga Tala')}
             </div>
           </div>
           
           <div className="flex-1 overflow-auto">
             {loading ? (
-              <div className="p-12 text-center text-slate-400 font-medium">Loading donations...</div>
+              <div className="p-12 text-center text-slate-400 font-medium">
+                {language === 'en' ? 'Loading donations...' : 'Nilo-load ang mga donasyon...'}
+              </div>
             ) : donations.length === 0 ? (
               <div className="p-16 flex flex-col items-center justify-center text-center">
                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                   <Heart className="w-8 h-8 text-slate-300" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-700">No Donations Yet</h3>
+                <h3 className="text-lg font-bold text-slate-700">
+                  {language === 'en' ? 'No Donations Yet' : 'Wala pang Donasyon'}
+                </h3>
                 <p className="text-slate-500 max-w-sm mt-1">
-                  You haven't made any donations using this account. You can donate via the public portal.
+                  {language === 'en' 
+                    ? "You haven't made any donations using this account. You can donate via the public portal." 
+                    : "Wala ka pang nagagawang donasyon gamit ang account na ito. Maaari kang mag-donate gamit ang public portal."}
                 </p>
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-100 text-sm text-slate-500 bg-slate-50/50">
-                    <th className="p-4 font-semibold">Donation Type</th>
-                    <th className="p-4 font-semibold">Quantity</th>
-                    <th className="p-4 font-semibold">Status</th>
-                    <th className="p-4 font-semibold text-right">Date Submitted</th>
+                    <th className="p-4 font-semibold">{language === 'en' ? 'Donation Type' : 'Uri ng Donasyon'}</th>
+                    <th className="p-4 font-semibold">{language === 'en' ? 'Quantity' : 'Dami'}</th>
+                    <th className="p-4 font-semibold">{language === 'en' ? 'Status' : 'Katayuan'}</th>
+                    <th className="p-4 font-semibold text-right">{language === 'en' ? 'Date Submitted' : 'Petsa ng Pagsusumite'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -122,9 +131,6 @@ export default function CitizenDonationLogs() {
                     <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                           <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                             <Package className="w-4 h-4 text-slate-500" />
-                           </div>
                            <span className="font-bold text-slate-800">{item.type}</span>
                         </div>
                       </td>
@@ -134,11 +140,11 @@ export default function CitizenDonationLogs() {
                       <td className="p-4">
                         {item.status === 'Received' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                            <CheckCircle className="w-3.5 h-3.5" /> Received
+                            <CheckCircle className="w-3.5 h-3.5" /> {language === 'en' ? 'Received' : 'Natanggap'}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
-                            <Clock className="w-3.5 h-3.5" /> Pending
+                            <Clock className="w-3.5 h-3.5" /> {language === 'en' ? 'Pending' : 'Nakabinbin'}
                           </span>
                         )}
                       </td>

@@ -49,7 +49,7 @@ export default function BarangayPortal() {
   return (
     <BarangayLayout>
       <OverviewPanel />
-      {/* Welcome Toast */}
+     
       {showToast && (
         <div className="fixed top-6 right-6 bg-emerald-500 border border-emerald-400 shadow-[0_10px_40px_rgba(16,185,129,0.3)] rounded-2xl p-4 flex items-center gap-4 z-50 animate-fade-in">
           <div className="bg-emerald-400/50 text-white p-2 rounded-xl">

@@ -70,7 +70,7 @@ export default function ResponderDashboard() {
     avgResponseTime = `${mins}m ${secs}s`;
   }
 
-  // Compute Bar Chart Data
+  
   const incidentCountsByType = incidents.reduce((acc, inc) => {
     if (inc.assigned_responder?.includes(responderName)) {
       acc[inc.type] = (acc[inc.type] || 0) + 1;
@@ -83,7 +83,7 @@ export default function ResponderDashboard() {
     barChartData.push({ name: 'No Data', count: 0 });
   }
 
-  // Compute Pie Chart Data
+  
   const reliefCountsByStatus = reliefDispatches.reduce((acc, dispatch) => {
     acc[dispatch.status] = (acc[dispatch.status] || 0) + 1;
     return acc;
@@ -96,7 +96,7 @@ export default function ResponderDashboard() {
 
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-  // Weather-derived values
+  
   const weatherDesc = weather ? getWeatherDescription(weather.weatherCode) : 'Loading...';
 
   return (
@@ -107,10 +107,10 @@ export default function ResponderDashboard() {
           <p className="text-slate-500 mt-1">Overview of your unit's performance and history</p>
         </div>
 
-        {/* Metrics Overview */}
+        
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Metric 1: Active Missions */}
+           
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-default">
               <div className="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
                 <Activity className="w-6 h-6 text-indigo-600" />
@@ -121,7 +121,7 @@ export default function ResponderDashboard() {
               </div>
             </div>
 
-            {/* Metric 2: Average Response Time */}
+           
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-default">
               <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                 <Clock className="w-6 h-6 text-blue-600" />
@@ -132,7 +132,7 @@ export default function ResponderDashboard() {
               </div>
             </div>
 
-            {/* Metric 3: Deliveries Completed */}
+           
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-default">
               <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
                 <Package className="w-6 h-6 text-emerald-600" />
@@ -143,7 +143,7 @@ export default function ResponderDashboard() {
               </div>
             </div>
 
-            {/* Metric 4: Missions Resolved */}
+           
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 cursor-default">
               <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
                 <CheckCircle className="w-6 h-6 text-purple-600" />
@@ -155,7 +155,7 @@ export default function ResponderDashboard() {
             </div>
           </div>
 
-          {/* Weather & Environment Widget — LIVE from Open-Meteo API */}
+          
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
              <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                <CloudRain className="w-5 h-5 text-sky-500" />
@@ -199,9 +199,9 @@ export default function ResponderDashboard() {
              <p className="text-[10px] text-slate-400 mt-3">Quezon City area data from Open-Meteo Weather API. Updates automatically.</p>
           </div>
 
-          {/* Charts Section */}
+          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Bar Chart */}
+           
             <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
               <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
                 <Activity className="w-5 h-5 text-indigo-500" />
@@ -220,7 +220,7 @@ export default function ResponderDashboard() {
               </div>
             </div>
 
-            {/* Pie Chart */}
+           
             <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
               <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
                 <Package className="w-5 h-5 text-emerald-500" />

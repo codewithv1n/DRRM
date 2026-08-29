@@ -10,11 +10,14 @@ import {
   CloudRain,
   CloudLightning,
   MapPin,
-  BookOpen,
   Navigation,
   Sparkles,
   LocateFixed,
-  BellRing
+  AlertTriangle,
+  Clock,
+  XCircle,
+  CheckCircle,
+  Package
 } from 'lucide-react';
 
 import ResidentLayout from '../../components/layout/CitizenLayout';
@@ -38,6 +41,9 @@ export default function CitizenDashboard() {
   const [shelters, setShelters] = useState<any[]>([]);
   const [userName, setUserName] = useState('Resident');
   const [weather, setWeather] = useState<{ temp: number; description: string; code: number } | null>(null);
+  const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
+  const [selectedShelterMap, setSelectedShelterMap] = useState<string | null>(null);
+  const [recentClaims, setRecentClaims] = useState<any[]>([]);
 
   useEffect(() => {
     try {
@@ -70,6 +76,27 @@ export default function CitizenDashboard() {
         }
       })
       .catch(err => console.error('Weather fetch error:', err));
+
+    encryptedFetch(`${API_URL}/api/announcements`)
+      .then(res => res.json())
+      .then(data => setActiveAlerts(data))
+      .catch(err => console.error('Error fetching announcements:', err));
+
+    const userStr = localStorage.getItem('user');
+    let email = '';
+    if (userStr) {
+      try {
+        email = JSON.parse(userStr).email;
+      } catch(e) {}
+    }
+    if (email) {
+      encryptedFetch(`${API_URL}/api/claim-history?email=${encodeURIComponent(email)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setRecentClaims(data);
+        })
+        .catch(err => console.error('Error fetching claims:', err));
+    }
   }, []);
 
   const fetchAndSetShelters = async (lat: number, lon: number) => {
@@ -159,7 +186,7 @@ export default function CitizenDashboard() {
           <div>
             <span className="text-xs font-extrabold text-primary uppercase tracking-widest block mb-1">{language === 'en' ? 'Citizen Portal' : 'Portal ng Mamamayan'}</span>
             <h2 className="text-3xl font-bold text-slate-900 font-display mb-1">{language === 'en' ? `Welcome back, ${userName}!` : `Maligayang pagbabalik, ${userName}!`}</h2>
-            <p className="text-slate-500 text-sm">{language === 'en' ? 'Access your digital resident card, track distributions, and check local shelter status.' : 'Tingnan ang iyong digital resident card, subaybayan ang mga relief goods, at suriin ang mga shelter.'}</p>
+            <p className="text-slate-500 text-sm">{language === 'en' ? 'Access your track distributions, and check local shelter status.' : 'Tingnan ang iyong digital resident card, subaybayan ang mga relief goods, at suriin ang mga shelter.'}</p>
           </div>
           
           {/* Quick Weather Badge */}
@@ -187,64 +214,100 @@ export default function CitizenDashboard() {
         {/* Dashboard Sections: Operations vs Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Recent Claims Section */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-800 font-display">{language === 'en' ? 'Recent Relief Activities' : 'Mga Kamakailang Aktibidad'}</h3>
-              <button 
-                onClick={() => navigate('/citizen/claim_history')}
-                className="text-xs font-bold text-primary hover:text-orange-600 flex items-center gap-1"
-              >
-                {language === 'en' ? 'View History' : 'Tingnan ang Kasaysayan'} <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+          <div className="lg:col-span-7 h-full">
+          
+            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] h-full flex flex-col space-y-5">
+              <div className="flex items-center justify-between shrink-0">
+                <h3 className="text-lg font-bold text-slate-800 font-display flex items-center gap-2">
+                  {language === 'en' ? 'City Advisories' : 'Mga Abiso ng Lungsod'}
+                </h3>
+              </div>
+              
+              <div className="space-y-3 flex-1 overflow-y-auto scrollbar-thin pr-2">
+                {activeAlerts.length > 0 ? activeAlerts.slice(0, 3).map(alert => (
+                  <div key={alert.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex gap-4 hover:bg-slate-100/50 transition-colors">
+                    <div className={`p-3 rounded-xl h-fit border shrink-0 ${
+                      alert.level?.includes('Red') || alert.level?.includes('Critical') ? 'bg-rose-100/50 border-rose-200 text-rose-600' :
+                      alert.level?.includes('Warning') || alert.level?.includes('Orange') ? 'bg-amber-100/50 border-amber-200 text-amber-600' :
+                      'bg-blue-100/50 border-blue-200 text-blue-600'
+                    }`}>
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-md">{alert.level || 'Alert'}</h4>
+                      <p className="text-slate-500 text-sm mt-1 leading-relaxed line-clamp-2">
+                        {alert.message}
+                      </p>
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className="text-[11px] font-medium text-slate-400">{language === 'en' ? 'Issued' : 'Inilabas'} {new Date(alert.created_at || alert.timestamp || new Date()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="text-center p-8 text-slate-500 bg-slate-50 rounded-2xl border border-slate-100">
+                     {language === 'en' ? 'No active city advisories at the moment.' : 'Walang aktibong abiso ang lungsod sa ngayon.'}
+                  </div>
+                )}
+              </div>
             </div>
-            
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.01)] min-h-50 flex items-center justify-center">
-              <p className="text-slate-400 text-sm">{language === 'en' ? 'No recent relief activities.' : 'Walang kamakailang aktibidad sa relief.'}</p>
-            </div>
+
 
           </div>
 
-          {/* Quick Actions Grid */}
-          <div className="lg:col-span-5 space-y-4">
-            <h3 className="text-lg font-bold text-slate-800 font-display">{language === 'en' ? 'Resident Actions' : 'Mga Aksyon ng Residente'}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <div className="lg:col-span-5 space-y-8">
+           
+            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] space-y-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-slate-800 font-display">{language === 'en' ? 'Recent Relief Activities' : 'Mga Kamakailang Aktibidad'}</h3>
+                <button 
+                  onClick={() => navigate('/citizen/claim_history')}
+                  className="text-xs font-bold text-primary hover:text-orange-600 flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-full hover:bg-primary/10 transition-colors"
+                >
+                  {language === 'en' ? 'View History' : 'Tingnan ang Kasaysayan'} <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
               
-              <button 
-                onClick={() => navigate('/citizen/alerts')}
-                className="bg-white text-left p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all group flex flex-col justify-between h-36 cursor-pointer"
-              >
-                <div className="bg-primary/10 text-primary p-2.5 rounded-xl w-fit group-hover:bg-primary/20 transition-colors">
-                  <BellRing className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 text-sm mb-0.5 group-hover:text-primary transition-colors flex items-center gap-1">
-                    {language === 'en' ? 'Alerts & Advisories' : 'Mga Alerto at Abiso'} <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </h4>
-                  <p className="text-[11px] text-slate-400">{language === 'en' ? 'View active city warnings.' : 'Tingnan ang mga babala sa lungsod.'}</p>
-                </div>
-              </button>
-
-              <button 
-                onClick={() => navigate('/survival_guides')}
-                className="bg-white text-left p-5 rounded-2xl border border-slate-100 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all group flex flex-col justify-between h-36 cursor-pointer"
-              >
-                <div className="bg-indigo-50 text-indigo-600 p-2.5 rounded-xl w-fit group-hover:bg-indigo-100 transition-colors">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 text-sm mb-0.5 group-hover:text-indigo-600 transition-colors flex items-center gap-1">
-                    {language === 'en' ? 'Survival Guides' : 'Mga Gabay sa Pag-survive'} <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </h4>
-                  <p className="text-[11px] text-slate-400">{language === 'en' ? 'View disaster guides.' : 'Tingnan ang mga gabay sa sakuna.'}</p>
-                </div>
-              </button>
-
+              <div className="space-y-3 max-h-62.5 overflow-y-auto scrollbar-thin pr-2">
+                {recentClaims.length > 0 ? (
+                  recentClaims.map((claim, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-slate-100 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl ${
+                          claim.status === 'Claimed' ? 'bg-emerald-100 text-emerald-600' :
+                          claim.status === 'Cancelled' ? 'bg-red-100 text-red-600' :
+                          'bg-amber-100 text-amber-600'
+                        }`}>
+                          <Package className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800 text-sm">{claim.item_name}</p>
+                          <p className="text-xs text-slate-500">{new Date(claim.created_at).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {claim.status === 'Claimed' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                        {claim.status === 'Pending' && <Clock className="w-4 h-4 text-amber-500" />}
+                        {claim.status === 'Cancelled' && <XCircle className="w-4 h-4 text-red-500" />}
+                        <span className={`text-xs font-bold ${
+                          claim.status === 'Claimed' ? 'text-emerald-600' :
+                          claim.status === 'Cancelled' ? 'text-red-600' :
+                          'text-amber-600'
+                        }`}>{claim.status}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-slate-50 rounded-2xl border border-slate-100 min-h-40 flex items-center justify-center">
+                    <p className="text-slate-400 text-sm">{language === 'en' ? 'No recent relief activities.' : 'Walang kamakailang aktibidad sa relief.'}</p>
+                  </div>
+                )}
+              </div>
             </div>
             
-            {/* AI Evacuation Area Recommendations */}
-            <div className="pt-2">
-              <div className="flex items-center justify-between mb-4">
+            
+            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] space-y-5">
+              <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-slate-800 font-display flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-indigo-600" />
                   {language === 'en' ? 'AI Suggested Shelters' : 'Mga Mungkahing Shelter ng AI'}
@@ -259,10 +322,10 @@ export default function CitizenDashboard() {
                 </button>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-62.5 overflow-y-auto scrollbar-thin pr-2">
                 {shelters.length === 0 ? (
-                  <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.01)] text-center">
-                    <div className="bg-indigo-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 text-center">
+                    <div className="bg-indigo-100/50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
                       <MapPin className="w-6 h-6 text-indigo-500" />
                     </div>
                     <h4 className="font-bold text-slate-800 text-sm mb-1">{language === 'en' ? 'Please Sync Your Location' : 'Pakisync ang Iyong Lokasyon'}</h4>
@@ -272,10 +335,10 @@ export default function CitizenDashboard() {
                   </div>
                 ) : (
                   shelters.map((shelter, idx) => (
-                    <div key={idx} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.01)] relative overflow-hidden group hover:border-indigo-100 transition-colors">
+                    <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 relative overflow-hidden group hover:bg-slate-100/50 transition-colors">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`p-2.5 rounded-xl ${shelter.isFull ? 'bg-slate-50 text-slate-400' : (idx === 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600')}`}>
+                          <div className={`p-2.5 rounded-xl ${shelter.isFull ? 'bg-slate-200/50 text-slate-400' : (idx === 0 ? 'bg-emerald-100/50 text-emerald-600' : 'bg-amber-100/50 text-amber-600')}`}>
                             <MapPin className="w-5 h-5" />
                           </div>
                           <div>
@@ -283,7 +346,11 @@ export default function CitizenDashboard() {
                             <p className="text-xs text-slate-500 font-medium mt-0.5">{shelter.distance} • {shelter.status}</p>
                           </div>
                         </div>
-                        <button className="bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 p-2 rounded-xl transition-colors cursor-pointer">
+                        <button 
+                          onClick={() => setSelectedShelterMap(shelter.name)}
+                          title={language === 'en' ? 'View on Google Maps' : 'Tingnan sa Google Maps'}
+                          className="bg-white border border-slate-100 shadow-sm hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 p-2 rounded-xl transition-colors cursor-pointer"
+                        >
                           <Navigation className="w-4 h-4" />
                         </button>
                       </div>
@@ -299,7 +366,7 @@ export default function CitizenDashboard() {
 
       </div>
 
-      {/* Welcome Toast */}
+      
       {showToast && (
         <div className="fixed top-6 right-6 bg-emerald-500 border border-emerald-400 shadow-[0_10px_40px_rgba(16,185,129,0.3)] rounded-2xl p-4 flex items-center gap-4 z-50 animate-fade-in">
           <div className="bg-emerald-400/50 text-white p-2 rounded-xl">
@@ -312,6 +379,39 @@ export default function CitizenDashboard() {
           <button onClick={() => setShowToast(false)} className="ml-2 text-emerald-200 hover:text-white transition-colors cursor-pointer">
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      
+      {selectedShelterMap && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl overflow-hidden shadow-2xl w-full max-w-3xl border border-slate-100 relative flex flex-col h-[70vh] md:h-[80vh]">
+            <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-100 bg-white shrink-0">
+              <h3 className="font-bold text-slate-800 font-display flex items-center gap-3 text-lg">
+                <div className="bg-indigo-50 p-2 rounded-xl">
+                  <MapPin className="w-5 h-5 text-indigo-600" />
+                </div>
+                {selectedShelterMap}
+              </h3>
+              <button 
+                onClick={() => setSelectedShelterMap(null)}
+                className="text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-2.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="w-full h-full bg-slate-100 grow">
+              <iframe
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(selectedShelterMap + ' Quezon City')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+          </div>
         </div>
       )}
     </ResidentLayout>

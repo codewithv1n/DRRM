@@ -39,7 +39,12 @@ export const createIncident = async (req: Request, res: Response) => {
 
 export const getIncidents = async (req: Request, res: Response) => {
     try {
-        const result = await pool.query('SELECT * FROM incident_reports ORDER BY created_at DESC');
+        const result = await pool.query(
+            `SELECT ir.*, a.barangay AS reporter_barangay
+             FROM incident_reports ir
+             LEFT JOIN auth a ON LOWER(TRIM(ir.reporter_email)) = LOWER(TRIM(a.email))
+             ORDER BY ir.created_at DESC`
+        );
         res.status(200).json(result.rows);
     } catch (error) {
         console.error('Error fetching incident reports:', error);
@@ -82,7 +87,7 @@ export const updateIncidentStatus = async (req: Request, res: Response) => {
                 );
             } catch (err) {
                 console.error('Failed to log deployment to deployed_incidents:', err);
-                // Do not throw, allow the status update to succeed
+                
             }
         }
 

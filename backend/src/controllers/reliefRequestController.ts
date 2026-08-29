@@ -86,7 +86,7 @@ export const markReliefDelivered = async (req: Request, res: Response): Promise<
         const mission = missionResult.rows[0];
 
         const insertResult = await pool.query(
-            `INSERT INTO relief_delivered_logs (mission_id, barangay, type, quantity, taskforce_assigned, signatory_name, photo_path)
+            `INSERT INTO barangay_relief_delivered_logs (mission_id, barangay, type, quantity, taskforce_assigned, signatory_name, photo_path)
              VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
             [mission.mission_id, mission.barangay, mission.type, mission.quantity, mission.taskforce_assigned, signatoryName, photoPath]
@@ -117,7 +117,7 @@ export const markReliefDelivered = async (req: Request, res: Response): Promise<
 export const getDeliveredLogs = async (req: Request, res: Response): Promise<void> => {
     try {
         const result = await pool.query(
-            `SELECT * FROM relief_delivered_logs ORDER BY timestamp DESC`
+            `SELECT * FROM barangay_relief_delivered_logs ORDER BY timestamp DESC`
         );
         res.status(200).json(result.rows);
     } catch (error) {

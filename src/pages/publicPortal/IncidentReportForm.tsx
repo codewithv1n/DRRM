@@ -64,17 +64,36 @@ export default function IncidentReportForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'contactNumber') {
+      const numericValue = value.replace(/\D/g, '');
+      setFormData((prev) => ({ ...prev, [name]: numericValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
       setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          let address = 'Auto-detected';
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            const data = await res.json();
+            if (data && data.display_name) {
+              const parts = data.display_name.split(', ');
+              address = parts.length > 3 ? parts.slice(0, 3).join(', ') : data.display_name;
+            }
+          } catch (e) {
+            console.warn('Reverse geocoding failed', e);
+          }
+
           setFormData((prev) => ({
             ...prev,
-            location: `${position.coords.latitude.toFixed(4)} N, ${position.coords.longitude.toFixed(4)} E (Auto-detected)`,
+            location: `${lat.toFixed(4)} N, ${lon.toFixed(4)} E (${address})`,
           }));
           setIsLocating(false);
         },

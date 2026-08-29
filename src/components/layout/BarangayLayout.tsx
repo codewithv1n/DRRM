@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { encryptedFetch } from '../../utils/encryptedFetch';
 import {
   FileText, LogOut, LayoutDashboard, ChevronDown,
-  Menu, Bell, Package, List, Megaphone, History, Building2, Sun, Moon
+  Menu, Bell, Package, List, Megaphone, History, Building2, Sun, Moon, Siren
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -56,12 +56,78 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
   const hasUnread = notifications.some(n => new Date(n.created_at || n.timestamp || Date.now()).getTime() > lastReadTime);
 
   useEffect(() => {
-    encryptedFetch(`${API_URL}/api/announcements`)
-      .then(res => res.json())
-      .then(data => {
-        setNotifications(data.data || data || []);
-      })
-      .catch(console.error);
+    const userBarangay = (user?.barangay || '').toLowerCase();
+
+    const fetchNotifs = async () => {
+      try {
+        const [incRes, alertRes, weatherRes] = await Promise.all([
+          encryptedFetch(`${API_URL}/api/incidents?_t=${Date.now()}`),
+          encryptedFetch(`${API_URL}/api/announcements?_t=${Date.now()}`),
+          encryptedFetch(`${API_URL}/api/weather-alerts?_t=${Date.now()}`)
+        ]);
+
+        const incData = incRes.ok ? await incRes.json() : [];
+        const alertData = alertRes.ok ? await alertRes.json() : { data: [] };
+        const weatherData = weatherRes.ok ? await weatherRes.json() : [];
+
+        const allIncidents = Array.isArray(incData) ? incData : [];
+        // Filter by reporter_barangay OR by location text containing the barangay name
+        const barangayIncidents = userBarangay
+          ? allIncidents.filter((i: any) => {
+              const repBarangay = (i.reporter_barangay || '').toLowerCase();
+              const locText = (i.location || '').toLowerCase();
+              return repBarangay === userBarangay || locText.includes(userBarangay);
+            })
+          : [];
+
+        const activeAlerts = Array.isArray(alertData) ? alertData : (alertData.data || []);
+
+        // Weather Alerts - latest one only
+        const activeWeatherAlerts = Array.isArray(weatherData) && weatherData.length > 0 ? [weatherData[0]] : [];
+
+        const combined = [
+          ...barangayIncidents.map((i: any) => ({
+            id: i.incident_id || i.id,
+            type: 'Incident',
+            level: i.type,
+            message: `${i.type} reported at ${i.location} by ${i.reporter_name}`,
+            created_at: i.created_at || i.timestamp,
+            icon: 'siren',
+            status: i.status
+          })),
+          ...activeAlerts.map((a: any) => ({
+            id: a.id,
+            type: 'Announcement',
+            level: a.level || 'Info',
+            message: a.message || a.title || 'New announcement',
+            created_at: a.created_at || a.timestamp,
+            icon: 'megaphone'
+          })),
+          ...activeWeatherAlerts.map((w: any) => {
+            const rawLevel = w.warning_level || 'Weather Alert';
+            const displayTitle = rawLevel.toLowerCase().includes('warning') 
+              ? rawLevel 
+              : `${rawLevel} RAINFALL WARNING`;
+            return {
+              id: w.weather_alert_id || `weather-${w.created_at}`,
+              type: 'Weather',
+              level: displayTitle,
+              message: w.message || 'Weather condition advisory',
+              created_at: w.created_at,
+              icon: 'weather'
+            };
+          })
+        ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+        setNotifications(combined);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   // Derive title from path
@@ -173,18 +239,22 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
                   </div>
                   <div className="max-h-96 overflow-y-auto">
                     {notifications.length > 0 ? (
-                      notifications.slice(0, 5).map((notif: any) => {
-                        const bg = notif.level === 'Critical' ? 'bg-red-50' : notif.level === 'Warning' ? 'bg-amber-50' : 'bg-blue-50';
-                        const color = notif.level === 'Critical' ? 'text-red-500' : notif.level === 'Warning' ? 'text-amber-500' : 'text-blue-500';
+                      notifications.slice(0, 8).map((notif: any) => {
+                        const isIncident = notif.type === 'Incident';
+                        const bg = isIncident ? 'bg-red-50' : (notif.level === 'Critical' ? 'bg-red-50' : notif.level === 'Warning' ? 'bg-amber-50' : 'bg-blue-50');
+                        const color = isIncident ? 'text-red-500' : (notif.level === 'Critical' ? 'text-red-500' : notif.level === 'Warning' ? 'text-amber-500' : 'text-blue-500');
+                        const NotifIcon = isIncident ? Siren : Megaphone;
                         return (
                           <div key={notif.id} className="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors flex gap-3 cursor-pointer">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${bg} ${color}`}>
-                              <Megaphone className="w-4 h-4" />
+                              <NotifIcon className="w-4 h-4" />
                             </div>
                             <div>
-                              <p className="text-sm font-semibold text-slate-800 line-clamp-2">{notif.level} Alert: {notif.message}</p>
+                              <p className="text-sm font-semibold text-slate-800 line-clamp-2">
+                                {isIncident ? `🚨 ${notif.level} Report: ` : `${notif.level} Alert: `}{notif.message}
+                              </p>
                               <p className="text-[10px] text-slate-500 mt-1">
-                                {new Date(notif.created_at || notif.timestamp || Date.now()).toLocaleString()}
+                                {new Date(notif.created_at || Date.now()).toLocaleString()}
                               </p>
                             </div>
                           </div>

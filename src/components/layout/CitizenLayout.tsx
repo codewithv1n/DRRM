@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { encryptedFetch } from '../../utils/encryptedFetch';
-import { LogOut, History, LayoutDashboard, Megaphone, Menu, Bell, BellRing, FileText, Sun, Moon, ChevronDown, Siren, Radio, Heart } from 'lucide-react';
+import { LogOut, History, LayoutDashboard, Megaphone, Menu, Bell, FileText, Sun, Moon, ChevronDown, Siren, Radio, Heart, CloudLightning } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../data/LanguageContext';
 
@@ -98,23 +98,41 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
   useEffect(() => {
     const fetchNotifs = async () => {
       try {
-        const [incRes, alertRes] = await Promise.all([
-          encryptedFetch(`${API_URL}/api/incidents`),
-          encryptedFetch(`${API_URL}/api/announcements`)
+        const userEmail = user?.email?.trim().toLowerCase() || '';
+        const userBarangay = (user?.barangay || '').toLowerCase();
+
+        const [incRes, alertRes, weatherRes] = await Promise.all([
+          encryptedFetch(`${API_URL}/api/incidents?_t=${Date.now()}`),
+          encryptedFetch(`${API_URL}/api/announcements?_t=${Date.now()}`),
+          encryptedFetch(`${API_URL}/api/weather-alerts?_t=${Date.now()}`)
         ]);
 
         const incData = incRes.ok ? await incRes.json() : [];
         const alertData = alertRes.ok ? await alertRes.json() : { data: [] };
+        const weatherData = weatherRes.ok ? await weatherRes.json() : [];
 
-        // Show citizen their own incident reports (match by email)
-        const userEmail = user?.email?.trim().toLowerCase();
         const allIncidents = Array.isArray(incData) ? incData : [];
+
+        
         const myIncidents = userEmail
-          ? allIncidents.filter((i: any) => (i.email || '').trim().toLowerCase() === userEmail)
+          ? allIncidents.filter((i: any) => (i.reporter_email || '').trim().toLowerCase() === userEmail)
           : [];
 
-        // Show active announcements/alerts
+        const myIncidentIds = new Set(myIncidents.map((i: any) => i.incident_id || i.id));
+        const nearbyIncidents = userBarangay
+          ? allIncidents.filter((i: any) => {
+              if (myIncidentIds.has(i.incident_id || i.id)) return false;
+              const repBarangay = (i.reporter_barangay || '').toLowerCase();
+              const locText = (i.location || '').toLowerCase();
+              return repBarangay === userBarangay || locText.includes(userBarangay);
+            })
+          : [];
+
+        
         const activeAlerts = Array.isArray(alertData) ? alertData : (alertData.data || []);
+        
+        
+        const activeWeatherAlerts = Array.isArray(weatherData) && weatherData.length > 0 ? [weatherData[0]] : [];
 
         const formattedNotifs = [
           ...myIncidents.map((i: any) => ({
@@ -128,6 +146,17 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
             color: i.status === 'Resolved' ? 'text-emerald-500' : 'text-red-500',
             bg: i.status === 'Resolved' ? 'bg-emerald-50' : 'bg-red-50'
           })),
+          ...nearbyIncidents.map((i: any) => ({
+            id: `nearby-${i.incident_id || i.id}`,
+            type: 'Nearby',
+            title: `Nearby ${i.type} reported`,
+            prefix: `${i.type} near you at `,
+            location: i.location,
+            time: i.timestamp || i.created_at || Date.now(),
+            icon: Siren,
+            color: 'text-orange-500',
+            bg: 'bg-orange-50'
+          })),
           ...activeAlerts.map((a: any) => ({
             id: a.id,
             type: 'Alert',
@@ -136,7 +165,39 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
             icon: Radio,
             color: 'text-amber-500',
             bg: 'bg-amber-50'
-          }))
+          })),
+          ...activeWeatherAlerts.map((w: any) => {
+            const level = (w.warning_level || '').toLowerCase();
+            let color = 'text-blue-500';
+            let bg = 'bg-blue-50';
+            if (level.includes('yellow')) {
+              color = 'text-yellow-600';
+              bg = 'bg-yellow-50';
+            } else if (level.includes('orange')) {
+              color = 'text-orange-500';
+              bg = 'bg-orange-50';
+            } else if (level.includes('red')) {
+              color = 'text-red-500';
+              bg = 'bg-red-50';
+            }
+
+            const rawLevel = w.warning_level || 'Weather Alert';
+            const displayTitle = rawLevel.toLowerCase().includes('warning') 
+              ? rawLevel 
+              : `${rawLevel} RAINFALL WARNING`;
+
+            return {
+              id: w.weather_alert_id || `weather-${w.created_at}`,
+              type: 'Weather',
+              title: displayTitle,
+              prefix: `${w.message || 'Weather condition advisory'}`,
+              location: '',
+              time: w.created_at || Date.now(),
+              icon: CloudLightning,
+              color,
+              bg
+            };
+          })
         ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
         setNotifications(formattedNotifs);
@@ -161,7 +222,7 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
       if (path.includes('announcements')) return 'Mga Anunsyo ng Relief';
       if (path.includes('claim_history')) return 'Kasaysayan ng Pag-claim';
       if (path.includes('donation_logs')) return 'Aking Mga Donasyon';
-      return 'Dashboard';
+      return 'Pangunahing Pahina';
     } else {
       if (path.includes('alerts')) return 'Alerts & Advisories';
       if (path.includes('report_logs')) return 'My Report Logs';
@@ -228,9 +289,8 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
 
         <div className="flex-1 overflow-y-auto py-2 space-y-1 scrollbar-thin">
           <GroupLabel label={language === 'en' ? "Modules" : "Mga Modyul"} />
-          <NavItem icon={LayoutDashboard} label="Dashboard" path="/citizen" />
+          <NavItem icon={LayoutDashboard} label={language === 'en' ? "Dashboard" : "Pangunahing Pahina"} path="/citizen" />
           <GroupLabel label={language === 'en' ? "Services" : "Mga Serbisyo"} />
-          <NavItem icon={BellRing} label={language === 'en' ? "Alerts & Advisories" : "Mga Alerto at Abiso"} path="/citizen/alerts" />
           <NavItem icon={FileText} label={language === 'en' ? "My Report Logs" : "Aking Mga Report"} path="/citizen/report_logs" />
           <NavItem icon={Megaphone} label={language === 'en' ? "Relief Announcements" : "Mga Anunsyo ng Relief"} path="/citizen/announcements" />
           <NavItem icon={History} label={language === 'en' ? "Claim History" : "Kasaysayan ng Pag-claim"} path="/citizen/claim_history" />
@@ -240,9 +300,9 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
 
       </aside>
 
-      {/* Main Content Area */}
+     
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-background">
-        {/* Header */}
+        
         <header className="sticky top-0 z-40 h-16 bg-white/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-4 lg:px-6 shrink-0 shadow-soft">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg cursor-pointer">
@@ -356,7 +416,7 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
           </div>
         </header>
 
-        {/* Page Content */}
+       
         <main className="p-4 lg:p-8 flex-1 max-w-[1600px] mx-auto w-full">
           {children}
         </main>

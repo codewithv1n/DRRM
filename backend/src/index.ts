@@ -19,6 +19,8 @@ import claimHistoryRoutes from './routes/claimHistoryRoutes';
 import citizenReportLogsRoutes from './routes/citizenReportLogsRoutes';
 import { encryptResponse } from './middleware/encryption';
 
+
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(cors());
@@ -47,6 +49,7 @@ app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/claim-history', claimHistoryRoutes);
 app.use('/api/relief-claims', claimHistoryRoutes);
 app.use('/api/citizen-report-logs', citizenReportLogsRoutes);
+
 
 app.get('/', (req: Request, res: Response) => {
     res.json({ message: "Server is Running" });

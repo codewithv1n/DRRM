@@ -191,70 +191,70 @@ function ReliefDistributionPanel() {
         </button>
       </div>
 
-      <div className="w-full">
-        
-        <div className="flex gap-8 mb-6 border-b border-slate-100 px-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab('pending')}
-            className={`text-base font-bold pb-3 border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
-              activeTab === 'pending' ? 'border-primary text-slate-800' : 'border-transparent text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            Pending Claims
-            <span className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full">{pendingClaims.length}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('claimed')}
-            className={`text-base font-bold pb-3 border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
-              activeTab === 'claimed' ? 'border-primary text-slate-800' : 'border-transparent text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            Claim Logs
-          </button>
-        </div>
-
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.01)] overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex justify-end">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="text"
-                placeholder={activeTab === 'pending' ? "Search pending..." : "Search logs..."}
-                value={activeTab === 'pending' ? searchQuery : claimSearchQuery}
-                onChange={(e) => activeTab === 'pending' ? setSearchQuery(e.target.value) : setClaimSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-2.5 w-full sm:w-64 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-              />
-            </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+        <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50">
+          <div className="flex items-center gap-6">
+            <button
+              type="button"
+              onClick={() => setActiveTab('pending')}
+              className={`text-sm font-bold pb-1 border-b-2 transition-colors cursor-pointer ${
+                activeTab === 'pending' ? 'border-blue-600 text-slate-800' : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              Pending Claims
+              <span className="ml-2 bg-slate-200 text-slate-600 py-0.5 px-2 rounded-full text-[10px] font-black">
+                {pendingClaims.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('claimed')}
+              className={`text-sm font-bold pb-1 border-b-2 transition-colors cursor-pointer ${
+                activeTab === 'claimed' ? 'border-blue-600 text-slate-800' : 'border-transparent text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              Claim Logs
+            </button>
           </div>
+
+          <div className="w-full sm:w-64 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input 
+              type="text"
+              placeholder={activeTab === 'pending' ? "Search pending..." : "Search logs..."}
+              value={activeTab === 'pending' ? searchQuery : claimSearchQuery}
+              onChange={(e) => activeTab === 'pending' ? setSearchQuery(e.target.value) : setClaimSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            />
+          </div>
+        </div>
           
-          <div className="overflow-auto p-0 max-h-150">
+        <div className="overflow-x-auto">
             {activeTab === 'pending' && (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
-                    <th className="px-6 py-3 font-semibold">Citizen Info</th>
-                    <th className="px-6 py-3 font-semibold">Barangay</th>
-                    <th className="px-6 py-3 font-semibold text-right">Action</th>
+                  <tr className="border-b border-slate-100 text-sm text-slate-500 bg-slate-50/50">
+                    <th className="p-4 font-semibold">Citizen Info</th>
+                    <th className="p-4 font-semibold">Barangay</th>
+                    <th className="p-4 font-semibold text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {pendingClaims.map((claim) => (
-                    <tr key={claim.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4">
+                    <tr key={claim.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-4">
                         <div className="flex flex-col">
                           <span className="font-medium text-slate-800">{claim.name}</span>
                           <span className="text-xs text-slate-500">{claim.id}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
+                      <td className="p-4 text-sm text-slate-600">
                         {claim.barangay}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="p-4 text-right">
                         <button 
                           onClick={() => handleMarkClaimed(claim.id)}
-                          className="text-sm text-emerald-600 hover:text-emerald-700 font-bold px-4 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-50 transition-colors cursor-pointer"
+                          className="text-xs text-emerald-700 hover:text-emerald-800 font-bold px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-50 transition-colors cursor-pointer bg-emerald-100/50"
                         >
                           Mark as Received
                         </button>
@@ -264,9 +264,9 @@ function ReliefDistributionPanel() {
                   
                   {pendingClaims.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
+                      <td colSpan={3} className="p-12 text-center text-slate-400 text-sm">
                         <AlertCircle className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                        <p>No pending citizens found.</p>
+                        No pending citizens found.
                       </td>
                     </tr>
                   )}
@@ -277,25 +277,25 @@ function ReliefDistributionPanel() {
             {activeTab === 'claimed' && (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
-                    <th className="px-6 py-3 font-semibold">Citizen Info</th>
-                    <th className="px-6 py-3 font-semibold">Barangay</th>
-                    <th className="px-6 py-3 font-semibold">Date Claimed</th>
+                  <tr className="border-b border-slate-100 text-sm text-slate-500 bg-slate-50/50">
+                    <th className="p-4 font-semibold">Citizen Info</th>
+                    <th className="p-4 font-semibold">Barangay</th>
+                    <th className="p-4 font-semibold">Date Claimed</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {claimedClaims.map((claim) => (
-                    <tr key={claim.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4">
+                    <tr key={claim.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-4">
                         <div className="flex flex-col">
                           <span className="font-medium text-slate-800">{claim.name}</span>
                           <span className="text-xs text-slate-500">{claim.id}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
+                      <td className="p-4 text-sm text-slate-600">
                         {claim.barangay}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-emerald-600">
+                      <td className="p-4 text-sm font-medium text-emerald-600">
                         {claim.time}
                       </td>
                     </tr>
@@ -303,9 +303,9 @@ function ReliefDistributionPanel() {
                   
                   {claimedClaims.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
+                      <td colSpan={3} className="p-12 text-center text-slate-400 text-sm">
                         <Package className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                        <p>No claims recorded yet.</p>
+                        No claims recorded yet.
                       </td>
                     </tr>
                   )}
@@ -314,7 +314,6 @@ function ReliefDistributionPanel() {
             )}
           </div>
         </div>
-      </div>
 
       {/* Broadcast Modal */}
       {showBroadcastModal && (
