@@ -58,6 +58,81 @@ interface AdminLayoutProps {
   pendingCount?: number;
 }
 
+const GroupLabel = ({ label }: { label: string }) => (
+  <div className="px-5 pt-6 pb-2 text-[11px] uppercase font-semibold tracking-widest text-sidebar-foreground/50">{label}</div>
+);
+
+const NavItem = ({ icon: Icon, label, path }: { icon: any; label: string; path: string }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = location.pathname === path;
+  return (
+    <button
+      onClick={() => navigate(path)}
+      className={`flex items-center px-3 py-3 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer ${
+        isActive
+          ? 'bg-sidebar-primary/20 text-sidebar-foreground font-medium shadow-sm border border-sidebar-primary/30'
+          : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent'
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <Icon className="w-5 h-5" />
+        <span className="text-sm">{label}</span>
+      </div>
+    </button>
+  );
+};
+
+const SubNavItem = ({ label, path }: { label: string; path: string }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = location.pathname === path;
+  return (
+    <button
+      onClick={() => navigate(path)}
+      className={`flex items-center pl-10 pr-3 py-2 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer text-sm ${
+        isActive
+          ? 'bg-sidebar-primary/20 text-sidebar-foreground font-medium'
+          : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent'
+      }`}
+    >
+      {label}
+    </button>
+  );
+};
+
+const NavDropdown = ({ icon: Icon, label, children, activePaths }: { icon: any; label: string; children: React.ReactNode, activePaths: string[] }) => {
+  const location = useLocation();
+  const isActive = activePaths.includes(location.pathname);
+  const [isOpen, setIsOpen] = useState(isActive);
+
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center justify-between px-3 py-3 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer ${
+          isActive || isOpen
+            ? 'text-sidebar-foreground bg-sidebar-accent font-medium'
+            : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="w-5 h-5" />
+          <span className="text-sm">{label}</span>
+        </div>
+        <ChevronRight className={`w-4 h-4 opacity-70 transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`} />
+      </button>
+      <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+        <div className="overflow-hidden">
+          <div className="space-y-1 pb-2">
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -177,73 +252,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return 'Dashboard';
   };
 
-  const NavItem = ({ icon: Icon, label, path }: { icon: any; label: string; path: string }) => {
-    const isActive = location.pathname === path;
-    return (
-      <button
-        onClick={() => navigate(path)}
-        className={`flex items-center px-3 py-3 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer ${
-          isActive
-            ? 'bg-sidebar-primary/20 text-sidebar-foreground font-medium shadow-sm border border-sidebar-primary/30'
-            : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent'
-        }`}
-      >
-        <div className="flex items-center gap-3">
-          <Icon className="w-5 h-5" />
-          <span className="text-sm">{label}</span>
-        </div>
-      </button>
-    );
-  };
 
-  const SubNavItem = ({ label, path }: { label: string; path: string }) => {
-    const isActive = location.pathname === path;
-    return (
-      <button
-        onClick={() => navigate(path)}
-        className={`flex items-center pl-10 pr-3 py-2 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer text-sm ${
-          isActive
-            ? 'bg-sidebar-primary/20 text-sidebar-foreground font-medium'
-            : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent'
-        }`}
-      >
-        {label}
-      </button>
-    );
-  };
-
-  const NavDropdown = ({ icon: Icon, label, children, activePaths }: { icon: any; label: string; children: React.ReactNode, activePaths: string[] }) => {
-    const isActive = activePaths.includes(location.pathname);
-    const [isOpen, setIsOpen] = useState(isActive);
-
-    return (
-      <div className="space-y-1">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center justify-between px-3 py-3 mx-2 w-[calc(100%-16px)] rounded-xl transition-all cursor-pointer ${
-            isActive || isOpen
-              ? 'text-sidebar-foreground bg-sidebar-accent font-medium'
-              : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent'
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <Icon className="w-5 h-5" />
-            <span className="text-sm">{label}</span>
-          </div>
-          <ChevronRight className={`w-4 h-4 opacity-70 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
-        </button>
-        {isOpen && (
-          <div className="space-y-1 pb-2">
-            {children}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const GroupLabel = ({ label }: { label: string }) => (
-    <div className="px-5 pt-6 pb-2 text-[11px] uppercase font-semibold tracking-widest text-sidebar-foreground/50">{label}</div>
-  );
 
   return (
     <div className="min-h-screen bg-background flex font-sans text-slate-900">
