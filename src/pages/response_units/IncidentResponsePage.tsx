@@ -1,11 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useResources, useAuditLogs } from '../../hooks/useSystemHooks';
-import { Siren, CheckCircle, MapPin, User, Navigation, AlertTriangle, ListChecks, FileText, Truck, Hand, Camera, AlertCircle, ArrowDown } from 'lucide-react';
+import { Siren, CheckCircle, Navigation, AlertTriangle, FileText, Truck, Hand, Camera, Activity } from 'lucide-react';
 import ResponseUnitLayout from '../../components/layout/ResponseUnitLayout';
 import type { Incident, Resource } from '../../data/types';
 
 
 import { encryptedFetch } from '../../utils/encryptedFetch';
+
+function timeAgo(ts: string) {
+  const mins = Math.max(0, Math.floor((Date.now() - new Date(ts).getTime()) / 60000));
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min${mins > 1 ? 's' : ''} ago`;
+  const hrs = Math.floor(mins / 60);
+  return `${hrs} hr${hrs > 1 ? 's' : ''} ago`;
+}
+
 interface IncidentCardProps {
   incident: Incident;
   assignedResources: Resource[];
@@ -13,7 +22,7 @@ interface IncidentCardProps {
   onUpdateStatus: (id: string, newStatus: Incident['status'], debrief?: any) => void;
 }
 
-function IncidentCard({ incident, assignedResources, teamLeaderLabel, onUpdateStatus }: IncidentCardProps) {
+function IncidentCard({ incident, teamLeaderLabel, onUpdateStatus }: IncidentCardProps) {
   const [showDebrief, setShowDebrief] = useState(false);
   const [debrief, setDebrief] = useState({
     rescued: '' as number | string,
@@ -56,106 +65,96 @@ function IncidentCard({ incident, assignedResources, teamLeaderLabel, onUpdateSt
     setShowDebrief(false);
   };
 
-  const bgColor = incident.type === 'Fire' ? 'bg-red-500' :
-                  incident.type === 'Flood' ? 'bg-blue-500' :
-                  incident.type === 'Medical' ? 'bg-green-500' :
-                  incident.type === 'Earthquake' ? 'bg-stone-600' :
-                  'bg-yellow-500';
-  
-  const priorityBgColor = incident.priority === 'Critical' ? 'bg-red-700 text-white' :
-                          incident.priority === 'High' ? 'bg-orange-600 text-white' :
-                          incident.priority === 'Medium' ? 'bg-amber-400 text-slate-900' :
-                          'bg-slate-200 text-slate-700';
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Pending':
+        return <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase">Pending</span>;
+      case 'Responding':
+      case 'Acknowledged':
+      case 'En Route':
+      case 'On Scene':
+        return <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase"><Activity className="w-3 h-3" /> {status}</span>;
+      case 'Requesting Backup':
+        return <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase"><Siren className="w-3 h-3 animate-pulse" /> Backup Needed</span>;
+      case 'Resolved':
+        return <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase"><CheckCircle className="w-3 h-3" /> Resolved</span>;
+      default:
+        return <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase">{status}</span>;
+    }
+  };
+
+  const getPriorityBadge = (priority?: string) => {
+    if (!priority) return null;
+    let colors = 'bg-slate-100 text-slate-700';
+    if (priority === 'Critical') colors = 'bg-red-100 text-red-700';
+    else if (priority === 'High') colors = 'bg-orange-100 text-orange-700';
+    else if (priority === 'Medium') colors = 'bg-blue-100 text-blue-700';
+
+    return <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${colors}`}>{priority}</span>;
+  };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col transition-all hover:shadow-md">
-      <div className="flex flex-col lg:flex-row">
-        
-        {/* Left Status Indicator */}
-        <div className={`lg:w-56 p-5 flex flex-col justify-center shrink-0 ${bgColor}`}>
-          <div className="flex items-center gap-2 font-bold text-white text-lg mb-1">
-            <Siren className="w-5 h-5" />
-            {incident.type}
-          </div>
-          <span className="text-xs text-white/90 font-mono bg-black/20 px-2 py-0.5 rounded-md inline-block w-fit mb-3">
-            {incident.id}
-          </span>
-          <div className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded shadow-sm w-fit ${priorityBgColor}`}>
-            {incident.priority || 'Low'} Priority
-          </div>
-        </div>
-
-        {/* Middle Content */}
-        <div className="flex-1 p-5 flex flex-col md:flex-row gap-6 lg:gap-8 justify-between items-center">
-          
-          <div className="flex-1 space-y-4 w-full">
-            <div className="flex items-start gap-3">
-              <MapPin className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Location</p>
-                <p className="text-sm md:text-base text-slate-800 font-bold">{translatedLocation}</p>
-                {incident.gpsLocation && <p className="text-[10px] text-slate-400 font-mono mt-1">Live GPS: {incident.gpsLocation}</p>}
-              </div>
+    <>
+      <tr className="hover:bg-slate-50/50 transition-colors">
+        <td className="px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Siren className="w-5 h-5 text-primary" />
             </div>
-            <div className="flex items-start gap-3">
-              <User className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Reporter & Contact</p>
-                <p className="text-sm text-slate-800 font-medium">{incident.reporterName} <span className="text-slate-300 mx-1">•</span> {incident.contactNumber}</p>
-              </div>
+            <div>
+              <div className="font-bold text-slate-800">{incident.type}</div>
+              <div className="text-xs text-slate-500 font-mono mt-0.5">{incident.id}</div>
+              <div className="text-[10px] text-slate-400 mt-1">{timeAgo(incident.timestamp)}</div>
             </div>
           </div>
-
-          <div className="md:w-64 w-full bg-slate-50 p-3 rounded-lg border border-slate-100 shrink-0">
-            <div className="flex items-center gap-2 mb-2 text-slate-700 font-bold text-[10px] uppercase tracking-wider">
-              <ListChecks className="w-3.5 h-3.5" /> Assigned Resources
-            </div>
-            {assignedResources.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {assignedResources.map(r => (
-                  <span key={r.id} className="text-[10px] font-medium bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-700 shadow-sm flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                    {r.name}
-                  </span>
-                ))}
-              </div>
-            ) : (
-               <p className="text-xs text-slate-400 italic">Standard unit loadout.</p>
-            )}
+        </td>
+        <td className="px-6 py-4">
+          <div className="text-sm font-bold text-slate-700">
+            {translatedLocation}
           </div>
-          
-        </div>
-
-        {/* Right Action Buttons */}
-        <div className="lg:w-64 p-5 bg-slate-50 border-l border-slate-100 flex flex-col justify-center shrink-0 space-y-2">
-          {!showDebrief ? (
+          <div className="text-xs text-slate-500 mt-0.5">{incident.reporterName} • {incident.contactNumber}</div>
+          {incident.gpsLocation && (
+            <div className="text-[10px] text-slate-400 font-mono mt-1">
+              GPS: {incident.gpsLocation}
+            </div>
+          )}
+        </td>
+        <td className="px-6 py-4">
+          <div className="flex flex-col gap-2 items-start">
+            {getStatusBadge(incident.status)}
+            {getPriorityBadge(incident.priority)}
+          </div>
+        </td>
+        <td className="px-6 py-4 text-right">
+          <div className="flex flex-col items-end gap-2">
+           {!showDebrief ? (
              <>
                {(incident.status === 'Pending' || incident.status === 'Responding') && (
-                  <button onClick={() => onUpdateStatus(incident.id, 'Acknowledged')} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm shadow-sm cursor-pointer">
-                     <Hand className="w-4 h-4" /> Acknowledge
+                  <button onClick={() => onUpdateStatus(incident.id, 'Acknowledged')} className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors text-xs shadow-sm cursor-pointer">
+                     <Hand className="w-3.5 h-3.5" /> Acknowledge
                   </button>
                )}
                
                {incident.status === 'Acknowledged' && (
-                  <button onClick={() => onUpdateStatus(incident.id, 'En Route')} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm shadow-sm cursor-pointer">
-                     <Truck className="w-4 h-4" /> Start En Route
+                  <button onClick={() => onUpdateStatus(incident.id, 'En Route')} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors text-xs shadow-sm cursor-pointer">
+                     <Truck className="w-3.5 h-3.5" /> Start En Route
                   </button>
                )}
 
                {incident.status === 'En Route' && (
-                  <button onClick={() => onUpdateStatus(incident.id, 'On Scene')} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm shadow-sm cursor-pointer">
-                     <Navigation className="w-4 h-4" /> Arrived On Scene
+                  <button onClick={() => onUpdateStatus(incident.id, 'On Scene')} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors text-xs shadow-sm cursor-pointer">
+                     <Navigation className="w-3.5 h-3.5" /> Arrived On Scene
                   </button>
                )}
 
                {(incident.status === 'On Scene' || incident.status === 'Requesting Backup') && (
                   <div className="flex flex-col gap-2">
-                     <button onClick={() => setShowDebrief(true)} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm shadow-sm cursor-pointer">
-                         <CheckCircle className="w-4 h-4" /> Resolve Mission
+                     <button onClick={() => setShowDebrief(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors text-xs shadow-sm cursor-pointer">
+                         <CheckCircle className="w-3.5 h-3.5" /> Resolve Mission
                      </button>
                      <button 
                        onClick={() => onUpdateStatus(incident.id, incident.status === 'Requesting Backup' ? 'On Scene' : 'Requesting Backup')} 
-                       className={`w-full font-bold py-2 rounded-lg flex items-center justify-center gap-1.5 transition-colors text-xs border cursor-pointer ${incident.status === 'Requesting Backup' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                       className={`font-bold px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors text-xs border cursor-pointer ${incident.status === 'Requesting Backup' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                      >
                          <AlertTriangle className="w-3.5 h-3.5" /> {incident.status === 'Requesting Backup' ? 'Cancel Backup' : 'Req Backup'}
                      </button>
@@ -163,12 +162,13 @@ function IncidentCard({ incident, assignedResources, teamLeaderLabel, onUpdateSt
                )}
              </>
           ) : (
-             <button onClick={() => setShowDebrief(false)} className="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm cursor-pointer">
+             <button onClick={() => setShowDebrief(false)} className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors text-xs cursor-pointer">
                 Cancel Debrief
              </button>
           )}
-        </div>
-      </div>
+          </div>
+        </td>
+      </tr>
 
       {/* Centered Modal Debrief Form */}
       {showDebrief && (
@@ -234,7 +234,7 @@ function IncidentCard({ incident, assignedResources, teamLeaderLabel, onUpdateSt
             </div>
          </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -253,50 +253,77 @@ const priorityWeights: Record<string, number> = {
 };
 
 function ActiveTasksQueue({ incidents, assignedResources, teamLeaderLabel, onUpdateStatus }: ActiveTasksQueueProps) {
-  const sortedIncidents = [...incidents].sort((a, b) => {
+  const [activeTab, setActiveTab] = useState<string>('All');
+  const tabs = ['All', 'Pending', 'Acknowledged', 'En Route', 'On-Scene'];
+
+  const filteredByTab = activeTab === 'All' ? incidents : incidents.filter(i => i.status === activeTab);
+
+  const sortedIncidents = [...filteredByTab].sort((a, b) => {
     const wA = priorityWeights[a.priority || 'Low'];
     const wB = priorityWeights[b.priority || 'Low'];
     return wB - wA; // Highest first
   });
 
-  if (sortedIncidents.length === 0) {
-    return (
-      <div className="col-span-full bg-white p-16 text-center rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center">
-        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-5 border border-slate-100">
-          <AlertCircle className="w-10 h-10 text-slate-400" />
-        </div>
-        <h3 className="text-2xl font-black text-slate-800">Queue is Empty</h3>
-        <p className="text-slate-500 mt-2 text-lg">No active dispatch orders at the moment. Standby for deployment.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-         <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
-            Assigned Task Queue
-            <span className="bg-indigo-100 text-indigo-700 text-sm px-3 py-1 rounded-full font-bold">{sortedIncidents.length} Tasks</span>
-         </h2>
-         <div className="text-sm text-slate-500 font-semibold flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg">
-            <ArrowDown className="w-4 h-4" /> Sorted by Priority
-         </div>
-      </div>
-      
-      {/* Horizontal Layout List */}
-      <div className="flex flex-col space-y-4">
-        {sortedIncidents.map((incident) => {
-          const r = assignedResources.filter(res => res.assignedTo === incident.id);
+
+
+      <div className="flex flex-wrap gap-2">
+        {tabs.map(tab => {
+          const count = tab === 'All' ? incidents.length : incidents.filter(i => i.status === tab).length;
+
           return (
-            <IncidentCard 
-              key={incident.id}
-              incident={incident} 
-              assignedResources={r}
-              teamLeaderLabel={teamLeaderLabel}
-              onUpdateStatus={onUpdateStatus} 
-            />
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                activeTab === tab ? 'bg-primary text-white shadow-sm shadow-primary/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {tab === 'All' ? 'All Tasks' : tab}
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === tab ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                {count}
+              </span>
+            </button>
           );
         })}
+      </div>
+      
+      {/* Table Layout */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-4">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 border-b border-slate-100">
+              <tr className="text-left text-xs text-slate-500 uppercase tracking-wider font-semibold">
+                <th className="px-6 py-4">Incident Details</th>
+                <th className="px-6 py-4">Location & Contact</th>
+                <th className="px-6 py-4">Status & Priority</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {sortedIncidents.map((incident) => {
+                const r = assignedResources.filter(res => res.assignedTo === incident.id);
+                return (
+                  <IncidentCard 
+                    key={incident.id}
+                    incident={incident} 
+                    assignedResources={r}
+                    teamLeaderLabel={teamLeaderLabel}
+                    onUpdateStatus={onUpdateStatus} 
+                  />
+                );
+              })}
+              {sortedIncidents.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
+                    No tasks found in this category.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -310,7 +337,7 @@ export default function IncidentResponsePage() {
 
   const fetchIncidents = async () => {
     try {
-      const response = await encryptedFetch(`${API_URL}/api/incidents`);
+      const response = await encryptedFetch(`${API_URL}/api/incidents?_t=${Date.now()}`);
       if (response.ok) {
         const data = await response.json();
         setDbIncidents(data);
@@ -322,7 +349,7 @@ export default function IncidentResponsePage() {
 
   useEffect(() => {
     fetchIncidents();
-    const interval = setInterval(fetchIncidents, 10000);
+    const interval = setInterval(fetchIncidents, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -331,7 +358,7 @@ export default function IncidentResponsePage() {
   const responderName = user?.taskforce_name || user?.name || 'Task Force 1';
   const TEAM_LEADER_LABEL = `Team Leader ${responderName}`;
 
-  // Map database format to frontend Incident interface
+  
   const mappedIncidents: Incident[] = dbIncidents.map(dbI => {
       let priority: 'Critical' | 'High' | 'Medium' | 'Low' = 'Medium';
       if (dbI.type === 'Fire' || dbI.type === 'Earthquake') priority = 'Critical';
@@ -358,15 +385,22 @@ export default function IncidentResponsePage() {
   const handleUpdateStatus = async (id: string, newStatus: Incident['status'], debrief?: any) => {
     const mockGps = `14.${Math.floor(Math.random() * 10000)} N, 121.${Math.floor(Math.random() * 10000)} E`;
     
+    
+    setDbIncidents(prev => prev.map(i => i.incident_id === id ? { ...i, status: newStatus } : i));
+
     try {
       await encryptedFetch(`${API_URL}/api/incidents/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ 
+          status: newStatus,
+          assigned_responder: newStatus === 'Resolved' ? TEAM_LEADER_LABEL : undefined 
+        }),
       });
       fetchIncidents(); // Refresh
+
 
       if (newStatus === 'Resolved') {
           const finalRemark = debrief?.remarks || 'No remarks provided.';

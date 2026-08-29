@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Send, Radio, AlertTriangle, Route, BookOpen, Megaphone } from 'lucide-react';
+import { Send, Radio, AlertTriangle, Route, BookOpen, Megaphone, CheckCircle, AlertCircle, X } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 
 
@@ -20,13 +20,14 @@ export default function EarlyWarningPanel() {
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('General Alert');
   const [showConfirm, setShowConfirm] = useState(false);
+  const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
 
   const fetchData = async () => {
     try {
-      const annRes = await encryptedFetch(`${API_URL}/api/announcements`);
+      const annRes = await encryptedFetch(`${API_URL}/api/announcements?_t=${Date.now()}`);
       if (annRes.ok) setActiveAlerts(await annRes.json());
       
-      const incRes = await encryptedFetch(`${API_URL}/api/incidents`);
+      const incRes = await encryptedFetch(`${API_URL}/api/incidents?_t=${Date.now()}`);
       if (incRes.ok) {
         const incidents = await incRes.json();
         setPendingCount(incidents.filter((i: any) => i.status === 'Pending').length);
@@ -38,7 +39,7 @@ export default function EarlyWarningPanel() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 10000);
+    const interval = setInterval(fetchData, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -62,8 +63,12 @@ export default function EarlyWarningPanel() {
         })
       });
       fetchData();
+      setToast({ show: true, message: 'Announcement broadcasted successfully!', type: 'success' });
+      setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
     } catch (error) {
       console.error('Error broadcasting:', error);
+      setToast({ show: true, message: 'Broadcast failed. Please try again.', type: 'error' });
+      setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
     }
     setBroadcastMessage('');
     setShowConfirm(false);
@@ -83,9 +88,9 @@ export default function EarlyWarningPanel() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Broadcast Panel */}
+      
         <div className="lg:col-span-2 space-y-5">
-          {/* Quick Alert Levels */}
+         
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Announcement Type</h3>
             <div className="grid grid-cols-2 gap-3">
@@ -106,7 +111,7 @@ export default function EarlyWarningPanel() {
             </div>
           </div>
 
-          {/* Compose */}
+         
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Compose Message</h3>
             <div className="mb-2">
@@ -119,14 +124,14 @@ export default function EarlyWarningPanel() {
               value={broadcastMessage}
               onChange={e => setBroadcastMessage(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none resize-none transition-all text-sm placeholder-slate-400"
-              placeholder="E.g. WALANG PASOK: All classes are suspended today..."
+              placeholder="E.g. ANNOUNCEMENT: All classes are suspended today..."
             />
             <button
               onClick={() => {
                 if (broadcastMessage.trim()) setShowConfirm(true);
               }}
               disabled={!broadcastMessage.trim()}
-              className="w-full mt-3 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 disabled:from-slate-300 disabled:to-slate-400 text-white font-bold py-3 rounded-xl transition-all text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 disabled:shadow-none"
+              className="w-full mt-3 bg-linear-to-r bg-blue-700  hover:bg-blue-800  text-white font-bold py-3 rounded-xl transition-all text-sm flex items-center justify-center gap-2 "
             >
               <Send className="w-4 h-4" />
               Broadcast to Portals
@@ -135,7 +140,7 @@ export default function EarlyWarningPanel() {
           </div>
         </div>
 
-        {/* Delivery Log */}
+       
         <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-125 flex flex-col">
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
             <h3 className="font-bold text-slate-900 flex items-center gap-2">
@@ -211,6 +216,20 @@ export default function EarlyWarningPanel() {
         </div>
       )}
     </div>
+      {toast.show && (
+        <div className={`fixed top-6 right-6 border shadow-[0_10px_40px_rgba(0,0,0,0.1)] rounded-2xl p-4 flex items-center gap-4 z-9999 animate-fade-in ${toast.type === 'success' ? 'bg-emerald-500 border-emerald-400' : 'bg-red-500 border-red-400'}`}>
+          <div className={`p-2 rounded-xl text-white ${toast.type === 'success' ? 'bg-emerald-400/50' : 'bg-red-400/50'}`}>
+            {toast.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          </div>
+          <div>
+            <h4 className="font-bold text-white text-sm">{toast.type === 'success' ? 'Broadcast Successful' : 'Broadcast Failed'}</h4>
+            <p className="text-xs text-white/90">{toast.message}</p>
+          </div>
+          <button onClick={() => setToast(prev => ({ ...prev, show: false }))} className="ml-2 text-white/70 hover:text-white transition-colors cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </DepartmentLayout>
   );
 }

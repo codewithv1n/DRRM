@@ -5,10 +5,10 @@ import { logAction } from './auditLogController';
 
 export const getClaimHistory = async (req: Request, res: Response): Promise<void> => {
     try {
-        // Auto-expire any pending claims where the valid_until date is in the past
+        
         await pool.query(`
             UPDATE citizen_relief_history 
-            SET status = 'Expired' 
+            SET status = 'Cancelled' 
             WHERE status = 'Pending' AND valid_until < CURRENT_DATE
         `);
 

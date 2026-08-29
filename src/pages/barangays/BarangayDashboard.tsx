@@ -7,7 +7,20 @@ import { useHazardApis } from '../../hooks/useHazardApis';
 import { encryptedFetch } from '../../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const ASSIGNED_BARANGAY = "Balingasa";
+export const normalizeBarangay = (b?: string) => {
+  if (!b) return '';
+  return b.replace(/[\.\- ]/g, '').toLowerCase();
+};
+
+export const getAssignedBarangay = () => {
+  try {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr)?.barangay || "Balingasa" : "Balingasa";
+  } catch (e) {
+    return "Balingasa";
+  }
+};
+export const ASSIGNED_BARANGAY = getAssignedBarangay();
 
 function timeAgo(ts: string) {
   const mins = Math.max(0, Math.floor((Date.now() - new Date(ts).getTime()) / 60000));
@@ -56,6 +69,7 @@ export default function BarangayPortal() {
 }
 
 function OverviewPanel() {
+  const ASSIGNED_BARANGAY = getAssignedBarangay();
   useHazardApis(); 
   const [barangaySitReps, setBarangaySitReps] = useState<any[]>([]);
   const [reliefClaims, setReliefClaims] = useState<any[]>([]);
@@ -87,7 +101,7 @@ function OverviewPanel() {
           setLiveHazards(data.data || data || []);
         }
 
-        const invRes = await encryptedFetch(`${API_URL}/api/inventory`);
+        const invRes = await encryptedFetch(`${API_URL}/api/inventory/barangay?barangay=${encodeURIComponent(ASSIGNED_BARANGAY)}`);
         if (invRes.ok) {
           setReliefInventory(await invRes.json());
         }
@@ -100,7 +114,7 @@ function OverviewPanel() {
     return () => clearInterval(interval);
   }, []);
   
-  const sitRep = barangaySitReps.find(sr => sr.barangay === ASSIGNED_BARANGAY);
+  const sitRep = barangaySitReps.find(sr => normalizeBarangay(sr.barangay) === normalizeBarangay(ASSIGNED_BARANGAY));
   
   const pendingClaims = reliefClaims.filter(c => c.status === 'Pending').length;
   const claimedRelief = reliefClaims.filter(c => c.status === 'Claimed').length;

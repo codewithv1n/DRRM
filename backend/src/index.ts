@@ -45,6 +45,7 @@ app.use('/api/relief-requests', reliefRequestRoutes);
 app.use('/api/weather-alerts', weatherAlertRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/claim-history', claimHistoryRoutes);
+app.use('/api/relief-claims', claimHistoryRoutes);
 app.use('/api/citizen-report-logs', citizenReportLogsRoutes);
 
 app.get('/', (req: Request, res: Response) => {

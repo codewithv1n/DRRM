@@ -10,14 +10,14 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<'LOGIN' | 'OTP_VERIFICATION' | 'FORGOT_PASSWORD'>('LOGIN');
 
-  // Login State
+  
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [tempUser, setTempUser] = useState<any>(null);
 
-  // OTP State
+  
   const [otpValues, setOtpValues] = useState<string[]>(['', '', '', '', '', '']);
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
@@ -85,10 +85,10 @@ export default function LoginPage() {
         const data = await response.json();
         const user = data.user;
         
-        // Temporarily store user data
+        
         setTempUser(user);
 
-        // Send OTP Request immediately
+        
         const otpRes = await encryptedFetch(`${API_URL}/api/auth/send-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -112,7 +112,7 @@ export default function LoginPage() {
     }
   };
 
-  // Handle Resend OTP
+  
   const handleResendOtp = async () => {
     if (resendCooldown > 0 || otpLoading || !tempUser) return;
     setOtpLoading(true);
@@ -137,7 +137,7 @@ export default function LoginPage() {
     }
   };
 
-  // Handle OTP digit box input
+  
   const handleOtpBoxChange = (index: number, value: string) => {
     if (value.length > 1) {
       const pasted = value.replace(/\D/g, '').slice(0, 6).split('');
@@ -167,7 +167,7 @@ export default function LoginPage() {
     }
   };
 
-  // Verify OTP code
+  
   const handleVerifyOtpAndSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const fullOtp = otpValues.join('');
@@ -190,7 +190,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        // Fully authenticate user
+       
         localStorage.setItem('user', JSON.stringify(tempUser));
         routeUser(tempUser.role);
       } else {
@@ -206,12 +206,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex w-full font-sans">
       
-      {/* Left Panel - Branding & Information */}
+      
       <div className="hidden lg:flex w-1/2 flex-col justify-between py-10 px-12 bg-[#0B1526] text-white relative overflow-hidden">
         
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(30,52,89,0.4)_0%,transparent_70%)] pointer-events-none z-0"></div>
 
-        {/* Government Seal Watermark */}
+       
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 1 }}>
           <img 
             src="/logo-system.png" 
@@ -221,13 +221,13 @@ export default function LoginPage() {
           />
         </div>
         
-        {/* Top Header */}
+       
         <div className="relative z-10">
           <h2 className="text-[20px] font-extrabold text-white mb-1 tracking-tight">Disaster Risk Reduction & Emergency Response</h2>
           <p className="text-[12px] text-white/60 font-medium">Republic of the Philippines • Local Government Unit</p>
         </div>
 
-        {/* Center Content - overlaid on seal */}
+       
         <div className="w-full relative z-10 flex flex-col items-center text-center mx-auto mt-auto mb-auto" style={{ maxWidth: '500px' }}>
           <h1 className="text-[44px] font-extrabold mb-6 leading-[1.1] tracking-tight text-white">
             Disaster and <br/>
@@ -239,7 +239,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Panel - Login/OTP Form */}
+      
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center bg-[#FAFAFA] relative">
         {(step === 'OTP_VERIFICATION' || step === 'FORGOT_PASSWORD') && (
           <button
@@ -252,7 +252,7 @@ export default function LoginPage() {
         )}
 
         <div className="w-full max-w-120 px-8">
-          <div className="bg-white px-8 py-10 rounded-2xl shadow-[0_12px_40px_rgb(0,0,0,0.06)] border border-slate-100">
+          <div className="bg-white px-8 py-10 rounded-2xl border border-slate-100">
             
             {step === 'LOGIN' ? (
               <>
@@ -337,7 +337,7 @@ export default function LoginPage() {
             ) : step === 'FORGOT_PASSWORD' ? (
               <ForgotPasswordForm onBack={() => setStep('LOGIN')} />
             ) : (
-              /* OTP VERIFICATION VIEW */
+             
               <div className="animate-fade-in text-center">
                 <div className="inline-flex p-3 bg-blue-50 text-[#2563EB] rounded-2xl mb-4">
                   <KeyRound className="w-7 h-7" />

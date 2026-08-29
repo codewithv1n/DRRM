@@ -32,7 +32,7 @@ export function useReliefDispatches() {
   const [deliveredLogs, setDeliveredLogs] = useState<any[]>([]);
 
   const fetchReliefRequests = () => {
-    encryptedFetch(`${API_URL}/api/relief-requests`)
+    encryptedFetch(`${API_URL}/api/relief-requests?_t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
          // Map DB rows to ReliefDispatch format if needed
@@ -51,7 +51,7 @@ export function useReliefDispatches() {
   };
 
   const fetchDeliveredLogs = () => {
-    encryptedFetch(`${API_URL}/api/relief-requests/delivered`)
+    encryptedFetch(`${API_URL}/api/relief-requests/delivered?_t=${Date.now()}`)
       .then(res => res.json())
       .then(data => setDeliveredLogs(data))
       .catch(err => console.error("Error fetching delivered logs", err));
@@ -60,6 +60,13 @@ export function useReliefDispatches() {
   useEffect(() => {
     fetchReliefRequests();
     fetchDeliveredLogs();
+    
+    const interval = setInterval(() => {
+      fetchReliefRequests();
+      fetchDeliveredLogs();
+    }, 1000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const updateReliefDispatchStatus = async (id: string, status: ReliefDispatch['status']) => {

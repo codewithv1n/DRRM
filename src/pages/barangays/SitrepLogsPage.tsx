@@ -5,7 +5,7 @@ import {
   Users,  Eye, X, PlusCircle 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ASSIGNED_BARANGAY } from './BarangayDashboard';
+import { getAssignedBarangay, normalizeBarangay } from './BarangayDashboard';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
 
@@ -24,6 +24,7 @@ interface SitRepLogItem {
 }
 
 export default function SitrepLogsPage() {
+  const ASSIGNED_BARANGAY = getAssignedBarangay();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLog, setSelectedLog] = useState<SitRepLogItem | null>(null);
@@ -36,7 +37,7 @@ export default function SitrepLogsPage() {
       .then(data => {
         if (data && data.data) {
           const mapped: SitRepLogItem[] = data.data
-            .filter((item: any) => item.barangay === ASSIGNED_BARANGAY)
+            .filter((item: any) => normalizeBarangay(item.barangay) === normalizeBarangay(ASSIGNED_BARANGAY))
             .map((item: any) => ({
               id: item.sitreps_id,
               reportNumber: 'SitRep-' + (item.sitreps_id || 'XXXXXX').substring(0,6).toUpperCase(),

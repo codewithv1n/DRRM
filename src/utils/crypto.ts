@@ -1,4 +1,7 @@
-const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY as string;
+// Build-time constant injected by Vite's define config
+// This is NOT visible in import.meta.env — it gets inlined directly into the code
+// and the obfuscator scrambles it further
+declare const __ENCRYPTION_KEY__: string;
 
 
 function hexToBytes(hex: string): Uint8Array {
@@ -11,7 +14,7 @@ function hexToBytes(hex: string): Uint8Array {
 
 
 async function getKey(): Promise<CryptoKey> {
-    const keyBytes = hexToBytes(ENCRYPTION_KEY);
+    const keyBytes = hexToBytes(__ENCRYPTION_KEY__);
     return crypto.subtle.importKey(
         'raw',
         keyBytes.buffer as ArrayBuffer,

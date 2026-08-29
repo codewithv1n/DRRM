@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Activity,  CheckCircle, Siren, Filter, FileText, X, AlertCircle
+  Activity,  CheckCircle, Siren, Filter, FileText, X, AlertCircle, Image as ImageIcon
 } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useAuditLogs } from '../../hooks/useSystemHooks';
@@ -20,6 +20,7 @@ interface DBIncident {
   created_at: string;
   gps_location: string | null;
   assigned_responder: string | null;
+  photo_path?: string | null;
 }
 
 function timeAgo(ts: string) {
@@ -311,6 +312,11 @@ export default function IncidentDispatcherPanel() {
                           <div className="font-bold text-slate-800">{incident.type}</div>
                           <div className="text-xs text-slate-500 font-mono mt-0.5">{incident.incident_id}</div>
                           <div className="text-[10px] text-slate-400 mt-1">{timeAgo(incident.created_at)}</div>
+                          {incident.photo_path && (
+                            <a href={`${API_URL}${incident.photo_path}`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold text-blue-600 hover:underline mt-1 flex items-center gap-1 bg-blue-50 w-fit px-1.5 py-0.5 rounded border border-blue-100">
+                                <ImageIcon className="w-3 h-3" /> View Evidence
+                            </a>
+                          )}
                         </div>
                       </div>
                     </td>

@@ -36,7 +36,7 @@ export default function ReliefDispatchPanel() {
 
   const fetchData = async () => {
     try {
-      const invRes = await encryptedFetch(`${API_URL}/api/inventory`);
+      const invRes = await encryptedFetch(`${API_URL}/api/inventory?_t=${Date.now()}`);
       const invData = await invRes.json();
       setInventory(invData);
     } catch (error) {
@@ -46,6 +46,8 @@ export default function ReliefDispatchPanel() {
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 1000);
+    return () => clearInterval(interval);
   }, []);
 
 
@@ -412,4 +414,3 @@ export default function ReliefDispatchPanel() {
     </DepartmentLayout>
   );
 }
-

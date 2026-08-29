@@ -8,9 +8,8 @@ import BarangayLayout from '../../components/layout/BarangayLayout';
 
 
 import { encryptedFetch } from '../../utils/encryptedFetch';
+import { getAssignedBarangay, normalizeBarangay } from './BarangayDashboard';
 const API_URL = import.meta.env.VITE_API_URL;
-
-const ASSIGNED_BARANGAY = "Balingasa";
 
 function timeAgo(ts?: string) {
   if (!ts) return 'Just now';
@@ -22,6 +21,7 @@ function timeAgo(ts?: string) {
 }
 
 export default function BarangayEvacuationMonitoringPage() {
+  const ASSIGNED_BARANGAY = getAssignedBarangay();
   const [evacuationCenters, setEvacuationCenters] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
@@ -50,21 +50,28 @@ export default function BarangayEvacuationMonitoringPage() {
 
   useEffect(() => {
     fetchCenters();
+    const interval = setInterval(fetchCenters, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const toggleStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'Open' ? 'Closed' : 'Open';
+    
+    setEvacuationCenters(prev => prev.map(c => 
+      c.id === id ? { ...c, status: newStatus } : c
+    ));
+
     try {
-      const res = await encryptedFetch(`${API_URL}/api/evacuation-centers/${id}/status`, {
+      await encryptedFetch(`${API_URL}/api/evacuation-centers/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
-      if (res.ok) {
-        fetchCenters(); // Refresh
-      }
     } catch (error) {
       console.error('Failed to toggle status:', error);
+      setEvacuationCenters(prev => prev.map(c => 
+        c.id === id ? { ...c, status: currentStatus } : c
+      ));
     }
   };
 
@@ -76,7 +83,7 @@ export default function BarangayEvacuationMonitoringPage() {
         headers: { 'Content-Type': 'application/json' }
       });
       if (res.ok) {
-        fetchCenters(); // Refresh
+        fetchCenters(); 
         setShowResetConfirm(null);
       }
     } catch (error) {
@@ -85,7 +92,7 @@ export default function BarangayEvacuationMonitoringPage() {
   };
 
 
-  const barangayCenters = evacuationCenters.filter(c => c.barangay === ASSIGNED_BARANGAY);
+  const barangayCenters = evacuationCenters.filter(c => normalizeBarangay(c.barangay) === normalizeBarangay(ASSIGNED_BARANGAY));
   const totalCenters = barangayCenters.length;
   const totalOccupancy = barangayCenters.reduce((sum, c) => sum + c.currentOccupancy, 0);
   const totalCapacity = barangayCenters.reduce((sum, c) => sum + c.capacity, 0);
@@ -128,7 +135,7 @@ export default function BarangayEvacuationMonitoringPage() {
   return (
     <BarangayLayout>
       <div className="animate-fade-in space-y-8 pb-12">
-        {/* Header */}
+       
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 font-display flex items-center gap-3">
@@ -140,7 +147,7 @@ export default function BarangayEvacuationMonitoringPage() {
           </div>
         </div>
 
-        {/* Summary Metric Cards */}
+       
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] flex items-center justify-between">
             <div>
@@ -208,7 +215,7 @@ export default function BarangayEvacuationMonitoringPage() {
           </div>
         </div>
 
-        {/* Evacuation Center Cards Grid */}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCenters.length > 0 ? (
             filteredCenters.map((center) => {
@@ -229,7 +236,7 @@ export default function BarangayEvacuationMonitoringPage() {
                       {getStatusBadge(center.currentOccupancy, center.capacity)}
                     </div>
 
-                    {/* Occupancy Progress Bar */}
+                   
                     <div className="space-y-2 my-4">
                       <div className="flex justify-between text-xs font-bold text-slate-700">
                         <span>Occupancy Status</span>
@@ -246,7 +253,7 @@ export default function BarangayEvacuationMonitoringPage() {
                     </div>
                   </div>
 
-                  {/* Card Footer Info */}
+                 
                   <div className="pt-4 border-t border-slate-100 mt-2 flex items-center justify-between gap-2">
                     <span className="text-xs text-slate-500 flex items-center gap-1 flex-1">
                       <Clock className="w-3.5 h-3.5" /> Updated {timeAgo(center.lastUpdatedAt)}
@@ -284,7 +291,7 @@ export default function BarangayEvacuationMonitoringPage() {
         </div>
       </div>
 
-      {/* Custom Reset Confirmation Modal */}
+     
       {showResetConfirm && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100 animate-in fade-in zoom-in duration-200">

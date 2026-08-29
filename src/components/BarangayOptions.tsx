@@ -17,7 +17,7 @@ export default function BarangayOptions() {
         <option value="Manresa">Manresa</option>
         <option value="Mariblo">Mariblo</option>
         <option value="Masambong">Masambong</option>
-        <option value="N.S. Amoranto">N.S. Amoranto</option>
+        <option value="N.S Amoranto">N.S Amoranto</option>
         <option value="Nayong Kanluran">Nayong Kanluran</option>
         <option value="Paang Bundok">Paang Bundok</option>
         <option value="Pag-ibig sa Nayon">Pag-ibig sa Nayon</option>

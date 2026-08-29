@@ -4,9 +4,10 @@ import BarangayLayout from '../../components/layout/BarangayLayout';
 import { useAlerts } from '../../hooks/useSystemHooks';
 
 import { encryptedFetch } from '../../utils/encryptedFetch';
-const ASSIGNED_BARANGAY = "Balingasa";
+import { getAssignedBarangay } from './BarangayDashboard';
 
 function ReliefDistributionPanel() {
+  const ASSIGNED_BARANGAY = getAssignedBarangay();
   const { broadcastAlert } = useAlerts();
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [selectedBarangay] = useState('All');

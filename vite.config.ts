@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import fs from 'fs'
@@ -61,33 +61,45 @@ function devObfuscatorPlugin() {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    geojsonPlugin(),
-    devObfuscatorPlugin(),
-  ],
-  build: {
-    sourcemap: false, // No source maps in production
-    minify: 'terser', // Use Terser for better minification
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            return 'vendor';
+export default defineConfig(({ mode }) => {
+  // Load ALL env vars from .env files (empty prefix = no VITE_ filter)
+  const env = loadEnv(mode, process.cwd(), '');
+
+  return {
+    define: {
+      // Inject the encryption key as a build-time constant
+      // This gets inlined directly into the code (NOT visible in import.meta.env)
+      // The obfuscator will then scramble it further
+      // process.env fallback is for Railway/deployment where env vars are set in the dashboard
+      '__ENCRYPTION_KEY__': JSON.stringify(env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY || '')
+    },
+    plugins: [
+      react(),
+      tailwindcss(),
+      geojsonPlugin(),
+      devObfuscatorPlugin(),
+    ],
+    build: {
+      sourcemap: false, // No source maps in production
+      minify: 'terser', // Use Terser for better minification
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
           }
         }
-      }
-    },
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove all console.log in production
-        drop_debugger: true,
       },
-      mangle: {
-        toplevel: true, // Mangle top-level variable names
+      terserOptions: {
+        compress: {
+          drop_console: true, // Remove all console.log in production
+          drop_debugger: true,
+        },
+        mangle: {
+          toplevel: true, // Mangle top-level variable names
+        },
       },
     },
-  },
+  }
 })

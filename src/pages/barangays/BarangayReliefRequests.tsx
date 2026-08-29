@@ -1,29 +1,32 @@
 import React, { useState, useMemo } from 'react';
-import { Clock, CheckCircle, Truck, Plus, X, Search } from 'lucide-react';
+import { Clock, CheckCircle, Truck, Plus, X, Search, AlertCircle } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 import { useReliefDispatches } from '../../hooks/useSystemHooks';
+import { normalizeBarangay } from './BarangayDashboard';
 
 export default function BarangayReliefRequests() {
   const { reliefDispatches, deliveredLogs, requestRelief } = useReliefDispatches();
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
-  const currentBarangay = user?.barangay || user?.location || 'Balingasa';
+  const currentBarangay = user?.barangay || user?.location;
   
   const [activeTab, setActiveTab] = useState<'active' | 'delivered'>('active');
+  const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
 
   const [showRequestModal, setShowRequestModal] = useState(false);
-  const [requestData, setRequestData] = useState({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requestData, setRequestData] = useState<{ type: string; quantity: number | string }>({
     type: 'Food & Water',
     quantity: 100,
   });
 
-  // Relief Requests for this barangay
+  
   const myRequests = useMemo(() => {
-    return reliefDispatches.filter(d => d.barangay === currentBarangay).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return reliefDispatches.filter(d => normalizeBarangay(d.barangay) === normalizeBarangay(currentBarangay)).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [reliefDispatches, currentBarangay]);
 
   const myDeliveredLogs = useMemo(() => {
-    return deliveredLogs.filter(log => log.barangay === currentBarangay).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return deliveredLogs.filter(log => normalizeBarangay(log.barangay) === normalizeBarangay(currentBarangay)).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [deliveredLogs, currentBarangay]);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,15 +37,29 @@ export default function BarangayReliefRequests() {
     req.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleRequestSubmit = (e: React.FormEvent) => {
+  const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    requestRelief({
-      barangay: currentBarangay,
-      type: requestData.type,
-      quantity: requestData.quantity,
-    });
-    setShowRequestModal(false);
-    setRequestData({ type: 'Food & Water', quantity: 100 });
+    setIsSubmitting(true);
+    try {
+      // Add a small delay so the loading animation is visible before closing the modal
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      await requestRelief({
+        barangay: currentBarangay,
+        type: requestData.type,
+        quantity: Number(requestData.quantity),
+      });
+      setShowRequestModal(false);
+      setRequestData({ type: 'Food & Water', quantity: 100 });
+      setToast({ show: true, message: 'Relief request submitted successfully!', type: 'success' });
+      setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+    } catch (error) {
+      console.error(error);
+      setToast({ show: true, message: 'Failed to submit request. Please try again.', type: 'error' });
+      setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -209,9 +226,14 @@ export default function BarangayReliefRequests() {
                 <input
                   type="number"
                   min="1"
+                  max="1000000"
                   required
                   value={requestData.quantity}
-                  onChange={(e) => setRequestData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 0 }))}
+                  onChange={(e) => {
+                    let val: number | string = e.target.value === '' ? '' : parseInt(e.target.value) || 0;
+                    if (typeof val === 'number' && val > 1000000) val = 1000000;
+                    setRequestData(prev => ({ ...prev, quantity: val }));
+                  }}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700 bg-slate-50"
                   placeholder="e.g. 100"
                 />
@@ -220,13 +242,36 @@ export default function BarangayReliefRequests() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md shadow-blue-500/20 cursor-pointer"
+                  disabled={isSubmitting}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md shadow-blue-500/20 cursor-pointer disabled:opacity-70 flex justify-center items-center h-13"
                 >
-                  Submit Request
+                  {isSubmitting ? (
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  ) : (
+                    "Submit Request"
+                  )}
                 </button>
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {toast.show && (
+        <div className={`fixed top-6 right-6 border shadow-[0_10px_40px_rgba(0,0,0,0.1)] rounded-2xl p-4 flex items-center gap-4 z-9999 animate-fade-in ${toast.type === 'success' ? 'bg-emerald-500 border-emerald-400' : 'bg-red-500 border-red-400'}`}>
+          <div className={`p-2 rounded-xl text-white ${toast.type === 'success' ? 'bg-emerald-400/50' : 'bg-red-400/50'}`}>
+            {toast.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          </div>
+          <div>
+            <h4 className="font-bold text-white text-sm">{toast.type === 'success' ? 'Request Successful' : 'Request Failed'}</h4>
+            <p className="text-xs text-white/90">{toast.message}</p>
+          </div>
+          <button onClick={() => setToast(prev => ({ ...prev, show: false }))} className="ml-2 text-white/70 hover:text-white transition-colors cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
       </div>

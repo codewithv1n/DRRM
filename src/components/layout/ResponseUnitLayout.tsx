@@ -220,7 +220,7 @@ export default function ResponseUnitLayout({ children }: ResponseUnitLayoutProps
             <div className="flex items-center gap-2 relative">
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer mr-1"
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer mr-1"
                 title="Toggle Dark Mode"
               >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}

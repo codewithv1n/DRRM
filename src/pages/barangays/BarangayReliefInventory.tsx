@@ -3,10 +3,10 @@ import { Box, Search } from 'lucide-react';
 import BarangayLayout from '../../components/layout/BarangayLayout';
 
 import { encryptedFetch } from '../../utils/encryptedFetch';
+import { getAssignedBarangay } from './BarangayDashboard';
+
 export default function BarangayReliefInventory() {
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
-  const currentBarangay = user?.barangay || user?.location || 'Balingasa';
+  const currentBarangay = getAssignedBarangay();
 
   const [localInventory, setLocalInventory] = useState<{type: string, quantity: number}[]>([]);
 

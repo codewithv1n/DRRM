@@ -104,9 +104,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const fetchNotifs = async () => {
       try {
         const [incRes, donRes, alertRes] = await Promise.all([
-          encryptedFetch(`${API_URL}/api/incidents`),
-          encryptedFetch(`${API_URL}/api/donations/pending`),
-          encryptedFetch(`${API_URL}/api/announcements`)
+          encryptedFetch(`${API_URL}/api/incidents?_t=${Date.now()}`),
+          encryptedFetch(`${API_URL}/api/donations/pending?_t=${Date.now()}`),
+          encryptedFetch(`${API_URL}/api/announcements?_t=${Date.now()}`)
         ]);
         
         const incData = incRes.ok ? await incRes.json() : [];
@@ -157,7 +157,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     };
 
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 10000);
+    const interval = setInterval(fetchNotifs, 1000);
     return () => clearInterval(interval);
   }, []);
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Truck, CheckCircle, Clock, AlertTriangle, Image as ImageIcon, X, Search, Filter } from 'lucide-react';
+import { Truck, CheckCircle, Clock, AlertTriangle, Image as ImageIcon, X, Search, Filter, AlertCircle } from 'lucide-react';
 import DepartmentLayout from '../../components/layout/AdminLayout';
 import { useIncidentsCount } from '../../hooks/useSystemHooks';
 
@@ -16,15 +16,24 @@ export default function ValidateDonationsPanel() {
   const [activeTab, setActiveTab] = useState<'pending' | 'logs'>('pending');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
+  const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
+  const [processingIds, setProcessingIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchDonations();
     fetchLogs();
+
+    const interval = setInterval(() => {
+      fetchDonations();
+      fetchLogs();
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchDonations = async () => {
     try {
-      const res = await encryptedFetch(`${API_URL}/api/donations/pending`);
+      const res = await encryptedFetch(`${API_URL}/api/donations/pending?_t=${Date.now()}`);
       const data = await res.json();
       setDonations(data);
     } catch (error) {
@@ -34,7 +43,7 @@ export default function ValidateDonationsPanel() {
 
   const fetchLogs = async () => {
     try {
-      const res = await encryptedFetch(`${API_URL}/api/donations/logs`);
+      const res = await encryptedFetch(`${API_URL}/api/donations/logs?_t=${Date.now()}`);
       const data = await res.json();
       setDonationLogs(data);
     } catch (error) {
@@ -44,17 +53,36 @@ export default function ValidateDonationsPanel() {
 
   const receiveDonation = async (id: string) => {
     try {
-      await encryptedFetch(`${API_URL}/api/donations/pending/${id}/receive`, {
+      setProcessingIds(prev => [...prev, id]);
+      
+      const itemToMove = donations.find(d => d.donation_pending_id === id);
+      setDonations(prev => prev.filter(d => d.donation_pending_id !== id));
+      
+      if (itemToMove) {
+        setDonationLogs(prev => [{ ...itemToMove, status: 'Received', received_at: new Date().toISOString() }, ...prev]);
+      }
+
+      setToast({ show: true, message: 'Donation successfully received!', type: 'success' });
+      setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+
+      encryptedFetch(`${API_URL}/api/donations/pending/${id}/receive`, {
         method: 'PUT'
+      }).then(() => {
+        fetchDonations();
+        fetchLogs();
+      }).catch(error => {
+        console.error("Error receiving donation:", error);
+        setProcessingIds(prev => prev.filter(pId => pId !== id));
+        fetchDonations(); 
+        fetchLogs();
+        setToast({ show: true, message: 'Failed to receive donation.', type: 'error' });
+        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
       });
-      fetchDonations();
-      fetchLogs();
     } catch (error) {
-      console.error("Error receiving donation:", error);
+      console.error("Error processing donation:", error);
     }
   };
 
-  // Filter donations based on active tab, search, and category
   const sourceData = activeTab === 'pending' ? donations : donationLogs;
 
   const filteredDonations = sourceData.filter(donation => {
@@ -63,10 +91,12 @@ export default function ValidateDonationsPanel() {
     if (!matchesSearch || !matchesCategory) return false;
 
     if (activeTab === 'pending') {
+      if (processingIds.includes(donation.donation_pending_id)) return false;
+      
       const etaDate = new Date(donation.created_at);
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      return etaDate > sevenDaysAgo;
+      return etaDate > sevenDaysAgo && donation.status !== 'Received';
     } else {
       return true;
     }
@@ -268,7 +298,20 @@ export default function ValidateDonationsPanel() {
         </div>
       )}
 
+      {toast.show && (
+        <div className={`fixed top-6 right-6 border shadow-[0_10px_40px_rgba(0,0,0,0.1)] rounded-2xl p-4 flex items-center gap-4 z-9999 animate-fade-in ${toast.type === 'success' ? 'bg-emerald-500 border-emerald-400' : 'bg-red-500 border-red-400'}`}>
+          <div className={`p-2 rounded-xl text-white ${toast.type === 'success' ? 'bg-emerald-400/50' : 'bg-red-400/50'}`}>
+            {toast.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          </div>
+          <div>
+            <h4 className="font-bold text-white text-sm">{toast.type === 'success' ? 'Success' : 'Error'}</h4>
+            <p className="text-xs text-white/90">{toast.message}</p>
+          </div>
+          <button onClick={() => setToast(prev => ({ ...prev, show: false }))} className="ml-2 text-white/70 hover:text-white transition-colors cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </DepartmentLayout>
   );
 }
-

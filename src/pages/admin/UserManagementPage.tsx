@@ -230,6 +230,28 @@ export default function UserManagement() {
                       </div>
                     )}
 
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Contact Number</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                          <span className="text-slate-400 font-bold text-xs">+63</span>
+                        </div>
+                        <input 
+                          type="tel"
+                          required
+                          placeholder="912 345 6789"
+                          maxLength={11}
+                          value={form.contactNumber}
+                          onChange={e => {
+                            const val = e.target.value.replace(/\D/g, ''); 
+                            if (val.length <= 11) {
+                              setForm({...form, contactNumber: val});
+                            }
+                          }}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                    </div>
 
                     <div>
                       <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Email Address</label>
@@ -243,23 +265,6 @@ export default function UserManagement() {
                           placeholder="user@example.com"
                           value={form.email}
                           onChange={e => setForm({...form, email: e.target.value})}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Contact Number</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                          <span className="text-slate-400 font-bold text-xs">+63</span>
-                        </div>
-                        <input 
-                          type="tel"
-                          required
-                          placeholder="912 345 6789"
-                          value={form.contactNumber}
-                          onChange={e => setForm({...form, contactNumber: e.target.value})}
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                         />
                       </div>
