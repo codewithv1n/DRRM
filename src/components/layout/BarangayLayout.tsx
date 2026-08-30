@@ -9,7 +9,36 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-interface BarangayLayoutProps {
+const geocodeCache = new Map<string, string>();
+
+const translateLocation = async (locStr: string): Promise<string> => {
+  if (!locStr) return locStr;
+  if (!/N,.*E/.test(locStr) && !/^\d+\.\d+,\s*\d+\.\d+/.test(locStr)) return locStr;
+  
+  if (geocodeCache.has(locStr)) return geocodeCache.get(locStr)!;
+
+  const match = locStr.match(/([0-9.]+)\s*[NS],\s*([0-9.]+)\s*[EW]/i) || locStr.match(/([0-9.]+),\s*([0-9.]+)/);
+  if (match) {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${match[1]}&lon=${match[2]}`);
+      if (res.ok) {
+        const data = await res.json();
+        let address = data.display_name || locStr;
+        if (data.address) {
+          const parts = [data.address.road, data.address.village || data.address.suburb, data.address.city || data.address.town].filter(Boolean);
+          if (parts.length > 0) address = parts.join(', ');
+        }
+        geocodeCache.set(locStr, address);
+        return address;
+      }
+    } catch (e) {
+      console.error('Geocode error:', e);
+    }
+  }
+  
+  geocodeCache.set(locStr, locStr);
+  return locStr;
+};interface BarangayLayoutProps {
   children: React.ReactNode;
 }
 
@@ -71,7 +100,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
         const weatherData = weatherRes.ok ? await weatherRes.json() : [];
 
         const allIncidents = Array.isArray(incData) ? incData : [];
-        // Filter by reporter_barangay OR by location text containing the barangay name
+        
         const barangayIncidents = userBarangay
           ? allIncidents.filter((i: any) => {
               const repBarangay = (i.reporter_barangay || '').toLowerCase();
@@ -82,20 +111,23 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
 
         const activeAlerts = Array.isArray(alertData) ? alertData : (alertData.data || []);
 
-        // Weather Alerts - latest one only
+        
         const activeWeatherAlerts = Array.isArray(weatherData) && weatherData.length > 0 ? [weatherData[0]] : [];
 
-        const combined = [
-          ...barangayIncidents.map((i: any) => ({
-            id: i.incident_id || i.id,
-            type: 'Incident',
-            level: i.type,
-            message: `${i.type} reported at ${i.location} by ${i.reporter_name}`,
-            created_at: i.created_at || i.timestamp,
-            icon: 'siren',
-            status: i.status
-          })),
-          ...activeAlerts.map((a: any) => ({
+        const combinedPromises = [
+          ...barangayIncidents.map(async (i: any) => {
+            const translatedLoc = await translateLocation(i.location || '');
+            return {
+              id: i.incident_id || i.id,
+              type: 'Incident',
+              level: i.type,
+              message: `${i.type} reported at ${translatedLoc} by ${i.reporter_name}`,
+              created_at: i.created_at || i.timestamp,
+              icon: 'siren',
+              status: i.status
+            };
+          }),
+          ...activeAlerts.map(async (a: any) => ({
             id: a.id,
             type: 'Announcement',
             level: a.level || 'Info',
@@ -103,7 +135,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
             created_at: a.created_at || a.timestamp,
             icon: 'megaphone'
           })),
-          ...activeWeatherAlerts.map((w: any) => {
+          ...activeWeatherAlerts.map(async (w: any) => {
             const rawLevel = w.warning_level || 'Weather Alert';
             const displayTitle = rawLevel.toLowerCase().includes('warning') 
               ? rawLevel 
@@ -117,7 +149,10 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
               icon: 'weather'
             };
           })
-        ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        ];
+
+        const combined = await Promise.all(combinedPromises);
+        combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
         setNotifications(combined);
       } catch (error) {
@@ -130,7 +165,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Derive title from path
+  
   const getPageTitle = () => {
     const path = location.pathname;
     if (path.includes('relief_inventory')) return 'Relief Inventory';
@@ -167,7 +202,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background flex font-sans text-slate-900">
-      {/* Sidebar */}
+      
       <aside className={`select-none fixed lg:sticky top-0 h-screen z-50 bg-gradient-sidebar flex flex-col w-70 shrink-0 transition-all duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-70'}`}>
         <div className="p-6 flex items-center gap-3">
           <img src="/logo-system.png" alt="GovServe Logo" className="w-11 h-11 object-contain shrink-0" />
@@ -193,9 +228,9 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
 
       </aside>
 
-      {/* Main Container */}
+     
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto bg-background">
-        {/* Header */}
+       
         <header className="sticky top-0 z-40 h-16 bg-white/80 backdrop-blur-sm border-b border-border flex items-center justify-between px-4 lg:px-6 shrink-0 shadow-soft">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg cursor-pointer">
@@ -251,7 +286,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800 line-clamp-2">
-                                {isIncident ? `🚨 ${notif.level} Report: ` : `${notif.level} Alert: `}{notif.message}
+                                {isIncident ? `${notif.level} Report: ` : `${notif.level} Alert: `}{notif.message}
                               </p>
                               <p className="text-[10px] text-slate-500 mt-1">
                                 {new Date(notif.created_at || Date.now()).toLocaleString()}
@@ -304,7 +339,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
           </div>
         </header>
 
-        {/* Content */}
+       
         <main className="p-4 lg:p-9 flex-1 max-w-[1600px] mx-auto w-full">
           {children}
         </main>
