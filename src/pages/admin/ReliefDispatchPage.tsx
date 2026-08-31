@@ -33,6 +33,7 @@ export default function ReliefDispatchPanel() {
   
   const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const [activeTab, setActiveTab] = useState<'dispatches' | 'requests' | 'active'>('requests');
+  const [isDispatching, setIsDispatching] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -63,7 +64,10 @@ export default function ReliefDispatchPanel() {
       return;
     }
 
+    setIsDispatching(true);
+
     try {
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       await encryptedFetch(`${API_URL}/api/inventory`, {
         method: 'POST',
@@ -104,6 +108,8 @@ export default function ReliefDispatchPanel() {
       console.error("Error dispatching relief:", error);
       setToast({ show: true, message: 'Failed to dispatch. Please try again.', type: 'error' });
       setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+    } finally {
+      setIsDispatching(false);
     }
   };
 
@@ -386,10 +392,18 @@ export default function ReliefDispatchPanel() {
                 </button>
                 <button 
                   type="submit" 
-                  disabled={inventory.filter(i => i.quantity > 0).length === 0}
-                  className="flex-1 bg-primary hover:bg-blue-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-sm shadow-primary/20 cursor-pointer"
+                  disabled={isDispatching || inventory.filter(i => i.quantity > 0).length === 0}
+                  className="flex-1 bg-primary hover:bg-blue-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-sm shadow-primary/20 cursor-pointer h-13"
                 >
-                  Dispatch
+                  {isDispatching ? (
+                    <div className="flex items-center justify-center gap-1.5 h-full">
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                    </div>
+                  ) : (
+                    'Dispatch'
+                  )}
                 </button>
               </div>
             </form>
