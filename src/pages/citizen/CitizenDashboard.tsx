@@ -23,6 +23,7 @@ import {
 import ResidentLayout from '../../components/layout/CitizenLayout';
 import { useLanguage } from '../../data/LanguageContext';
 import { useEvacuationAI } from '../../hooks/useEvacuationAI';
+import EvacuationRouteMap from '../../components/EvacuationRouteMap';
 
 
 
@@ -42,7 +43,8 @@ export default function CitizenDashboard() {
   const [userName, setUserName] = useState('Resident');
   const [weather, setWeather] = useState<{ temp: number; description: string; code: number } | null>(null);
   const [activeAlerts, setActiveAlerts] = useState<any[]>([]);
-  const [selectedShelterMap, setSelectedShelterMap] = useState<string | null>(null);
+  const [selectedShelterMap, setSelectedShelterMap] = useState<any | null>(null);
+  const [userLocation, setUserLocation] = useState<{lat: number, lon: number} | null>(null);
   const [recentClaims, setRecentClaims] = useState<any[]>([]);
 
   useEffect(() => {
@@ -116,6 +118,8 @@ export default function CitizenDashboard() {
       
       const dbShelters = nearbyCenters.slice(0, 3).map((c: any) => ({
         name: c.name,
+        lat: c.parsed_lat || c.lat,
+        lon: c.parsed_lon || c.lon,
         distance: c.distance ? `${c.distance.toFixed(2)}km away` : 'Nearby',
         status: `${c.current_occupants || 0}/${c.capacity} Families`,
         isFull: (c.current_occupants || 0) >= c.capacity
@@ -123,7 +127,15 @@ export default function CitizenDashboard() {
 
       try {
         const parsed = await getAIRecommendedShelters(nearbyCenters, lat, lon);
-        setShelters(parsed);
+        const enriched = parsed.map((s: any) => {
+          const original = nearbyCenters.find((c: any) => c.name === s.name);
+          return {
+            ...s,
+            lat: original?.parsed_lat || original?.lat,
+            lon: original?.parsed_lon || original?.lon,
+          };
+        });
+        setShelters(enriched);
         return;
       } catch (aiError) {
         console.warn('AI failed, using database results directly:', aiError);
@@ -149,16 +161,19 @@ export default function CitizenDashboard() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          setUserLocation({ lat: position.coords.latitude, lon: position.coords.longitude });
           fetchAndSetShelters(position.coords.latitude, position.coords.longitude);
         },
         (error) => {
           console.warn('Geolocation failed, using fallback location.', error);
+          setUserLocation({ lat: fallbackLat, lon: fallbackLon });
           fetchAndSetShelters(fallbackLat, fallbackLon);
         },
         { timeout: 15000, maximumAge: 0 } 
       );
     } else {
       console.warn('Geolocation not supported, using fallback location.');
+      setUserLocation({ lat: fallbackLat, lon: fallbackLon });
       fetchAndSetShelters(fallbackLat, fallbackLon);
     }
   };
@@ -341,7 +356,7 @@ export default function CitizenDashboard() {
                           </div>
                         </div>
                         <button 
-                          onClick={() => setSelectedShelterMap(shelter.name)}
+                          onClick={() => setSelectedShelterMap(shelter)}
                           title={language === 'en' ? 'View on Google Maps' : 'Tingnan sa Google Maps'}
                           className="bg-white border border-slate-100 shadow-sm hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 p-2 rounded-xl transition-colors cursor-pointer"
                         >
@@ -385,7 +400,7 @@ export default function CitizenDashboard() {
                 <div className="bg-indigo-50 p-2 rounded-xl">
                   <MapPin className="w-5 h-5 text-indigo-600" />
                 </div>
-                {selectedShelterMap}
+                {selectedShelterMap.name}
               </h3>
               <button 
                 onClick={() => setSelectedShelterMap(null)}
@@ -394,16 +409,18 @@ export default function CitizenDashboard() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="w-full h-full bg-slate-100 grow">
-              <iframe
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(selectedShelterMap + ' Quezon City')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
+            <div className="w-full h-full bg-slate-100 grow relative">
+              {userLocation && selectedShelterMap.lat && selectedShelterMap.lon ? (
+                <EvacuationRouteMap 
+                  userLocation={userLocation} 
+                  shelterLocation={{lat: selectedShelterMap.lat, lon: selectedShelterMap.lon}} 
+                  shelterName={selectedShelterMap.name} 
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-slate-500 bg-slate-50">
+                  <p>Location coordinates are not available for this shelter.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
