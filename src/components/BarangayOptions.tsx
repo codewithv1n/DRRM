@@ -60,10 +60,10 @@ export default function BarangayOptions() {
         <option value="Duyan-Duyan">Duyan-Duyan</option>
         <option value="E. Rodriguez">E. Rodriguez</option>
         <option value="East Kamias">East Kamias</option>
-        <option value="Escopa I">Escopa I</option>
-        <option value="Escopa II">Escopa II</option>
-        <option value="Escopa III">Escopa III</option>
-        <option value="Escopa IV">Escopa IV</option>
+        <option value="Escopa 1">Escopa 1</option>
+        <option value="Escopa 2">Escopa 2</option>
+        <option value="Escopa 3">Escopa 3</option>
+        <option value="Escopa 4">Escopa 4</option>
         <option value="Libis">Libis</option>
         <option value="Loyola Heights">Loyola Heights</option>
         <option value="Mangga">Mangga</option>
@@ -94,7 +94,7 @@ export default function BarangayOptions() {
         <option value="Doña Imelda">Doña Imelda</option>
         <option value="Doña Josefa">Doña Josefa</option>
         <option value="Horseshoe">Horseshoe</option>
-        <option value="Immaculate Conception">Immaculate Conception</option>
+        <option value="Immaculate Concepcion">Immaculate Concepcion</option>
         <option value="Kalusugan">Kalusugan</option>
         <option value="Kamuning">Kamuning</option>
         <option value="Kaunlaran">Kaunlaran</option>
@@ -134,11 +134,11 @@ export default function BarangayOptions() {
         <option value="Nagkaisang Nayon">Nagkaisang Nayon</option>
         <option value="North Fairview">North Fairview</option>
         <option value="Novaliches Proper">Novaliches Proper</option>
-        <option value="Pasong Putik Proper">Pasong Putik Proper</option>
+        <option value="Pasong Putik">Pasong Putik</option>
         <option value="San Agustin">San Agustin</option>
         <option value="San Bartolome">San Bartolome</option>
-        <option value="Santa Lucia">Sta Lucia</option>
-        <option value="Santa Monica">Sta Monica</option>
+        <option value="Santa Lucia">Santa Lucia</option>
+        <option value="Santa Monica">Santa Monica</option>
       </optgroup>
       <optgroup label="District 6">
         <option value="Apolonio Samson">Apolonio Samson</option>

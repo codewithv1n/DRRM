@@ -181,7 +181,7 @@ export default function CitizenDashboard() {
     <ResidentLayout>
       <div className="animate-fade-in space-y-8">
         
-        {/* Welcome Section with Weather Info */}
+        
         <div className="bg-white rounded-3xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <span className="text-xs font-extrabold text-primary uppercase tracking-widest block mb-1">{language === 'en' ? 'Citizen Portal' : 'Portal ng Mamamayan'}</span>
@@ -189,7 +189,7 @@ export default function CitizenDashboard() {
             <p className="text-slate-500 text-sm">{language === 'en' ? 'Access your track distributions, and check local shelter status.' : 'Tingnan ang iyong digital resident card, subaybayan ang mga relief goods, at suriin ang mga shelter.'}</p>
           </div>
           
-          {/* Quick Weather Badge */}
+
           <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 shrink-0">
             <div className={`p-2.5 rounded-xl ${weather && [61,63,65,80,81,82,95,96,99].includes(weather.code) ? 'bg-blue-100 text-blue-600' : 'bg-amber-100 text-amber-600'}`}>
               {weather && [95,96,99].includes(weather.code) ? <CloudLightning className="w-5 h-5" /> :
@@ -206,12 +206,6 @@ export default function CitizenDashboard() {
         </div>
 
 
-
-
-
-
-
-        {/* Dashboard Sections: Operations vs Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           <div className="lg:col-span-7 h-full">

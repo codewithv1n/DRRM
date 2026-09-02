@@ -35,7 +35,6 @@ export function useReliefDispatches() {
     encryptedFetch(`${API_URL}/api/relief-requests?_t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
-         // Map DB rows to ReliefDispatch format if needed
          const mapped = data.map((d: any) => ({
             id: d.mission_id,
             barangay: d.barangay,

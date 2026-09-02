@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { encryptedFetch } from '../utils/encryptedFetch';
 const API_URL = import.meta.env.VITE_API_URL;
 
-// ─── Types ───────────────────────────────────────────────────────────
+
 
 export interface USGSEarthquake {
   id: string;
@@ -53,7 +53,7 @@ export interface HazardApiData {
   refetch: () => void;
 }
 
-// ─── WMO Weather Code Descriptions ──────────────────────────────────
+
 
 export function getWeatherDescription(code: number): string {
   const descriptions: Record<number, string> = {
@@ -100,7 +100,7 @@ export function getFloodRisk(weather: OpenMeteoWeather): 'Low' | 'Medium' | 'Hig
   return 'Low';
 }
 
-// ─── API Config ──────────────────────────────────────────────────────
+
 const USGS_API = 'https://earthquake.usgs.gov/fdsnws/event/1/query';
 const USGS_PARAMS = new URLSearchParams({
   format: 'geojson',
@@ -126,12 +126,12 @@ const OPEN_METEO_PARAMS = new URLSearchParams({
 const currentYear = new Date().getFullYear(); 
 const GDACS_API = `https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?eventlist=TC&fromdate=${currentYear}-01-01&todate=${currentYear}-12-31`;
 
-// Refresh intervals
+
 const EARTHQUAKE_REFRESH_MS = 5 * 60 * 1000;  
 const WEATHER_REFRESH_MS = 10 * 1000; 
 const TYPHOON_REFRESH_MS = 15 * 60 * 1000;
 
-// ─── Hook ────────────────────────────────────────────────────────────
+
 export function useHazardApis(): HazardApiData {
   const [earthquakes, setEarthquakes] = useState<USGSEarthquake[]>([]);
   const [weather, setWeather] = useState<OpenMeteoWeather | null>(null);
