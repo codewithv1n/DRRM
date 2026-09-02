@@ -42,7 +42,7 @@ export default function HazardMapPanel() {
 
   const fetchDbHazards = async () => {
     try {
-      const res = await encryptedFetch(`${API_URL}/api/hazards`);
+      const res = await encryptedFetch(`${API_URL}/api/c3e5a2d9-f714-486c-b291-fe6d953281a4`);
       if (res.ok) {
         const data = await res.json();
         setDbHazards(data.data || data || []);
@@ -61,7 +61,7 @@ export default function HazardMapPanel() {
   // Fetch incidents from DB for map markers
   const fetchDbIncidents = async () => {
     try {
-      const res = await encryptedFetch(`${API_URL}/api/incidents`);
+      const res = await encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f`);
       if (res.ok) {
         const data = await res.json();
         setDbIncidents(data || []);

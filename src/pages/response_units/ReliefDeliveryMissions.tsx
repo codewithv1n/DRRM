@@ -190,7 +190,7 @@ export default function ReliefDeliveryMissions() {
   const [activeTab, setActiveTab] = useState<'active' | 'delivered'>('active');
 
   useEffect(() => {
-    encryptedFetch(`${API_URL}/api/incidents`)
+    encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f`)
       .then(res => res.json())
       .then(data => setIncidents(data))
       .catch(err => console.error(err));

@@ -19,7 +19,7 @@ export default function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const res = await encryptedFetch(`${API_URL}/api/auth/users`);
+      const res = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/users`);
       if (res.ok) {
         const data = await res.json();
         setUsers(data.users || []);
@@ -61,7 +61,7 @@ export default function UserManagement() {
     const fullName = form.role === 'Responder' ? form.taskForce : `${form.firstName} ${form.lastName}`.trim();
 
     try {
-      const response = await encryptedFetch(`${API_URL}/api/auth/admin/create-account`, {
+      const response = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/admin/create-account`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

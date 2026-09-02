@@ -179,9 +179,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const fetchNotifs = async () => {
       try {
         const [incRes, donRes, alertRes] = await Promise.all([
-          encryptedFetch(`${API_URL}/api/incidents?_t=${Date.now()}`),
-          encryptedFetch(`${API_URL}/api/donations/pending?_t=${Date.now()}`),
-          encryptedFetch(`${API_URL}/api/announcements?_t=${Date.now()}`)
+          encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f?_t=${Date.now()}`),
+          encryptedFetch(`${API_URL}/api/7e8a93b4-f02a-4f51-b8f9-dc4813c01f68/4f9e1d8c-7b2a-4561-9c3f-8a0b5d4e1f7a?_t=${Date.now()}`),
+          encryptedFetch(`${API_URL}/api/b2e45d81-8c43-412d-96f8-a14e9f73c6b2?_t=${Date.now()}`)
         ]);
         
         const incData = incRes.ok ? await incRes.json() : [];

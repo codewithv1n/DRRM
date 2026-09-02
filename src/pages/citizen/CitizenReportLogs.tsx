@@ -76,7 +76,7 @@ export default function CitizenReportLogs() {
           return;
         }
 
-        const res = await encryptedFetch(`${API_URL}/api/citizen-report-logs?email=${encodeURIComponent(user.email)}`);
+        const res = await encryptedFetch(`${API_URL}/api/7c8b2d1e-9a4f-4581-bc79-fe358a914c62?email=${encodeURIComponent(user.email)}`);
         if (res.ok) {
           const data = await res.json();
           setIncidents(data);

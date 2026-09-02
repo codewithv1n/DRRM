@@ -318,7 +318,7 @@ export function useHazardApis(): HazardApiData {
     });
 
     if (hazardsPayload.length > 0) {
-      encryptedFetch(`${API_URL}/api/hazards/sync`, {
+      encryptedFetch(`${API_URL}/api/c3e5a2d9-f714-486c-b291-fe6d953281a4/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hazards: hazardsPayload })

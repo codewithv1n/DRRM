@@ -50,7 +50,7 @@ export default function DonationsPage() {
         data.append('photo', photo);
       }
 
-      const response = await encryptedFetch(`${API_URL}/api/donations/pending`, {
+      const response = await encryptedFetch(`${API_URL}/api/7e8a93b4-f02a-4f51-b8f9-dc4813c01f68/4f9e1d8c-7b2a-4561-9c3f-8a0b5d4e1f7a`, {
         method: 'POST',
         body: data,
       });

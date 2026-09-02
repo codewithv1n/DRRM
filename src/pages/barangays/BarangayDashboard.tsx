@@ -80,28 +80,28 @@ function OverviewPanel() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const claimsRes = await encryptedFetch(`${API_URL}/api/relief-claims`);
+        const claimsRes = await encryptedFetch(`${API_URL}/api/9e4d5b2c-a81c-4231-9f7b-cd831a29f5e4`);
         if (claimsRes.ok) setReliefClaims(await claimsRes.json());
         
-        const sitRes = await encryptedFetch(`${API_URL}/api/sitreps`);
+        const sitRes = await encryptedFetch(`${API_URL}/api/e5b9d3c8-61f2-498b-9a74-cd185e492b67`);
         if (sitRes.ok) {
           const data = await sitRes.json();
           setBarangaySitReps(data.data || []);
         }
 
-        const alertRes = await encryptedFetch(`${API_URL}/api/announcements`);
+        const alertRes = await encryptedFetch(`${API_URL}/api/b2e45d81-8c43-412d-96f8-a14e9f73c6b2`);
         if (alertRes.ok) {
           const data = await alertRes.json();
           setActiveAlerts(data.data || data || []);
         }
 
-        const hazardRes = await encryptedFetch(`${API_URL}/api/hazards`);
+        const hazardRes = await encryptedFetch(`${API_URL}/api/c3e5a2d9-f714-486c-b291-fe6d953281a4`);
         if (hazardRes.ok) {
           const data = await hazardRes.json();
           setLiveHazards(data.data || data || []);
         }
 
-        const invRes = await encryptedFetch(`${API_URL}/api/inventory/barangay?barangay=${encodeURIComponent(ASSIGNED_BARANGAY)}`);
+        const invRes = await encryptedFetch(`${API_URL}/api/1e8d64f2-9c7a-4a5b-98df-ba24ef51379c/barangay?barangay=${encodeURIComponent(ASSIGNED_BARANGAY)}`);
         if (invRes.ok) {
           setReliefInventory(await invRes.json());
         }

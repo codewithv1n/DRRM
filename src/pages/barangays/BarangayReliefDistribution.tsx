@@ -31,7 +31,7 @@ function ReliefDistributionPanel() {
 
   const fetchClaims = async () => {
     try {
-      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/claim-history?barangay=${ASSIGNED_BARANGAY}`);
+      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/8b5a3c9e-d14f-4592-8c67-bf14e7a83d95?barangay=${ASSIGNED_BARANGAY}`);
       if (res.ok) {
         const data = await res.json();
         const mapped = data.map((c: any) => ({
@@ -55,7 +55,7 @@ function ReliefDistributionPanel() {
 
   const fetchInventory = async () => {
     try {
-      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/inventory/barangay?barangay=${ASSIGNED_BARANGAY}`);
+      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/1e8d64f2-9c7a-4a5b-98df-ba24ef51379c/barangay?barangay=${ASSIGNED_BARANGAY}`);
       if (res.ok) {
         const data = await res.json();
         setLocalInventory(data.map((item: any) => ({
@@ -95,7 +95,7 @@ function ReliefDistributionPanel() {
     
     // Call batch API to generate pending claims
     try {
-      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/claim-history/batch`, {
+      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/8b5a3c9e-d14f-4592-8c67-bf14e7a83d95/batch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -146,7 +146,7 @@ function ReliefDistributionPanel() {
     if (!citizenToConfirm) return;
     
     try {
-      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/claim-history/${citizenToConfirm.id}/status`, {
+      const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/8b5a3c9e-d14f-4592-8c67-bf14e7a83d95/${citizenToConfirm.id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

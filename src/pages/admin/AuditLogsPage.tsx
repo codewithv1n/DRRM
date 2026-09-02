@@ -28,7 +28,7 @@ export default function AuditLogsPage() {
     try {
       const params = new URLSearchParams();
       if (actionFilter) params.set('action', actionFilter);
-      const url = `${API_URL}/api/audit-logs${params.toString() ? '?' + params.toString() : ''}`;
+      const url = `${API_URL}/api/3f8d2b9e-c714-459f-9a8b-cd781e649a32${params.toString() ? '?' + params.toString() : ''}`;
       const res = await encryptedFetch(url);
       const data = await res.json();
       if (data.success) {

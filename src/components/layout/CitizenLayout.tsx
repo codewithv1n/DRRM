@@ -102,9 +102,9 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
         const userBarangay = (user?.barangay || '').toLowerCase();
 
         const [incRes, alertRes, weatherRes] = await Promise.all([
-          encryptedFetch(`${API_URL}/api/incidents?_t=${Date.now()}`),
-          encryptedFetch(`${API_URL}/api/announcements?_t=${Date.now()}`),
-          encryptedFetch(`${API_URL}/api/weather-alerts?_t=${Date.now()}`)
+          encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f?_t=${Date.now()}`),
+          encryptedFetch(`${API_URL}/api/b2e45d81-8c43-412d-96f8-a14e9f73c6b2?_t=${Date.now()}`),
+          encryptedFetch(`${API_URL}/api/2b9a7c3e-f81d-458a-8c76-bc39ef147d01?_t=${Date.now()}`)
         ]);
 
         const incData = incRes.ok ? await incRes.json() : [];

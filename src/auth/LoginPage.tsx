@@ -64,7 +64,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-        const response = await encryptedFetch(`${API_URL}/api/auth/login`, {
+        const response = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -89,7 +89,7 @@ export default function LoginPage() {
         setTempUser(user);
 
         
-        const otpRes = await encryptedFetch(`${API_URL}/api/auth/send-otp`, {
+        const otpRes = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/send-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: user.email, type: 'login' }),
@@ -119,7 +119,7 @@ export default function LoginPage() {
     setOtpError(null);
 
     try {
-      const res = await encryptedFetch(`${API_URL}/api/auth/send-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: tempUser.email, type: 'login' }),
@@ -181,7 +181,7 @@ export default function LoginPage() {
     setOtpError(null);
 
     try {
-      const res = await encryptedFetch(`${API_URL}/api/auth/verify-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: tempUser.email, otp: fullOtp }),

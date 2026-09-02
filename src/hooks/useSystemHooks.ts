@@ -32,7 +32,7 @@ export function useReliefDispatches() {
   const [deliveredLogs, setDeliveredLogs] = useState<any[]>([]);
 
   const fetchReliefRequests = () => {
-    encryptedFetch(`${API_URL}/api/relief-requests?_t=${Date.now()}`)
+    encryptedFetch(`${API_URL}/api/f1d8c2e9-8473-4f2b-bc6a-35a1de7c94b2?_t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
          const mapped = data.map((d: any) => ({
@@ -50,7 +50,7 @@ export function useReliefDispatches() {
   };
 
   const fetchDeliveredLogs = () => {
-    encryptedFetch(`${API_URL}/api/relief-requests/delivered?_t=${Date.now()}`)
+    encryptedFetch(`${API_URL}/api/f1d8c2e9-8473-4f2b-bc6a-35a1de7c94b2/delivered?_t=${Date.now()}`)
       .then(res => res.json())
       .then(data => setDeliveredLogs(data))
       .catch(err => console.error("Error fetching delivered logs", err));
@@ -70,7 +70,7 @@ export function useReliefDispatches() {
 
   const updateReliefDispatchStatus = async (id: string, status: ReliefDispatch['status']) => {
     try {
-      const response = await encryptedFetch(`${API_URL}/api/relief-requests/${id}/status`, {
+      const response = await encryptedFetch(`${API_URL}/api/f1d8c2e9-8473-4f2b-bc6a-35a1de7c94b2/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
@@ -85,7 +85,7 @@ export function useReliefDispatches() {
 
   const requestRelief = async (request: { barangay: string; type: string; quantity: number }) => {
     try {
-      const response = await encryptedFetch(`${API_URL}/api/relief-requests`, {
+      const response = await encryptedFetch(`${API_URL}/api/f1d8c2e9-8473-4f2b-bc6a-35a1de7c94b2`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request)
@@ -106,7 +106,7 @@ export function useReliefDispatches() {
         formData.append('photo', photo);
       }
 
-      const response = await encryptedFetch(`${API_URL}/api/relief-requests/${id}/deliver`, {
+      const response = await encryptedFetch(`${API_URL}/api/f1d8c2e9-8473-4f2b-bc6a-35a1de7c94b2/${id}/deliver`, {
         method: 'POST',
         body: formData
       });
@@ -125,7 +125,7 @@ export function useReliefDispatches() {
 export function useIncidentsCount() {
   const [incidents, setIncidents] = useState<any[]>([]);
   useEffect(() => {
-    encryptedFetch(`${API_URL}/api/incidents`)
+    encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f`)
       .then(res => res.json())
       .then(data => setIncidents(data))
       .catch(err => console.error(err));

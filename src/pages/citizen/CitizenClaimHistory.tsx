@@ -32,7 +32,7 @@ export default function ResidentClaimHistory() {
   useEffect(() => {
     const fetchClaims = async () => {
       try {
-        const res = await encryptedFetch(`${API_URL}/api/claim-history?email=${encodeURIComponent(userEmail)}`);
+        const res = await encryptedFetch(`${API_URL}/api/8b5a3c9e-d14f-4592-8c67-bf14e7a83d95?email=${encodeURIComponent(userEmail)}`);
         if (res.ok) {
           const data = await res.json();
           setClaims(data);
@@ -102,10 +102,10 @@ export default function ResidentClaimHistory() {
                 <p className="text-sm text-slate-400">{language === 'en' ? 'Loading claim history...' : 'Naglo-load ng kasaysayan...'}</p>
               </div>
             ) : filteredClaims.length > 0 ? (
-              filteredClaims.map(claim => {
+              filteredClaims.map((claim, idx) => {
                 const style = getStatusStyle(claim.status);
                 return (
-                  <div key={claim.id} className="p-4 sm:p-6 hover:bg-slate-50 transition-colors flex items-center gap-4">
+                  <div key={claim.id || idx} className="p-4 sm:p-6 hover:bg-slate-50 transition-colors flex items-center gap-4">
                     <div className={`p-3 rounded-xl shrink-0 ${style.icon}`}>
                       {getStatusIcon(claim.status)}
                     </div>

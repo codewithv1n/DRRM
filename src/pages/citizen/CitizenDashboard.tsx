@@ -77,7 +77,7 @@ export default function CitizenDashboard() {
       })
       .catch(err => console.error('Weather fetch error:', err));
 
-    encryptedFetch(`${API_URL}/api/announcements`)
+    encryptedFetch(`${API_URL}/api/b2e45d81-8c43-412d-96f8-a14e9f73c6b2`)
       .then(res => res.json())
       .then(data => setActiveAlerts(data))
       .catch(err => console.error('Error fetching announcements:', err));
@@ -90,7 +90,7 @@ export default function CitizenDashboard() {
       } catch(e) {}
     }
     if (email) {
-      encryptedFetch(`${API_URL}/api/claim-history?email=${encodeURIComponent(email)}`)
+      encryptedFetch(`${API_URL}/api/8b5a3c9e-d14f-4592-8c67-bf14e7a83d95?email=${encodeURIComponent(email)}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) setRecentClaims(data);
@@ -101,7 +101,7 @@ export default function CitizenDashboard() {
 
   const fetchAndSetShelters = async (lat: number, lon: number) => {
     try {
-      const dbResponse = await encryptedFetch(`${API_URL}/api/evacuation-centers?lat=${lat}&lon=${lon}`);
+      const dbResponse = await encryptedFetch(`${API_URL}/api/d4a8b7f1-59c3-421e-8fd9-bc37ea495201?lat=${lat}&lon=${lon}`);
       const dbData = await dbResponse.json();
       const nearbyCenters = (dbData.data || []).slice(0, 10);
       
@@ -218,8 +218,8 @@ export default function CitizenDashboard() {
               </div>
               
               <div className="space-y-3 flex-1 overflow-y-auto scrollbar-thin pr-2">
-                {activeAlerts.length > 0 ? activeAlerts.slice(0, 3).map(alert => (
-                  <div key={alert.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex gap-4 hover:bg-slate-100/50 transition-colors">
+                {activeAlerts.length > 0 ? activeAlerts.slice(0, 3).map((alert, idx) => (
+                  <div key={alert.id || idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex gap-4 hover:bg-slate-100/50 transition-colors">
                     <div className={`p-3 rounded-xl h-fit border shrink-0 ${
                       alert.level?.includes('Red') || alert.level?.includes('Critical') ? 'bg-rose-100/50 border-rose-200 text-rose-600' :
                       alert.level?.includes('Warning') || alert.level?.includes('Orange') ? 'bg-amber-100/50 border-amber-200 text-amber-600' :

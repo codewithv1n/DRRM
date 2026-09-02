@@ -33,7 +33,7 @@ export default function ValidateDonationsPanel() {
 
   const fetchDonations = async () => {
     try {
-      const res = await encryptedFetch(`${API_URL}/api/donations/pending?_t=${Date.now()}`);
+      const res = await encryptedFetch(`${API_URL}/api/7e8a93b4-f02a-4f51-b8f9-dc4813c01f68/4f9e1d8c-7b2a-4561-9c3f-8a0b5d4e1f7a?_t=${Date.now()}`);
       const data = await res.json();
       setDonations(data);
     } catch (error) {
@@ -43,7 +43,7 @@ export default function ValidateDonationsPanel() {
 
   const fetchLogs = async () => {
     try {
-      const res = await encryptedFetch(`${API_URL}/api/donations/logs?_t=${Date.now()}`);
+      const res = await encryptedFetch(`${API_URL}/api/7e8a93b4-f02a-4f51-b8f9-dc4813c01f68/logs?_t=${Date.now()}`);
       const data = await res.json();
       setDonationLogs(data);
     } catch (error) {
@@ -65,7 +65,7 @@ export default function ValidateDonationsPanel() {
       setToast({ show: true, message: 'Donation successfully received!', type: 'success' });
       setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
 
-      encryptedFetch(`${API_URL}/api/donations/pending/${id}/receive`, {
+      encryptedFetch(`${API_URL}/api/7e8a93b4-f02a-4f51-b8f9-dc4813c01f68/4f9e1d8c-7b2a-4561-9c3f-8a0b5d4e1f7a/${id}/receive`, {
         method: 'PUT'
       }).then(() => {
         fetchDonations();

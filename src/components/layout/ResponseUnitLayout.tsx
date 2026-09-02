@@ -103,8 +103,8 @@ export default function ResponseUnitLayout({ children }: ResponseUnitLayoutProps
     const fetchNotifs = async () => {
       try {
         const [incRes, alertRes] = await Promise.all([
-          encryptedFetch(`${API_URL}/api/incidents`),
-          encryptedFetch(`${API_URL}/api/announcements`)
+          encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f`),
+          encryptedFetch(`${API_URL}/api/b2e45d81-8c43-412d-96f8-a14e9f73c6b2`)
         ]);
         
         const incData = incRes.ok ? await incRes.json() : [];

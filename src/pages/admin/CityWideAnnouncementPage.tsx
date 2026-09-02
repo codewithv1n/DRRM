@@ -24,10 +24,10 @@ export default function EarlyWarningPanel() {
 
   const fetchData = async () => {
     try {
-      const annRes = await encryptedFetch(`${API_URL}/api/announcements?_t=${Date.now()}`);
+      const annRes = await encryptedFetch(`${API_URL}/api/b2e45d81-8c43-412d-96f8-a14e9f73c6b2?_t=${Date.now()}`);
       if (annRes.ok) setActiveAlerts(await annRes.json());
       
-      const incRes = await encryptedFetch(`${API_URL}/api/incidents?_t=${Date.now()}`);
+      const incRes = await encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f?_t=${Date.now()}`);
       if (incRes.ok) {
         const incidents = await incRes.json();
         setPendingCount(incidents.filter((i: any) => i.status === 'Pending').length);
@@ -53,7 +53,7 @@ export default function EarlyWarningPanel() {
   const handleBroadcast = async () => {
     if (!broadcastMessage.trim()) return;
     try {
-      await encryptedFetch(`${API_URL}/api/announcements`, {
+      await encryptedFetch(`${API_URL}/api/b2e45d81-8c43-412d-96f8-a14e9f73c6b2`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

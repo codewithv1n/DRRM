@@ -116,7 +116,7 @@ export default function IncidentDispatcherPanel() {
 
   const fetchIncidents = async () => {
     try {
-      const response = await encryptedFetch(`${API_URL}/api/incidents`);
+      const response = await encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f`);
       if (response.ok) {
         const data = await response.json();
         setIncidents(data);
@@ -189,7 +189,7 @@ export default function IncidentDispatcherPanel() {
     const newAssigned = isBackup && currentAssigned ? `${currentAssigned}, ${responderId}` : responderId;
 
     try {
-      const response = await encryptedFetch(`${API_URL}/api/incidents/${incidentId}/status`, {
+      const response = await encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f/${incidentId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

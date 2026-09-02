@@ -17,16 +17,16 @@ function OverviewPanel({ incidents, pendingCount }: { incidents: any[], pendingC
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const invRes = await encryptedFetch(`${API_URL}/api/inventory`);
+        const invRes = await encryptedFetch(`${API_URL}/api/1e8d64f2-9c7a-4a5b-98df-ba24ef51379c`);
         if (invRes.ok) setReliefInventory(await invRes.json());
         
-        const donRes = await encryptedFetch(`${API_URL}/api/donations/pending`);
+        const donRes = await encryptedFetch(`${API_URL}/api/7e8a93b4-f02a-4f51-b8f9-dc4813c01f68/4f9e1d8c-7b2a-4561-9c3f-8a0b5d4e1f7a`);
         if (donRes.ok) {
           const donData = await donRes.json();
           setPendingDonationsCount(donData.length);
         }
 
-        const evRes = await encryptedFetch(`${API_URL}/api/evacuation-centers`);
+        const evRes = await encryptedFetch(`${API_URL}/api/d4a8b7f1-59c3-421e-8fd9-bc37ea495201`);
         if (evRes.ok) {
           const evData = await evRes.json();
           setEvacuationCenters(evData.data || []);
@@ -224,7 +224,7 @@ export default function DepartmentDashboard() {
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
-        const res = await encryptedFetch(`${API_URL}/api/incidents`);
+        const res = await encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f`);
         if (res.ok) setIncidents(await res.json());
       } catch (error) {
         console.error('Error fetching incidents', error);

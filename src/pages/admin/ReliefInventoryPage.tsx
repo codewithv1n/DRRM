@@ -24,7 +24,7 @@ export default function ReliefInventoryPanel() {
 
   const fetchInventory = async () => {
     try {
-      const res = await encryptedFetch(`${API_URL}/api/inventory`);
+      const res = await encryptedFetch(`${API_URL}/api/1e8d64f2-9c7a-4a5b-98df-ba24ef51379c`);
       const data = await res.json();
       setInventory(data);
     } catch (error) {
@@ -44,7 +44,7 @@ export default function ReliefInventoryPanel() {
     
     setIsSubmitting(true);
     try {
-      await encryptedFetch(`${API_URL}/api/inventory`, {
+      await encryptedFetch(`${API_URL}/api/1e8d64f2-9c7a-4a5b-98df-ba24ef51379c`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -121,8 +121,8 @@ export default function ReliefInventoryPanel() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredInventory.map(item => (
-                  <tr key={item.admin_relief_inventory_id} className="hover:bg-slate-50/50 transition-colors">
+                {filteredInventory.map((item, idx) => (
+                  <tr key={item.admin_relief_inventory_id || idx} className="hover:bg-slate-50/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg shrink-0 bg-blue-50 text-blue-600">

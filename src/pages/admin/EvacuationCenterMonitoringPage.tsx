@@ -26,7 +26,7 @@ export default function EvacuationCenterMonitoringPage() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
 
   useEffect(() => {
-    encryptedFetch(`${API_URL}/api/evacuation-centers`)
+    encryptedFetch(`${API_URL}/api/d4a8b7f1-59c3-421e-8fd9-bc37ea495201`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {

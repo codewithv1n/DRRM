@@ -22,9 +22,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.post('/pending', upload.single('photo'), createDonation);
-router.get('/pending', getAllPendingDonations);
-router.put('/pending/:id/receive', markDonationReceived);
+router.post('/4f9e1d8c-7b2a-4561-9c3f-8a0b5d4e1f7a', upload.single('photo'), createDonation);
+router.get('/4f9e1d8c-7b2a-4561-9c3f-8a0b5d4e1f7a', getAllPendingDonations);
+router.put('/4f9e1d8c-7b2a-4561-9c3f-8a0b5d4e1f7a/:id/receive', markDonationReceived);
 router.get('/logs', getDonationLogs);
 
 export default router;

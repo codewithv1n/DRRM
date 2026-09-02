@@ -32,7 +32,7 @@ export default function CitizenDonationLogs() {
 
       try {
         // Fetch Pending Donations
-        const pendingRes = await encryptedFetch(`${API_URL}/api/donations/pending`);
+        const pendingRes = await encryptedFetch(`${API_URL}/api/7e8a93b4-f02a-4f51-b8f9-dc4813c01f68/4f9e1d8c-7b2a-4561-9c3f-8a0b5d4e1f7a`);
         const pendingData = await pendingRes.json();
         const userPending = pendingData
           .filter((d: any) => d.email === userEmail)
@@ -45,7 +45,7 @@ export default function CitizenDonationLogs() {
           }));
 
         // Fetch Received Donations (Logs)
-        const logsRes = await encryptedFetch(`${API_URL}/api/donations/logs`);
+        const logsRes = await encryptedFetch(`${API_URL}/api/7e8a93b4-f02a-4f51-b8f9-dc4813c01f68/logs`);
         const logsData = await logsRes.json();
         const userLogs = logsData
           .filter((d: any) => d.email === userEmail)

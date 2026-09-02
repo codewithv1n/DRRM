@@ -17,7 +17,7 @@ export default function BarangaySitrepCoordinationPage() {
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   const fetchSitreps = () => {
-    encryptedFetch(`${API_URL}/api/sitreps`)
+    encryptedFetch(`${API_URL}/api/e5b9d3c8-61f2-498b-9a74-cd185e492b67`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {
@@ -74,7 +74,7 @@ export default function BarangaySitrepCoordinationPage() {
 
   const handleAcknowledge = async (id: string, barangay: string) => {
     try {
-      const res = await encryptedFetch(`${API_URL}/api/sitreps/${id}/acknowledge`, { method: 'PATCH' });
+      const res = await encryptedFetch(`${API_URL}/api/e5b9d3c8-61f2-498b-9a74-cd185e492b67/${id}/acknowledge`, { method: 'PATCH' });
       if (res.ok) {
         setActionSuccess(`SitRep from Barangay ${barangay} has been acknowledged.`);
         fetchSitreps();

@@ -13,7 +13,7 @@ export default function BarangayReliefInventory() {
   useEffect(() => {
     const fetchInventory = async () => {
       try {
-        const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/inventory/barangay?barangay=${currentBarangay}`);
+        const res = await encryptedFetch(`${import.meta.env.VITE_API_URL}/api/1e8d64f2-9c7a-4a5b-98df-ba24ef51379c/barangay?barangay=${currentBarangay}`);
         if (res.ok) {
           const data = await res.json();
           setLocalInventory(data.map((item: any) => ({

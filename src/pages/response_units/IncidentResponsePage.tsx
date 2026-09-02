@@ -337,7 +337,7 @@ export default function IncidentResponsePage() {
 
   const fetchIncidents = async () => {
     try {
-      const response = await encryptedFetch(`${API_URL}/api/incidents?_t=${Date.now()}`);
+      const response = await encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f?_t=${Date.now()}`);
       if (response.ok) {
         const data = await response.json();
         setDbIncidents(data);
@@ -389,7 +389,7 @@ export default function IncidentResponsePage() {
     setDbIncidents(prev => prev.map(i => i.incident_id === id ? { ...i, status: newStatus } : i));
 
     try {
-      await encryptedFetch(`${API_URL}/api/incidents/${id}/status`, {
+      await encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

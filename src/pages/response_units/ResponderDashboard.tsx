@@ -21,7 +21,7 @@ export default function ResponderDashboard() {
   const [incidents, setIncidents] = useState<any[]>([]);
 
   const fetchIncidents = () => {
-    encryptedFetch(`${API_URL}/api/incidents?_t=${Date.now()}`)
+    encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f?_t=${Date.now()}`)
       .then(res => res.json())
       .then(data => setIncidents(data))
       .catch(err => console.error(err));

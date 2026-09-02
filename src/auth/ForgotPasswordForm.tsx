@@ -42,7 +42,7 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
     setError(null);
 
     try {
-      const res = await encryptedFetch(`${API_URL}/api/otp/send-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/9f7a5b3d-1a8c-4f5e-bd29-dc81f203874e/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, type: 'forgot_password' })
@@ -102,7 +102,7 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
     setError(null);
 
     try {
-      const res = await encryptedFetch(`${API_URL}/api/otp/verify-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/9f7a5b3d-1a8c-4f5e-bd29-dc81f203874e/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: fullOtp })
@@ -137,7 +137,7 @@ export default function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) 
 
     try {
       const fullOtp = otpValues.join('');
-      const res = await encryptedFetch(`${API_URL}/api/otp/reset-password`, {
+      const res = await encryptedFetch(`${API_URL}/api/9f7a5b3d-1a8c-4f5e-bd29-dc81f203874e/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: fullOtp, newPassword })

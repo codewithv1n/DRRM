@@ -32,7 +32,7 @@ export default function SitrepLogsPage() {
   const [totalEvacuees, setTotalEvacuees] = useState(0);
 
   useEffect(() => {
-    encryptedFetch(`${API_URL}/api/sitreps`)
+    encryptedFetch(`${API_URL}/api/e5b9d3c8-61f2-498b-9a74-cd185e492b67`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {
@@ -54,7 +54,7 @@ export default function SitrepLogsPage() {
       })
       .catch(err => console.error("Error fetching sitreps:", err));
 
-    encryptedFetch(`${API_URL}/api/evacuation-centers`)
+    encryptedFetch(`${API_URL}/api/d4a8b7f1-59c3-421e-8fd9-bc37ea495201`)
       .then(res => res.json())
       .then(data => {
         if (data && data.data) {

@@ -24,7 +24,7 @@ export default function SitrepPanel() {
   const [selectedEvacuationCenter, setSelectedEvacuationCenter] = useState('');
 
   useEffect(() => {
-    encryptedFetch(`${API_URL}/api/evacuation-centers`)
+    encryptedFetch(`${API_URL}/api/d4a8b7f1-59c3-421e-8fd9-bc37ea495201`)
       .then(res => res.json())
       .then(data => {
         if (data.data) {
@@ -38,7 +38,7 @@ export default function SitrepPanel() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await encryptedFetch(`${API_URL}/api/sitreps`, {
+      const res = await encryptedFetch(`${API_URL}/api/e5b9d3c8-61f2-498b-9a74-cd185e492b67`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

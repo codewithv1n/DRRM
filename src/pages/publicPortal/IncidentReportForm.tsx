@@ -125,7 +125,7 @@ export default function IncidentReportForm() {
     setOtpError(null);
 
     try {
-      const res = await encryptedFetch(`${API_URL}/api/auth/send-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, type: 'incident' }),
@@ -155,7 +155,7 @@ export default function IncidentReportForm() {
     setOtpError(null);
 
     try {
-      const res = await encryptedFetch(`${API_URL}/api/auth/send-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, type: 'incident' }),
@@ -224,7 +224,7 @@ export default function IncidentReportForm() {
     }
 
     try {
-      const response = await encryptedFetch(`${API_URL}/api/incidents`, {
+      const response = await encryptedFetch(`${API_URL}/api/8d72f1a6-2c98-4f3b-a9b1-54c3e80d7e6f`, {
         method: 'POST',
         body: payload,
       });
@@ -266,7 +266,7 @@ export default function IncidentReportForm() {
     setOtpError(null);
 
     try {
-      const res = await encryptedFetch(`${API_URL}/api/auth/verify-otp`, {
+      const res = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, otp: fullOtp }),
