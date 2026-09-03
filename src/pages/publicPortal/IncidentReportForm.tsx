@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { EmergencyType } from '../../data/types';
 import { encryptedFetch } from '../../utils/encryptedFetch';
 
 const API_URL = import.meta.env.VITE_API_URL;
-
 import {
   AlertCircle,
   CheckCircle2,
@@ -22,15 +21,88 @@ import {
   Upload,
   Mountain,
   HelpCircle,
-  KeyRound,
-  RefreshCw,
   ShieldCheck,
+  RefreshCw,
 } from 'lucide-react';
 
+
+const generateCaptchaText = (): string => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let result = '';
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+
+const drawCaptcha = (canvas: HTMLCanvasElement, text: string) => {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const width = canvas.width;
+  const height = canvas.height;
+
+  
+  ctx.fillStyle = '#f1f5f9';
+  ctx.fillRect(0, 0, width, height);
+
+  
+  for (let i = 0; i < 6; i++) {
+    ctx.strokeStyle = `hsl(${Math.random() * 360}, 40%, 75%)`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(Math.random() * width, Math.random() * height);
+    ctx.lineTo(Math.random() * width, Math.random() * height);
+    ctx.stroke();
+  }
+
+  
+  for (let i = 0; i < 30; i++) {
+    ctx.fillStyle = `hsl(${Math.random() * 360}, 30%, 70%)`;
+    ctx.beginPath();
+    ctx.arc(Math.random() * width, Math.random() * height, Math.random() * 2 + 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const fontSize = 28;
+  ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
+  ctx.textBaseline = 'middle';
+
+  const startX = 20;
+  const charSpacing = (width - 40) / text.length;
+
+  for (let i = 0; i < text.length; i++) {
+    ctx.save();
+    const x = startX + i * charSpacing + charSpacing / 2;
+    const y = height / 2 + (Math.random() * 10 - 5);
+    const rotation = (Math.random() - 0.5) * 0.5;
+
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    ctx.fillStyle = `hsl(${210 + Math.random() * 40}, ${60 + Math.random() * 30}%, ${25 + Math.random() * 15}%)`;
+    ctx.fillText(text[i], -fontSize / 4, 0);
+    ctx.restore();
+  }
+
+  
+  for (let i = 0; i < 3; i++) {
+    ctx.strokeStyle = `hsla(${Math.random() * 360}, 50%, 60%, 0.4)`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(Math.random() * width, Math.random() * height);
+    ctx.bezierCurveTo(
+      Math.random() * width, Math.random() * height,
+      Math.random() * width, Math.random() * height,
+      Math.random() * width, Math.random() * height
+    );
+    ctx.stroke();
+  }
+};
 export default function IncidentReportForm() {
   const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
-  const [step, setStep] = useState<'FORM' | 'OTP_VERIFICATION' | 'PHOTO_VALIDATION' | 'SUCCESS'>('FORM');
+  const [step, setStep] = useState<'FORM' | 'PHOTO_VALIDATION' | 'SUCCESS'>('FORM');
 
   const [formData, setFormData] = useState({
     reporterName: '',
@@ -44,23 +116,36 @@ export default function IncidentReportForm() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [hasPhoto, setHasPhoto] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   
-  const [otpValues, setOtpValues] = useState<string[]>(['', '', '', '', '', '']);
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [otpError, setOtpError] = useState<string | null>(null);
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const [captchaText, setCaptchaText] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaError, setCaptchaError] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+ 
+  const refreshCaptcha = useCallback(() => {
+    const newText = generateCaptchaText();
+    setCaptchaText(newText);
+    setCaptchaInput('');
+    setCaptchaError(false);
+ 
+    setTimeout(() => {
+      if (canvasRef.current) {
+        drawCaptcha(canvasRef.current, newText);
+      }
+    }, 0);
+  }, []);
 
-  
   useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setInterval(() => {
-      setResendCooldown((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
+    refreshCaptcha();
+  }, [refreshCaptcha]);
+
+  const handleCaptchaInputChange = (value: string) => {
+    setCaptchaInput(value);
+    setCaptchaError(false);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -112,99 +197,6 @@ export default function IncidentReportForm() {
     }
   };
 
-  
-  const handleInitiateOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.email || !formData.email.includes('@')) {
-      alert('Please provide a valid email address for OTP verification.');
-      return;
-    }
-
-    setOtpLoading(true);
-    setOtpError(null);
-
-    try {
-      const res = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, type: 'incident' }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setStep('OTP_VERIFICATION');
-        setResendCooldown(60);
-        setOtpValues(['', '', '', '', '', '']);
-      } else {
-        setOtpError(data.error || 'Failed to send OTP code. Please check your email.');
-      }
-    } catch (err) {
-      console.error('Error sending OTP:', err);
-      setOtpError('Cannot connect to server. Please try again.');
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
- 
-  const handleResendOtp = async () => {
-    if (resendCooldown > 0 || otpLoading) return;
-    setOtpLoading(true);
-    setOtpError(null);
-
-    try {
-      const res = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, type: 'incident' }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setResendCooldown(60);
-      } else {
-        setOtpError(data.error || 'Failed to resend OTP.');
-      }
-    } catch (err) {
-      setOtpError('Failed to resend code.');
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  
-  const handleOtpBoxChange = (index: number, value: string) => {
-    if (value.length > 1) {
-     
-      const pasted = value.replace(/\D/g, '').slice(0, 6).split('');
-      const updated = [...otpValues];
-      pasted.forEach((char, idx) => {
-        if (idx < 6) updated[idx] = char;
-      });
-      setOtpValues(updated);
-      const nextFocus = Math.min(pasted.length, 5);
-      otpInputRefs.current[nextFocus]?.focus();
-      return;
-    }
-
-    const digit = value.replace(/\D/g, '');
-    const updated = [...otpValues];
-    updated[index] = digit;
-    setOtpValues(updated);
-
-    if (digit && index < 5) {
-      otpInputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !otpValues[index] && index > 0) {
-      otpInputRefs.current[index - 1]?.focus();
-    }
-  };
-
- 
   const submitIncidentReport = async () => {
     const finalType = formData.type === 'Other' && otherType.trim() ? otherType : formData.type;
 
@@ -215,7 +207,7 @@ export default function IncidentReportForm() {
     payload.append('email', formData.email);
     payload.append('location', formData.location);
     payload.append('type', finalType);
-    payload.append('isVerified', 'true'); // Email verified via OTP!
+    payload.append('isVerified', 'true'); 
     payload.append('spamScore', hasPhoto ? '0.05' : '0.1');
     payload.append('deviceIp', '192.168.1.5');
 
@@ -236,6 +228,7 @@ export default function IncidentReportForm() {
         setOtherType('');
         setHasPhoto(false);
         setPhotoFile(null);
+        refreshCaptcha();
 
         setTimeout(() => {
           setShowSuccess(false);
@@ -252,44 +245,29 @@ export default function IncidentReportForm() {
     }
   };
 
-  
-  const handleVerifyOtpAndSubmit = async (e: React.FormEvent) => {
+  // Handle form submission with reCAPTCHA verification
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const fullOtp = otpValues.join('');
 
-    if (fullOtp.length !== 6) {
-      setOtpError('Please enter all 6 digits of the OTP code.');
+    // Validate CAPTCHA on submit
+    if (captchaInput !== captchaText) {
+      setCaptchaError(true);
       return;
     }
 
-    setOtpLoading(true);
-    setOtpError(null);
+    setIsSubmitting(true);
 
     try {
-      const res = await encryptedFetch(`${API_URL}/api/a2d8e3f9-715c-4d32-98ab-eb54cd8c21a3/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, otp: fullOtp }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        if (hasPhoto) {
-          setStep('PHOTO_VALIDATION');
-          setTimeout(() => {
-            submitIncidentReport();
-          }, 1800);
-        } else {
+      if (hasPhoto) {
+        setStep('PHOTO_VALIDATION');
+        setTimeout(() => {
           submitIncidentReport();
-        }
+        }, 1800);
       } else {
-        setOtpError(data.error || 'Invalid verification code. Please try again.');
+        await submitIncidentReport();
       }
-    } catch (err) {
-      setOtpError('Connection error. Please try again.');
     } finally {
-      setOtpLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -309,7 +287,7 @@ export default function IncidentReportForm() {
       <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
       
         <div className="bg-linear-to-r from-blue-700 to-blue-600 p-6 text-center text-white relative">
-          {step === 'FORM' ? (
+          {step === 'FORM' && (
             <button
               onClick={() => navigate(-1)}
               className="absolute left-4 top-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors cursor-pointer flex items-center justify-center"
@@ -317,15 +295,7 @@ export default function IncidentReportForm() {
             >
               <ArrowLeft className="w-5 h-5 text-white" />
             </button>
-          ) : step === 'OTP_VERIFICATION' ? (
-            <button
-              onClick={() => setStep('FORM')}
-              className="absolute left-4 top-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors cursor-pointer flex items-center justify-center"
-              title="Edit Form"
-            >
-              <ArrowLeft className="w-5 h-5 text-white" />
-            </button>
-          ) : null}
+          )}
 
           <div className="inline-flex p-3 bg-white/10 rounded-2xl mb-2 backdrop-blur-sm">
             <AlertCircle className="w-8 h-8 text-white" />
@@ -336,7 +306,7 @@ export default function IncidentReportForm() {
 
         
         {step === 'FORM' && (
-          <form onSubmit={handleInitiateOtp} className="p-6 md:p-8 space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
             {/* Row 1: Name & Contact */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
@@ -386,9 +356,6 @@ export default function IncidentReportForm() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
                   Email Address <span className="text-red-500">*</span>
                 </label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> OTP Verification Required
-                </span>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -404,9 +371,6 @@ export default function IncidentReportForm() {
                   placeholder="name@example.com"
                 />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">
-                A 6-digit verification code will be sent to this email to prevent spam and verify your report.
-              </p>
             </div>
 
             
@@ -540,120 +504,82 @@ export default function IncidentReportForm() {
               )}
             </div>
 
-           
+            {/* Custom CAPTCHA Human Verification */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                Human Verification <span className="text-red-500">*</span>
+              </label>
+              <div className={`p-4 rounded-2xl border-2 transition-all ${
+                captchaError ? 'border-red-300 bg-red-50/50' : 'border-slate-200 bg-slate-50/30'
+              }`}>
+                <div className="flex flex-col items-center gap-3">
+                  {/* CAPTCHA Canvas */}
+                  <div className="flex items-center gap-2">
+                    <canvas
+                      ref={canvasRef}
+                      width={220}
+                      height={60}
+                      className="rounded-xl border border-slate-200 shadow-inner"
+                      style={{ imageRendering: 'auto' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={refreshCaptcha}
+                      className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+                      title="Generate new CAPTCHA"
+                    >
+                      <RefreshCw className="w-4 h-4 text-slate-500" />
+                    </button>
+                  </div>
+
+                  {/* CAPTCHA Input */}
+                  <div className="w-full max-w-55">
+                    <input
+                      type="text"
+                      value={captchaInput}
+                      onChange={(e) => handleCaptchaInputChange(e.target.value)}
+                      placeholder="Type the letters above"
+                      maxLength={6}
+                      className={`block w-full px-3.5 py-2 text-center text-sm font-bold tracking-widest border rounded-xl transition-all ${
+                        captchaError
+                          ? 'border-red-300 bg-red-50 text-red-700 focus:ring-red-500/20'
+                          : 'border-slate-200 bg-white text-slate-800 focus:ring-blue-500/20'
+                      } focus:ring-2 focus:outline-none`}
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                  </div>
+
+                  {captchaError && (
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-red-600">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>Incorrect code. Please type the letters shown above.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={otpLoading}
+                disabled={isSubmitting}
                 className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-blue-500/20 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {otpLoading ? (
+                {isSubmitting ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Sending Verification Code...</span>
+                    <span>Submitting Report...</span>
                   </>
                 ) : (
                   <>
-                    <span>Proceed to Verification</span>
+                    <span>Submit Emergency Report</span>
                     <ShieldCheck className="w-5 h-5" />
                   </>
                 )}
               </button>
             </div>
           </form>
-        )}
-
-     
-        {step === 'OTP_VERIFICATION' && (
-          <div className="p-6 md:p-8 animate-fade-in">
-            <div className="text-center max-w-md mx-auto mb-6">
-              <div className="inline-flex p-3 bg-blue-50 text-blue-600 rounded-2xl mb-3">
-                <KeyRound className="w-7 h-7" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-900">Verify Your Email</h2>
-              <p className="text-sm text-slate-500 mt-1">
-                We sent a 6-digit verification code to:
-              </p>
-              <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-800 font-bold px-3 py-1 rounded-lg text-xs mt-2">
-                <Mail className="w-3.5 h-3.5 text-slate-500" />
-                <span>{formData.email}</span>
-              </div>
-            </div>
-
-            {otpError && (
-              <div className="max-w-md mx-auto mb-5 p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{otpError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleVerifyOtpAndSubmit} className="max-w-md mx-auto space-y-6">
-              {/* 6 Digit Input Boxes */}
-              <div>
-                <div className="flex justify-center gap-2.5 sm:gap-3">
-                  {otpValues.map((digit, idx) => (
-                    <input
-                      key={idx}
-                      ref={(el) => {
-                        otpInputRefs.current[idx] = el;
-                      }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={6}
-                      value={digit}
-                      onChange={(e) => handleOtpBoxChange(idx, e.target.value)}
-                      onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                      autoFocus={idx === 0}
-                      className="w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-extrabold bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all"
-                    />
-                  ))}
-                </div>
-                <p className="text-center text-xs text-slate-400 mt-3">
-                  Please check your inbox or spam folder.
-                </p>
-              </div>
-
-              
-              <button
-                type="submit"
-                disabled={otpLoading || otpValues.join('').length !== 6}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {otpLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Verifying Code...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Verify & Submit Report</span>
-                    <CheckCircle2 className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-
-             
-              <div className="flex items-center justify-between text-xs pt-2">
-                <button
-                  type="button"
-                  onClick={() => setStep('FORM')}
-                  className="text-slate-500 hover:text-slate-800 font-semibold cursor-pointer"
-                >
-                  ← Edit Information
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={resendCooldown > 0 || otpLoading}
-                  className="text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1 cursor-pointer disabled:text-slate-400 disabled:cursor-not-allowed"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${otpLoading ? 'animate-spin' : ''}`} />
-                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}
-                </button>
-              </div>
-            </form>
-          </div>
         )}
 
         
@@ -667,7 +593,7 @@ export default function IncidentReportForm() {
               Analyzing photo metadata, timestamp, and location tags to confirm emergency report validity...
             </p>
             <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
-              <ShieldCheck className="w-3.5 h-3.5" /> Email OTP Verified • Anti-Abuse Active
+              <ShieldCheck className="w-3.5 h-3.5" /> CAPTCHA Verified • Anti-Abuse Active
             </div>
           </div>
         )}
@@ -680,7 +606,7 @@ export default function IncidentReportForm() {
             </div>
             <h3 className="font-black text-2xl text-slate-900">Incident Report Dispatched!</h3>
             <p className="text-sm text-slate-600 mt-2 max-w-md leading-relaxed">
-              Your report has been verified via OTP and transmitted directly to the Quezon City Emergency Command Center. Response units have been notified.
+              Your report has been verified and transmitted directly to the Quezon City Emergency Command Center. Response units have been notified.
             </p>
 
             <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-2xl w-full max-w-sm text-left text-xs space-y-1.5">
@@ -709,3 +635,4 @@ export default function IncidentReportForm() {
     </div>
   );
 }
+

@@ -87,7 +87,7 @@ export default function EvacuationRouteMap({ userLocation, shelterLocation, shel
       
       const userEl = document.createElement('div');
       userEl.innerHTML = `
-        <div style="width: 24px; height: 24px; background-color: #3b82f6; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
+        <div style="width: 24px; height: 24px; background-color: #60a5fa; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
           <div style="width: 8px; height: 8px; background-color: white; border-radius: 50%;"></div>
         </div>
       `;
@@ -100,7 +100,7 @@ export default function EvacuationRouteMap({ userLocation, shelterLocation, shel
       const shelterEl = document.createElement('div');
       shelterEl.innerHTML = `
         <div style="position: relative; width: 32px; height: 32px;">
-          <svg viewBox="0 0 24 24" fill="#4f46e5" stroke="white" stroke-width="2" style="width: 100%; height: 100%; filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3));">
+          <svg viewBox="0 0 24 24" fill="#0000ff" stroke="white" stroke-width="2" style="width: 100%; height: 100%; filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3));">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z" />
             <circle cx="12" cy="10" r="3" fill="white" stroke="none" />
           </svg>
@@ -108,7 +108,7 @@ export default function EvacuationRouteMap({ userLocation, shelterLocation, shel
       `;
       new maplibregl.Marker({ element: shelterEl, anchor: 'bottom' })
         .setLngLat([shelterLocation.lon, shelterLocation.lat])
-        .setPopup(new maplibregl.Popup({ offset: [0, -32], closeButton: false }).setHTML(`<div style="font-weight: bold; font-size: 14px; padding: 4px; color: #4f46e5;">${shelterName}</div>`))
+        .setPopup(new maplibregl.Popup({ offset: [0, -32], closeButton: false }).setHTML(`<div style="font-weight: bold; font-size: 14px; padding: 4px; color: #0000ff;">${shelterName}</div>`))
         .addTo(m);
     });
 

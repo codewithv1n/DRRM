@@ -162,33 +162,11 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
         </div>
       `;
     } else {
-      emailHtml = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08);">
-          <div style="background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%); padding: 28px 24px; text-align: center; color: #ffffff;">
-            <h1 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">GovServe DRRM</h1>
-            <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.9;">Helpline 122 Incident Verification</p>
-          </div>
-          <div style="padding: 28px 24px;">
-            <h2 style="font-size: 16px; color: #0f172a; margin-top: 0; margin-bottom: 8px; font-weight: 700;">Emergency Report Verification</h2>
-            <p style="font-size: 13px; color: #475569; line-height: 1.6; margin-bottom: 20px;">
-              You are submitting an emergency incident report to Helpline 122. Please enter this 6-digit verification code to authenticate your submission:
-            </p>
-            <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 20px;">
-              <span style="font-size: 34px; font-weight: 900; letter-spacing: 6px; color: #1d4ed8; font-family: monospace;">${otpCode}</span>
-              <div style="font-size: 11px; color: #64748b; margin-top: 6px; font-weight: 600;">Valid for 2 minutes</div>
-            </div>
-            <p style="font-size: 12px; color: #94a3b8; line-height: 1.5; margin: 0;">
-              ⚠️ If you did not request this verification code, please ignore this email. Do not share this code with anyone.
-            </p>
-          </div>
-          <div style="background-color: #f1f5f9; padding: 14px 20px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 11px; color: #64748b;">
-            GovServe DRRM • Helpline 122
-          </div>
-        </div>
-      `;
+      res.status(400).json({ error: 'Invalid OTP request type.' });
+      return;
     }
 
-    const senderName = type === 'login' ? 'GovServe DRRM Login OTP' : type === 'forgot_password' ? 'GovServe DRRM Password Reset' : type === 'signup' ? 'GovServe DRRM Registration' : 'GovServe DRRM Helpline 122';
+    const senderName = type === 'login' ? 'GovServe DRRM Login OTP' : type === 'forgot_password' ? 'GovServe DRRM Password Reset' : type === 'signup' ? 'GovServe DRRM Registration' : 'GovServe DRRM OTP';
     await sendViaBrevo(cleanEmail, emailSubject, emailHtml, senderName);
     console.log(`[Brevo] OTP email sent successfully to ${cleanEmail}`);
 
@@ -265,6 +243,10 @@ export const verifyOtp = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+
+
+
+
 export const sendDonationThankYouEmail = async (email: string, fullName: string, type: string, quantity: number) => {
   if (!email || !email.includes('@')) return false;
   
@@ -335,7 +317,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Clear OTP after successful reset
+    
     otpStore.delete(cleanEmail);
 
     await logAction('Reset Password', result.rows[0].role || 'Public', `User ${cleanEmail} reset their password`, 'System');
