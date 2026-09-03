@@ -154,7 +154,7 @@ export const getAIRecommendation = async (req: Request, res: Response): Promise<
                 'X-Title': 'DRRM App' 
             },
             body: JSON.stringify({
-                model: "google/gemma-2-9b-it:free",
+                model: "mistralai/mistral-7b-instruct:free",
                 messages: [
                     {
                         role: "system", 
