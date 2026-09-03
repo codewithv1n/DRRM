@@ -155,11 +155,9 @@ export const getAIRecommendation = async (req: Request, res: Response): Promise<
             },
             body: JSON.stringify({
                 models: [
-                    "meta-llama/llama-3.1-8b-instruct:free",
-                    "google/gemma-2-9b-it:free",
-                    "mistralai/mistral-7b-instruct:free",
-                    "qwen/qwen-2-7b-instruct:free",
-                    "openchat/openchat-7b:free"
+                    "z-ai/glm-5.2:free",
+                    "minimax/minimax-m3:free",
+                    "thinkingmachines/inkling:free"
                 ],
                 messages: [
                     {

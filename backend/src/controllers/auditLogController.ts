@@ -1,10 +1,7 @@
 import pool from '../config/db';
 import { Request, Response } from 'express';
 
-/**
- * Helper function to log an action to the audit_logs table.
- * Can be imported and called from any controller.
- */
+
 export const logAction = async (
     action: string,
     userRole: string = 'System',
