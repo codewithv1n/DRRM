@@ -152,7 +152,7 @@ export const getAIRecommendation = async (req: Request, res: Response): Promise<
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "qwen/qwen3.8-27b",
+                model: "mixtral-8x7b-32768",
                 messages: [
                     {
                         role: "system", 
@@ -169,13 +169,22 @@ export const getAIRecommendation = async (req: Request, res: Response): Promise<
 
         const aiData = await aiResponse.json();
         
+        if (!aiResponse.ok) {
+            console.error('Groq API Error:', aiData);
+            throw new Error(`Groq API error: ${aiResponse.status}`);
+        }
+        
         if (aiData.choices && aiData.choices[0]) {
             const text = aiData.choices[0].message.content.trim();
-            const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-            const parsed = JSON.parse(jsonStr);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                res.status(200).json({ data: parsed });
-                return;
+            try {
+                const jsonStr = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+                const parsed = JSON.parse(jsonStr);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    res.status(200).json({ data: parsed });
+                    return;
+                }
+            } catch (e) {
+                console.error("AI response was not valid JSON:", text);
             }
         }
         
