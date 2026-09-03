@@ -152,7 +152,7 @@ export const getAIRecommendation = async (req: Request, res: Response): Promise<
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "gemma2-9b-it",
+                model: "llama3-8b-8192",
                 messages: [
                     {
                         role: "system", 
