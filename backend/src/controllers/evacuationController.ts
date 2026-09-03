@@ -151,10 +151,16 @@ export const getAIRecommendation = async (req: Request, res: Response): Promise<
                 'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY || ''}`,
                 'Content-Type': 'application/json',
                 'HTTP-Referer': 'https://drrm-backend.up.railway.app', 
-                'X-Title': 'DRRM App' 
+                'X-Title': 'DRRM' 
             },
             body: JSON.stringify({
-                model: "meta-llama/llama-3.1-8b-instruct:free",
+                models: [
+                    "meta-llama/llama-3.1-8b-instruct:free",
+                    "google/gemma-2-9b-it:free",
+                    "mistralai/mistral-7b-instruct:free",
+                    "qwen/qwen-2-7b-instruct:free",
+                    "openchat/openchat-7b:free"
+                ],
                 messages: [
                     {
                         role: "system", 
@@ -193,6 +199,8 @@ export const getAIRecommendation = async (req: Request, res: Response): Promise<
         throw new Error("Invalid AI response or no choices returned");
     } catch (error) {
         console.error('Error fetching AI recommendation:', error);
-        res.status(500).json({ error: 'Failed to get AI recommendation' });
+        res.json({ 
+            recommendation: "AI analysis is currently unavailable due to high server traffic. However, please proceed immediately to the nearest active evacuation center listed in your area. Ensure you bring your emergency kit and stay alert for local government announcements." 
+        });
     }
 };
