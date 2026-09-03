@@ -152,7 +152,7 @@ export const getAIRecommendation = async (req: Request, res: Response): Promise<
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "mixtral-8x7b-32768",
+                model: "gemma2-9b-it",
                 messages: [
                     {
                         role: "system", 
