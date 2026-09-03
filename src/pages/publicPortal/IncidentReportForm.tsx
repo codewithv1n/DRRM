@@ -139,8 +139,10 @@ export default function IncidentReportForm() {
   }, []);
 
   useEffect(() => {
-    refreshCaptcha();
-  }, [refreshCaptcha]);
+    if (step === 'FORM') {
+      refreshCaptcha();
+    }
+  }, [step, refreshCaptcha]);
 
   const handleCaptchaInputChange = (value: string) => {
     setCaptchaInput(value);
@@ -228,7 +230,6 @@ export default function IncidentReportForm() {
         setOtherType('');
         setHasPhoto(false);
         setPhotoFile(null);
-        refreshCaptcha();
 
         setTimeout(() => {
           setShowSuccess(false);
