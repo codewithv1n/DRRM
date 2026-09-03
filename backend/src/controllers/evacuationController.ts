@@ -145,14 +145,16 @@ export const getAIRecommendation = async (req: Request, res: Response): Promise<
             `- Name: "${c.name}", Barangay: ${c.barangay}, Status: ${c.status || 'Unknown'}, Capacity: ${c.current_occupants || 0}/${c.capacity} occupants, Distance from user: ${c.distance != null ? c.distance.toFixed(2) + ' km' : 'Unknown'}`
         ).join('\n');
 
-        const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        const aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.GROQ_API_KEY || ''}`,
-                'Content-Type': 'application/json'
+                'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY || ''}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://drrm-backend.up.railway.app', 
+                'X-Title': 'DRRM App' 
             },
             body: JSON.stringify({
-                model: "llama3-8b-8192",
+                model: "google/gemma-2-9b-it:free",
                 messages: [
                     {
                         role: "system", 
@@ -170,8 +172,8 @@ export const getAIRecommendation = async (req: Request, res: Response): Promise<
         const aiData = await aiResponse.json();
         
         if (!aiResponse.ok) {
-            console.error('Groq API Error:', aiData);
-            throw new Error(`Groq API error: ${aiResponse.status}`);
+            console.error('OpenRouter API Error:', aiData);
+            throw new Error(`OpenRouter API error: ${aiResponse.status}`);
         }
         
         if (aiData.choices && aiData.choices[0]) {
