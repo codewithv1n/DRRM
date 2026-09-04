@@ -12,8 +12,6 @@ interface StoredOtp {
 
 const otpStore: Map<string, StoredOtp> = new Map();
 
-import https from 'https';
-
 const sendViaBrevo = async (to: string, subject: string, html: string, senderName: string = 'GovServe DRRM Helpline 122') => {
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey) {
@@ -25,38 +23,27 @@ const sendViaBrevo = async (to: string, subject: string, html: string, senderNam
     throw new Error('EMAIL_USER is not configured in environment variables.');
   }
 
-  const postData = JSON.stringify({
-    sender: { name: senderName, email: fromEmail },
-    to: [{ email: to }],
-    subject: subject,
-    htmlContent: html,
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': apiKey,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      sender: { name: senderName, email: fromEmail },
+      to: [{ email: to }],
+      subject: subject,
+      htmlContent: html,
+    }),
   });
 
-  return new Promise((resolve, reject) => {
-    const req = https.request('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': apiKey,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-      }
-    }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(true);
-        } else {
-          reject(new Error(`Brevo API error: ${data}`));
-        }
-      });
-    });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(`Brevo API error: ${JSON.stringify(err)}`);
+  }
 
-    req.on('error', (e) => reject(e));
-    req.write(postData);
-    req.end();
-  });
+  return true;
 };
 
 
