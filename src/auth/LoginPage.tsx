@@ -281,7 +281,7 @@ export default function LoginPage() {
                         value={username}
                         onChange={e => setUsername(e.target.value)}
                         className="block w-full pl-10 pr-4 py-3 border border-slate-200/80 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] transition-all bg-white"
-                        placeholder="admin@gov.ph"
+                        placeholder="you@example.com"
                       />
                     </div>
                   </div>
@@ -301,7 +301,7 @@ export default function LoginPage() {
                         value={password}
                         onChange={e => setPassword(e.target.value)}
                         className="block w-full pl-10 pr-4 py-3 border border-slate-200/80 rounded-xl text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] transition-all bg-white"
-                        placeholder="••••••••"
+                        placeholder="•••••••••••••••••••••••••••••"
                       />
                     </div>
                   </div>

@@ -269,7 +269,7 @@ export default function SignupPage() {
                   <input 
                     type="email"
                     required
-                    placeholder="user@example.com"
+                    placeholder="you@example.com"
                     value={form.email}
                     onChange={e => setForm({...form, email: e.target.value})}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] outline-none transition-all"
@@ -286,7 +286,7 @@ export default function SignupPage() {
                   <input 
                     type="password"
                     required
-                    placeholder="••••••••"
+                    placeholder="•••••••••••••••••••••••••••••"
                     value={form.password}
                     onChange={e => setForm({...form, password: e.target.value})}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] outline-none transition-all"
