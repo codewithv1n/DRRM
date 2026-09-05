@@ -38,8 +38,12 @@ export const createIncident = async (req: Request, res: Response) => {
             const usersResult = await pool.query(
                 `SELECT push_token FROM auth 
                  WHERE push_token IS NOT NULL 
-                 AND LOWER($1) LIKE '%' || LOWER(barangay) || '%'`,
-                [location]
+                 AND ($2::text IS NULL OR email != $2)
+                 AND (
+                     LOWER($1) LIKE '%' || LOWER(barangay) || '%'
+                     OR ($2::text IS NOT NULL AND LOWER(barangay) = (SELECT LOWER(barangay) FROM auth WHERE email = $2 LIMIT 1))
+                 )`,
+                [location, finalEmail]
             );
 
             const messages = [];
