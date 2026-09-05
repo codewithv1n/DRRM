@@ -15,7 +15,6 @@ export const createAnnouncement = async (req: Request, res: Response) => {
         );
 
         const announcement = result.rows[0];
-        res.status(201).json(announcement);
 
         await logAction('Create Announcement', 'Admin', `Broadcast ${level} alert: ${message.substring(0, 100)}`, 'Admin');
 
@@ -48,6 +47,8 @@ export const createAnnouncement = async (req: Request, res: Response) => {
             console.error('Error sending announcement push notifications:', pushError);
             // Don't fail the request if push fails
         }
+
+        res.status(201).json(announcement);
     } catch (error) {
         console.error('Error creating announcement:', error);
         res.status(500).json({ message: 'Internal server error' });

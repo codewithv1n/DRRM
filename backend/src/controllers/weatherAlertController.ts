@@ -29,7 +29,6 @@ export const logWeatherAlert = async (req: Request, res: Response) => {
         );
 
         const weatherAlert = result.rows[0];
-        res.status(201).json(weatherAlert);
 
         await logAction('Weather Alert', 'System', `Weather alert logged: ${warning_level} - ${message?.substring(0, 100)}`, 'System');
 
@@ -66,6 +65,8 @@ export const logWeatherAlert = async (req: Request, res: Response) => {
             console.error('Error sending weather alert push notifications:', pushError);
             
         }
+
+        res.status(201).json(weatherAlert);
     } catch (error) {
         console.error('Error logging weather alert:', error);
         res.status(500).json({ message: 'Internal server error' });
