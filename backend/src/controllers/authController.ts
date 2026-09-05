@@ -65,7 +65,7 @@ export const adminDisplayAllusers = async (req: Request, res: Response): Promise
 
 export const login = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { email, password } = req.body;
+        const { email, password, pushToken } = req.body;
         
         if (!email || !password) {
             res.status(400).json({ error: 'Email and password are required' });
@@ -85,6 +85,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         if (!isPasswordValid) {
             res.status(401).json({ error: 'Invalid credentials' });
             return;
+        }
+        
+        // Save push token if provided
+        if (pushToken) {
+            await pool.query('UPDATE auth SET push_token = $1 WHERE auth_id = $2', [pushToken, user.auth_id]);
+            user.push_token = pushToken;
         }
 
         

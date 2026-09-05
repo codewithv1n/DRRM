@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
 import { logAction } from './auditLogController';
+import { Expo } from 'expo-server-sdk';
+
+const expo = new Expo();
 
 export const createIncident = async (req: Request, res: Response) => {
     try {
@@ -25,11 +28,44 @@ export const createIncident = async (req: Request, res: Response) => {
             ]
         );
 
+        const newIncident = result.rows[0];
+
         await logAction('Create Incident', 'Public', `Incident reported: ${type} at ${location} by ${reporterName} (${finalEmail || 'no email'})`, reporterName || 'Anonymous');
+
+      
+        try {
+           
+            const usersResult = await pool.query(
+                `SELECT push_token FROM auth 
+                 WHERE push_token IS NOT NULL 
+                 AND LOWER($1) LIKE '%' || LOWER(barangay) || '%'`,
+                [location]
+            );
+
+            const messages = [];
+            for (let user of usersResult.rows) {
+                if (!Expo.isExpoPushToken(user.push_token)) continue;
+                messages.push({
+                    to: user.push_token,
+                    sound: 'default',
+                    title: `New ${type} Incident Reported`,
+                    body: `Location: ${location}. Please check your dashboard for details.`,
+                    data: { incidentId: newIncident.incident_id, type: 'incident' },
+                });
+            }
+
+            const chunks = expo.chunkPushNotifications(messages as any);
+            for (let chunk of chunks) {
+                await expo.sendPushNotificationsAsync(chunk);
+            }
+        } catch (pushError) {
+            console.error('Error sending push notifications:', pushError);
+            
+        }
 
         res.status(201).json({
             message: 'Incident report submitted successfully',
-            incident: result.rows[0]
+            incident: newIncident
         });
     } catch (error) {
         console.error('Error creating incident report:', error);
