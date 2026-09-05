@@ -19,7 +19,7 @@ import {
   Navigation,
   ArrowLeft,
   Upload,
-  Mountain,
+  Search,
   HelpCircle,
   ShieldCheck,
   RefreshCw,
@@ -280,7 +280,7 @@ export default function IncidentReportForm() {
           <CheckCircle2 className="w-5 h-5 text-white" />
           <div>
             <div className="font-bold text-sm">Verified Report Dispatched!</div>
-            <div className="text-xs text-emerald-100">Helpline 122 response units have been notified.</div>
+            <div className="text-xs text-emerald-100">HelpForm 122 response units have been notified.</div>
           </div>
         </div>
       )}
@@ -301,14 +301,14 @@ export default function IncidentReportForm() {
           <div className="inline-flex p-3 bg-white/10 rounded-2xl mb-2 backdrop-blur-sm">
             <AlertCircle className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Helpline 122</h1>
+          <h1 className="text-2xl font-black text-white tracking-tight">HelpForm 122</h1>
           <p className="text-blue-100 text-xs font-medium mt-1">GovServe Emergency Incident Reporting Portal</p>
         </div>
 
         
         {step === 'FORM' && (
           <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
-            {/* Row 1: Name & Contact */}
+           
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
@@ -462,7 +462,7 @@ export default function IncidentReportForm() {
                   { type: 'Fire', icon: Flame, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200' },
                   { type: 'Flood', icon: Droplets, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-200' },
                   { type: 'Medical', icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-                  { type: 'Earthquake', icon: Mountain, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-200' },
+                  { type: 'Search and Rescue', icon: Search, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-200' },
                   { type: 'Road Obstruction', icon: AlertTriangle, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200' },
                   { type: 'Other', icon: HelpCircle, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200' },
                 ].map((em) => {
@@ -505,7 +505,7 @@ export default function IncidentReportForm() {
               )}
             </div>
 
-            {/* Custom CAPTCHA Human Verification */}
+           
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
                 Human Verification <span className="text-red-500">*</span>
@@ -514,7 +514,7 @@ export default function IncidentReportForm() {
                 captchaError ? 'border-red-300 bg-red-50/50' : 'border-slate-200 bg-slate-50/30'
               }`}>
                 <div className="flex flex-col items-center gap-3">
-                  {/* CAPTCHA Canvas */}
+                  
                   <div className="flex items-center gap-2">
                     <canvas
                       ref={canvasRef}
@@ -533,7 +533,7 @@ export default function IncidentReportForm() {
                     </button>
                   </div>
 
-                  {/* CAPTCHA Input */}
+                  
                   <div className="w-full max-w-55">
                     <input
                       type="text"

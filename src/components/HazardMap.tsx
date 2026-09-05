@@ -122,10 +122,10 @@ function getIncidentColor(type: string): string {
   const t = type?.toLowerCase() || '';
   if (t.includes('fire')) return '#ef4444'; 
   if (t.includes('flood')) return '#3b82f6'; 
-  if (t.includes('earthquake')) return '#a855f7'; 
+  if (t.includes('search') || t.includes('rescue')) return '#a855f7'; 
   if (t.includes('medical')) return '#10b981'; 
   if (t.includes('road') || t.includes('vehicular') || t.includes('obstruction') || t.includes('accident')) return '#f97316'; // Orange
-  return '#eab308'; // Amber
+  return '#eab308'; 
 }
 
 function getStatusBadgeHtml(status: string, color: string): string {
