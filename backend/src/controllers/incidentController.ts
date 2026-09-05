@@ -47,10 +47,11 @@ export const createIncident = async (req: Request, res: Response) => {
                 if (!Expo.isExpoPushToken(user.push_token)) continue;
                 messages.push({
                     to: user.push_token,
-                    sound: 'default',
+                    sound: 'default' as const,
                     title: `New ${type} Incident Reported`,
                     body: `Location: ${location}. Please check your dashboard for details.`,
                     data: { incidentId: newIncident.incident_id, type: 'incident' },
+                    channelId: 'default',
                 });
             }
 
