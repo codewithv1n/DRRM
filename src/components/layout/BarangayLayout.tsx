@@ -161,7 +161,7 @@ export default function BarangayLayout({ children }: BarangayLayoutProps) {
     };
 
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 10000);
+    const interval = setInterval(fetchNotifs, 1000);
     return () => clearInterval(interval);
   }, []);
 

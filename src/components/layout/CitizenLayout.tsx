@@ -207,13 +207,13 @@ export default function CitizenLayout({ children }: CitizenLayoutProps) {
     };
 
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 10000);
+    const interval = setInterval(fetchNotifs, 1000);
     return () => clearInterval(interval);
   }, []);
 
   const displayCount = notifications.length;
 
-  // Derive title from path
+  
   const getPageTitle = () => {
     const path = location.pathname;
     if (language === 'ph') {
